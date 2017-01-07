@@ -1,6 +1,8 @@
 import sublime, sublime_plugin, os, Default.exec, multiprocessing
 
 class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
+	"""Writes a build system to the sublime project file. This only works
+	when a cmake project has been configured."""
 
 	def run(self):
 		self.variants = []
@@ -12,13 +14,17 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 			return
 		projectPath = os.path.dirname(self.window.project_file_name())
 		if not os.path.isfile(os.path.join(projectPath, 'CMakeLists.txt')):
-			sublime.error_message('No "CMakeLists.txt" file present in "{}"'.format(projectPath))
+			sublime.error_message(
+				'No "CMakeLists.txt" file present in "{}"'
+				.format(projectPath))
 			return
 		cmakeDict = project.get('cmake')
 		if cmakeDict is None:
-			sublime.error_message('No "cmake" object found in {}.'.format(projectPath))
+			sublime.error_message(
+				'No "cmake" object found in {}.'.format(projectPath))
 		self.buildFolderBeforeExpansion = cmakeDict.get('build_folder')
-		cmakeDict = sublime.expand_variables(cmakeDict, self.window.extract_variables())
+		cmakeDict = sublime.expand_variables(cmakeDict, 
+			self.window.extract_variables())
 		self.buildFolder = cmakeDict.get('build_folder')
 		self.filterTargets = cmakeDict.get('filter_targets')
 		generator = cmakeDict.get('generator')
@@ -26,7 +32,9 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 			self.isNinja = generator == 'Ninja'
 			self.isMake = generator == 'Unix Makefiles'
 		if self.buildFolder is None:
-			sublime.error_message('No "cmake_build_folder" variable found in {}.'.format(projectPath))
+			sublime.error_message(
+				'No "cmake_build_folder" variable found in {}.'
+				.format(projectPath))
 			return
 		shellCmd = 'cmake --build . --target help'
 		super().run(shell_cmd=shellCmd, working_dir=self.buildFolder)
@@ -74,11 +82,13 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 					if name.endswith(ext):
 						name = name[:-len(ext)]
 						break
-				if self.filterTargets and not any(f in name for f in self.filterTargets):
+				if (self.filterTargets and 
+					not any(f in name for f in self.filterTargets)):
 					continue
 				shellCmd = None
 				if self.isMake:
-					shellCmd = 'make {} -j{}'.format(target, str(multiprocessing.cpu_count()))
+					shellCmd = 'make {} -j{}'.format(
+						target, str(multiprocessing.cpu_count()))
 				else:
 					shellCmd = 'cmake --build . --target {}'.format(target)
 				self.variants.append({'name': name, 'shell_cmd': shellCmd})
@@ -88,11 +98,16 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 
 	def on_finished(self, proc):
 		super().on_finished(proc)
+
+		REGEX = '^(/.[^:]*):(\\d+):(\\d+): (?:fatal )?(?:error|warning): (.*)$'
+
 		project = self.window.project_data()
+		name = os.path.splitext(
+			os.path.basename(self.window.project_file_name()))[0]
 		project['build_systems'] = [
-			{'name': os.path.splitext(os.path.basename(self.window.project_file_name()))[0],
+			{'name': name,
 			'shell_cmd': 'cmake --build .',
 			'working_dir': self.buildFolderBeforeExpansion,
-			'file_regex': '^(/.[^:]*):(\\d+):(\\d+): (?:fatal )?(?:error|warning): (.*)$',
+			'file_regex': REGEX,
 			'variants': self.variants}]
 		self.window.set_project_data(project)
