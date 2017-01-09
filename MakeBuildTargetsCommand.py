@@ -12,32 +12,41 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 		if project is None:
 			sublime.error_message('No sublime-project file found.')
 			return
-		projectPath = os.path.dirname(self.window.project_file_name())
-		if not os.path.isfile(os.path.join(projectPath, 'CMakeLists.txt')):
+		project_file_name = self.window.project_file_name()
+		if not project_file_name:
+			sublime.error_message('No sublime-project file found.')
+			return
+		project_path = os.path.dirname(project_file_name)
+		if not os.path.isfile(os.path.join(project_path, 'CMakeLists.txt')):
 			sublime.error_message(
 				'No "CMakeLists.txt" file present in "{}"'
-				.format(projectPath))
+				.format(project_path))
 			return
-		cmakeDict = project.get('cmake')
-		if cmakeDict is None:
+		cmake = project.get('cmake')
+		if cmake is None:
 			sublime.error_message(
-				'No "cmake" object found in {}.'.format(projectPath))
-		self.buildFolderBeforeExpansion = cmakeDict.get('build_folder')
-		cmakeDict = sublime.expand_variables(cmakeDict, 
-			self.window.extract_variables())
-		self.buildFolder = cmakeDict.get('build_folder')
-		self.filterTargets = cmakeDict.get('filter_targets')
-		generator = cmakeDict.get('generator')
-		if generator:
-			self.isNinja = generator == 'Ninja'
-			self.isMake = generator == 'Unix Makefiles'
-		if self.buildFolder is None:
+				'No "cmake" object found in {}.'.format(project_path))
+		self.build_folder_pre_expansion = cmake.get('build_folder')
+		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+		self.build_folder = cmake.get('build_folder')
+		self.filter_targets = cmake.get('filter_targets')
+		generator = cmake.get('generator').lower()
+		if not generator:
+			self.isMake = True
+		elif generator == 'unix makefiles':
+			self.isMake = True
+		elif generator == 'ninja':
+			self.isNinja = True
+		else:
+			sublime.error_message('Unknown generator specified!')
+			return
+		if not self.build_folder:
 			sublime.error_message(
 				'No "cmake_build_folder" variable found in {}.'
-				.format(projectPath))
+				.format(project_path))
 			return
-		shellCmd = 'cmake --build . --target help'
-		super().run(shell_cmd=shellCmd, working_dir=self.buildFolder)
+		shell_cmd = 'cmake --build . --target help'
+		super().run(shell_cmd=shell_cmd, working_dir=self.build_folder)
 		
 	def on_data(self, proc, data):
 		super().on_data(proc, data)
@@ -58,15 +67,14 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 			'.so',
 			'.dll',
 			'.dylib',
-			'.dll',
 			'.a']
 
 		try:
 			data = data.decode(self.encoding)
 			if 'are some of the valid targets for this Makefile:' in data:
-				self.isMake = True
+				assert self.isMake
 			elif 'All primary targets available:' in data:
-				self.isNinja = True
+				assert self.isNinja
 			targets = data.splitlines()
 			for target in targets:
 				if any(exclude in target for exclude in EXCLUDES): 
@@ -82,16 +90,16 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 					if name.endswith(ext):
 						name = name[:-len(ext)]
 						break
-				if (self.filterTargets and 
-					not any(f in name for f in self.filterTargets)):
+				if (self.filter_targets and 
+					not any(f in name for f in self.filter_targets)):
 					continue
-				shellCmd = None
+				shell_cmd = None
 				if self.isMake:
-					shellCmd = 'make {} -j{}'.format(
+					shell_cmd = 'make {} -j{}'.format(
 						target, str(multiprocessing.cpu_count()))
 				else:
-					shellCmd = 'cmake --build . --target {}'.format(target)
-				self.variants.append({'name': name, 'shell_cmd': shellCmd})
+					shell_cmd = 'cmake --build . --target {}'.format(target)
+				self.variants.append({'name': name, 'shell_cmd': shell_cmd})
 		except Exception as e:
 			print(e)
 			sublime.error_message(str(e))
@@ -107,7 +115,7 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 		project['build_systems'] = [
 			{'name': name,
 			'shell_cmd': 'cmake --build .',
-			'working_dir': self.buildFolderBeforeExpansion,
+			'working_dir': self.build_folder_pre_expansion,
 			'file_regex': REGEX,
 			'variants': self.variants}]
 		self.window.set_project_data(project)

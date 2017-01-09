@@ -44,7 +44,6 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 		build_folder = os.path.realpath(build_folder)
 		generator = cmake.get('generator')
 		overrides = cmake.get('command_line_overrides')
-		filters = cmake.get('filter_targets')
 		if build_folder is None:
 			sublime.error_message(
 				'No "cmake: build_folder" variable found in {}.'.format(
