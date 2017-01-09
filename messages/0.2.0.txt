@@ -1,0 +1,1 @@
+Indent with 80 chars and fixed a bug in the Configure command.

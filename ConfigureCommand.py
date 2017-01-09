@@ -10,8 +10,12 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 		if project is None:
 			sublime.error_message('No sublime-project file found.')
 			return
-		project_name = os.path.splitext(self.window.project_file_name())[0]
-		project_path = os.path.dirname(self.window.project_file_name())
+		project_file_name = self.window.project_file_name()
+		if not project_file_name:
+			sublime.error_message('No sublime-project file found.')
+			return
+		project_name = os.path.splitext(project_file_name)[0]
+		project_path = os.path.dirname(project_file_name)
 		if not os.path.isfile(os.path.join(project_path, 'CMakeLists.txt')):
 			must_have_root_path = True
 		else:

@@ -1,0 +1,2 @@
+- Added an extra check to see if there is actually a Sublime project file.
+- Added "messages". You can read my bug fixes now!

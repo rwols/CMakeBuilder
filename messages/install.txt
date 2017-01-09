@@ -1,0 +1,11 @@
++--++++====++++--------------------------------------------------++++====++++--+
+Thanks for trying CMakeBuilder!
+
+This plugin is very simple and can be seen as "glue" between the CMake build 
+system and Sublime Text's own build system. It has three simple commands that
+you'll use sparingly, yet they're extremely useful. To help CMakeBuilder know
+where your CMake build folder is, you'll have to have a .sublime-project file
+with a "cmake" dictionary sitting next to "settings", "folders", and so forth.
+
+For the "Instruction Manual", please see: https://github.com/rwols/CMakeBuilder
++--++++====++++--------------------------------------------------++++====++++--+
