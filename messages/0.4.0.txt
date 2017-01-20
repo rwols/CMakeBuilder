@@ -1,0 +1,2 @@
+- Fixed a bug where if you didn't specify the generator, nothing would happen.
+- Improved regex for catching warnings and errors.
