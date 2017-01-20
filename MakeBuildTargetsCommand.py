@@ -30,7 +30,9 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
 		self.build_folder = cmake.get('build_folder')
 		self.filter_targets = cmake.get('filter_targets')
-		generator = cmake.get('generator').lower()
+		generator = cmake.get('generator')
+		if generator:
+			generator = generator.lower()
 		if not generator:
 			self.isMake = True
 		elif generator == 'unix makefiles':
@@ -107,7 +109,7 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 	def on_finished(self, proc):
 		super().on_finished(proc)
 
-		REGEX = '^(/.[^:]*):(\\d+):(\\d+): (?:fatal )?(?:error|warning): (.*)$'
+		REGEX = '(.+[^:]):(\d+):(\d+): (?:fatal )?((?:error|warning): .+)$'
 
 		project = self.window.project_data()
 		name = os.path.splitext(
