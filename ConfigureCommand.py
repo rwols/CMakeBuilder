@@ -4,6 +4,15 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 	"""Configures a CMake project with options set in the sublime project
 	file."""
 
+	def is_enabled(self):
+		project = self.window.project_data()
+		if project is None:
+			return False
+		project_file_name = self.window.project_file_name()
+		if not project_file_name:
+			return False
+		return True
+
 	def run(self, write_build_targets=False):
 		self.write_build_targets = write_build_targets
 		project = self.window.project_data()
