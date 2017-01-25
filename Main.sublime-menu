@@ -1,0 +1,21 @@
+[
+    {
+        "caption": "Tools",
+        "mnemonic": "T",
+        "id": "tools",
+        "children":
+        [
+            { 
+                "caption": "CMakeBuilder",
+                "id": "build",
+                "mnemonic": "c",
+                "children":
+                [
+                    { "command": "cmake_configure",           "caption": "Configure"},
+                    { "command": "cmake_write_build_targets", "caption": "Write Build Targets to Sublime Project"},
+                    { "command": "cmake_open_build_folder",   "caption": "Browse Build Folder…"}
+                ]
+            }
+        ]
+    }
+]
