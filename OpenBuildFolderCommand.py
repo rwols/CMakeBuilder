@@ -3,6 +3,18 @@ import sublime, sublime_plugin, os
 class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
 	"""Opens the build folder."""
 
+	def is_enabled(self):
+		project = self.window.project_data()
+		if project is None:
+			return False
+		project_file_name = self.window.project_file_name()
+		if not project_file_name:
+			return False
+		return True
+
+	def description(self):
+		return 'Browse Build Folder…'
+
 	def run(self):
 		project = self.window.project_data()
 		if project is None:

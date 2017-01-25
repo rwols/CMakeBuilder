@@ -11,9 +11,9 @@
                 "mnemonic": "c",
                 "children":
                 [
-                    { "command": "cmake_configure",           "caption": "Configure"},
-                    { "command": "cmake_write_build_targets", "caption": "Write Build Targets to Sublime Project"},
-                    { "command": "cmake_open_build_folder",   "caption": "Browse Build Folder…"}
+                    { "command": "cmake_configure" },
+                    { "command": "cmake_write_build_targets" },
+                    { "command": "cmake_open_build_folder" }
                 ]
             }
         ]

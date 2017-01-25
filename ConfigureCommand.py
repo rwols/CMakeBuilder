@@ -13,6 +13,9 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 			return False
 		return True
 
+	def description(self):
+		return 'Configure'
+
 	def run(self, write_build_targets=False):
 		self.write_build_targets = write_build_targets
 		project = self.window.project_data()

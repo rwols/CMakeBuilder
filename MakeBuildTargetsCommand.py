@@ -4,6 +4,28 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 	"""Writes a build system to the sublime project file. This only works
 	when a cmake project has been configured."""
 
+	def is_enabled(self):
+		"""You may only run this command if there's a `build_folder` with a
+		`CMakeCache.txt` file in it. That's when we assume that the project has
+		been configured."""
+		project = self.window.project_data()
+		if project is None:
+			return False
+		project_file_name = self.window.project_file_name()
+		if not project_file_name:
+			return False
+		cmake = project.get('cmake')
+		if not cmake:
+			return False
+		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+		build_folder = cmake.get('build_folder')
+		if not os.path.exists(os.path.join(build_folder, 'CMakeCache.txt')):
+			return False
+		return True
+
+	def description(self):
+		return 'Write Build Targets to Sublime Project'
+
 	def run(self):
 		self.variants = []
 		self.isNinja = False
