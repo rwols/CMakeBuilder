@@ -22,8 +22,8 @@ class CmakeCacheResetCommand(sublime_plugin.WindowCommand):
             cmakefiles_dir = os.path.join(buildFolder, 'CMakeFiles')
             if os.path.exists(cmakefiles_dir):
                 for root, dirs, files in os.walk(cmakefiles_dir, topdown=False):
-                    files_to_remove.extend([name for name in files])
-                    dirs_to_remove.extend([name for name in dirs])
+                    files_to_remove.extend([os.path.join(root, name) for name in files])
+                    dirs_to_remove.extend([os.path.join(root, name) for name in dirs])
                 dirs_to_remove.append(cmakefiles_dir)
             cmakecache_file = os.path.join(buildFolder, 'CMakeCache.txt')
             cmakeinstall_file = os.path.join(buildFolder, 'cmake_install.cmake')
@@ -34,19 +34,25 @@ class CmakeCacheResetCommand(sublime_plugin.WindowCommand):
 
             self.panel = self.window.create_output_panel('files_to_be_deleted')
             self.window.run_command('show_panel', {'panel': 'output.files_to_be_deleted'})
-            self.panel.run_command('append', {'characters': 'Deleted files:\n' + \
+            self.panel.run_command('insert', {'characters': 'Files to remove:\n' + \
                                               '\n'.join(files_to_remove + dirs_to_remove)})
 
-            for file in files_to_remove:
-                try:
-                    os.remove(os.path.join(buildFolder, file))
-                except Exception as e:
-                    sublime.error_message('Cannot remove '+file)
-            for directory in dirs_to_remove:
-                try:
-                    os.rmdir(os.path.join(buildFolder, directory))
-                except Exception as e:
-                    sublime.error_message('Cannot remove '+directory)
+            def on_done(selected):
+                if selected == 0:
+                    for file in files_to_remove:
+                        try:
+                            os.remove(file)
+                        except Exception as e:
+                            sublime.error_message('Cannot remove '+file)
+                    for directory in dirs_to_remove:
+                        try:
+                            os.rmdir(directory)
+                        except Exception as e:
+                            sublime.error_message('Cannot remove '+directory)
+                    self.panel.run_command('append', {'characters': '\nCleaned CMake cache files!',
+                                                      'scroll_to_end': True})
+
+            self.window.show_quick_panel(['Clean CMake cache', 'Cancel'], on_done)
 
             return
         else:
