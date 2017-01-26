@@ -1,6 +1,6 @@
-import sublime, sublime_plugin, os, glob, Default.exec
+import sublime, sublime_plugin, os, glob
 
-class CmakeCacheResetCommand(Default.exec.ExecCommand):
+class CmakeCacheResetCommand(sublime_plugin.WindowCommand):
     """Clears the CMake-generated files"""
 
     def run(self):
@@ -17,27 +17,37 @@ class CmakeCacheResetCommand(Default.exec.ExecCommand):
             cmakeDict, self.window.extract_variables())
         buildFolder = cmakeDict.get('build_folder')
         if buildFolder:
-            for root, dirs, files in os.walk(os.path.join(buildFolder, 'CMakeFiles'), topdown=False):
-                for name in files:
-                    try:
-                        os.remove(os.path.join(root, name))
-                    except Exception:
-                        pass
-                for name in dirs:
-                    try:
-                        os.rmdir(os.path.join(root, name))
-                    except Exception:
-                        pass
-            try:
-                os.remove(os.path.join(buildFolder, 'CMakeCache.txt'))
-            except Exception:
-                pass
-            def remove_file(path):
+            files_to_remove = []
+            dirs_to_remove = []
+            cmakefiles_dir = os.path.join(buildFolder, 'CMakeFiles')
+            if os.path.exists(cmakefiles_dir):
+                for root, dirs, files in os.walk(cmakefiles_dir, topdown=False):
+                    files_to_remove.extend([name for name in files])
+                    dirs_to_remove.extend([name for name in dirs])
+                dirs_to_remove.append(cmakefiles_dir)
+            cmakecache_file = os.path.join(buildFolder, 'CMakeCache.txt')
+            cmakeinstall_file = os.path.join(buildFolder, 'cmake_install.cmake')
+            if os.path.exists(cmakecache_file):
+                files_to_remove.append(cmakecache_file)
+            if os.path.exists(cmakeinstall_file):
+                files_to_remove.append(cmakeinstall_file)
+
+            self.panel = self.window.create_output_panel('files_to_be_deleted')
+            self.window.run_command('show_panel', {'panel': 'output.files_to_be_deleted'})
+            self.panel.run_command('append', {'characters': 'Deleted files:\n' + \
+                                              '\n'.join(files_to_remove + dirs_to_remove)})
+
+            for file in files_to_remove:
                 try:
-                    os.remove(path)
-                except Exception:
-                    pass
-            map(remove_file, glob.glob(os.path.join(buildFolder, '*.cmake')))
+                    os.remove(os.path.join(buildFolder, file))
+                except Exception as e:
+                    sublime.error_message('Cannot remove '+file)
+            for directory in dirs_to_remove:
+                try:
+                    os.rmdir(os.path.join(buildFolder, directory))
+                except Exception as e:
+                    sublime.error_message('Cannot remove '+directory)
+
             return
         else:
             sublime.error_message(
