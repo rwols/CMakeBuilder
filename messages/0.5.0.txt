@@ -12,5 +12,8 @@
 
 * All commands are now also in the "Tools" menu at the top of the screen.
 
-If you have an idea for improvement or you find a bug please let me know at
+* If the generator is "make" (the default), then building the default ("all")
+  target will now build with the max number of cores by default.
+
+If you have an idea for improvement or if you find a bug please let me know at
 github.com/rwols/CMakeBuilder/issues

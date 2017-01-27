@@ -14,7 +14,8 @@
                     { "command": "cmake_configure" },
                     { "command": "cmake_write_build_targets" },
                     { "command": "cmake_open_build_folder" },
-                    { "command": "cmake_cache_clear"}
+                    { "command": "cmake_cache_clear" },
+                    { "command": "cmake_clear_cache_and_configure" }
                 ]
             }
         ]
