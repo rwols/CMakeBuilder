@@ -63,9 +63,9 @@ Now you can enjoy building the correct targets right from Sublime Text 3.
 
 ![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/8.png "Building your defined targets with multithreaded make in Sublime Text 3")
 
-To forse CMake files re-generation run
+To force CMake files re-generation run
 
-    CMakeBuilder: Reset CMake cache
+    CMakeBuilder: Clear Cache
 
 and then run
 
