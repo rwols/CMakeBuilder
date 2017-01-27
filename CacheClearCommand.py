@@ -7,7 +7,7 @@ TRY_TO_REMOVE = [
     'cmake_install.cmake'
 ]
 
-class CmakeCacheClearCommand(sublime_plugin.WindowCommand):
+class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
     """Clears the CMake-generated files"""
 
     def is_enabled(self):

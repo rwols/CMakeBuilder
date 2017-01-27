@@ -31,23 +31,9 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 		self.isNinja = False
 		self.isMake = False
 		project = self.window.project_data()
-		if project is None:
-			sublime.error_message('No sublime-project file found.')
-			return
 		project_file_name = self.window.project_file_name()
-		if not project_file_name:
-			sublime.error_message('No sublime-project file found.')
-			return
 		project_path = os.path.dirname(project_file_name)
-		if not os.path.isfile(os.path.join(project_path, 'CMakeLists.txt')):
-			sublime.error_message(
-				'No "CMakeLists.txt" file present in "{}"'
-				.format(project_path))
-			return
 		cmake = project.get('cmake')
-		if cmake is None:
-			sublime.error_message(
-				'No "cmake" object found in {}.'.format(project_path))
 		self.build_folder_pre_expansion = cmake.get('build_folder')
 		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
 		self.build_folder = cmake.get('build_folder')
@@ -63,11 +49,6 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 			self.isNinja = True
 		else:
 			sublime.error_message('Unknown generator specified!')
-			return
-		if not self.build_folder:
-			sublime.error_message(
-				'No "cmake_build_folder" variable found in {}.'
-				.format(project_path))
 			return
 		shell_cmd = 'cmake --build . --target help'
 		super().run(shell_cmd=shell_cmd, working_dir=self.build_folder)

@@ -1,12 +1,5 @@
 import sublime, sublime_plugin, os
 
-# Note: Things in "CMakeFiles" folders get removed anyway. This is where you put
-# files that should be removed but are not inside CMakeFiles folders.
-TRY_TO_REMOVE = [
-    'CmakeCache.txt',
-    'cmake_install.cmake'
-]
-
 class CmakeClearCacheAndConfigureCommand(sublime_plugin.WindowCommand):
     """Clears the CMake-generated files, and then configures the project."""
 
