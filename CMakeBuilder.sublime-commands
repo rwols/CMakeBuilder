@@ -1,5 +1,6 @@
 [
 	{ "command": "cmake_open_build_folder",   "caption": "CMakeBuilder: Browse Build Folder…"                        },
 	{ "command": "cmake_configure",           "caption": "CMakeBuilder: Configure"                                   },
-	{ "command": "cmake_write_build_targets", "caption": "CMakeBuilder: Write Build Targets to Sublime Project File" }
+	{ "command": "cmake_write_build_targets", "caption": "CMakeBuilder: Write Build Targets to Sublime Project File" },
+	{ "command": "cmake_cache_reset",         "caption": "CMakeBuilder: Reset CMake cache"                           }
 ]
