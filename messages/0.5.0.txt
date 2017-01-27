@@ -1,0 +1,16 @@
+* Added new commands:
+  - "Clear Cache": Removes all cmake-related files
+    (thanks, github.com/eugene-babichenko !)
+  - "Clear Cache & Configure": Simply runs the commands "Clear Cache" and
+    "Configure" one after the other.
+
+* If a prerequisite for a command is not satisfied, the command will not be
+  executable. For instance, if you're not in "project mode" and you don't have
+  a "cmake" dictionary in your project file, the "Configure" command will just
+  not show up in the Command Palette. Similarly, if the project has not yet
+  been configured, you cannot write build targets to your project file.
+
+* All commands are now also in the "Tools" menu at the top of the screen.
+
+If you have an idea for improvement or you find a bug please let me know at
+github.com/rwols/CMakeBuilder/issues

@@ -18,14 +18,10 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 
 	def run(self, write_build_targets=False):
 		self.write_build_targets = write_build_targets
+
+		# All these variables are guaranteed to be not None because we check for
+		# that in the is_enabled method.
 		project = self.window.project_data()
-		if project is None:
-			sublime.error_message('No sublime-project file found.')
-			return
-		project_file_name = self.window.project_file_name()
-		if not project_file_name:
-			sublime.error_message('No sublime-project file found.')
-			return
 		project_name = os.path.splitext(project_file_name)[0]
 		project_path = os.path.dirname(project_file_name)
 		if not os.path.isfile(os.path.join(project_path, 'CMakeLists.txt')):
