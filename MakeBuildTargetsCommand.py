@@ -136,9 +136,14 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 		project = self.window.project_data()
 		name = os.path.splitext(
 			os.path.basename(self.window.project_file_name()))[0]
+		shell_cmd = None
+		if self.isMake:
+			shell_cmd = 'make -j{}'.format(str(multiprocessing.cpu_count()))
+		else:
+			shell_cmd = 'cmake --build .'
 		project['build_systems'] = [
 			{'name': name,
-			'shell_cmd': 'cmake --build .',
+			'shell_cmd': shell_cmd,
 			'working_dir': self.build_folder_pre_expansion,
 			'file_regex': REGEX,
 			'variants': self.variants}]
