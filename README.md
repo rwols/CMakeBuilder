@@ -70,3 +70,20 @@ To force CMake files re-generation run
 and then run
 
     CMakeBuilder: Configure
+
+###List of valid variable substitutions
+* packages
+* platform
+* file
+* file\_path
+* file\_name
+* file\_base\_name
+* file\_extension
+* folder
+* project
+* project\_path
+* project\_name
+* project\_base\_name
+* project\_extension
+* machine
+* processor
