@@ -61,10 +61,6 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 			sublime.error_message("Failed to create build directory: {}"
 				.format(str(e)))
 			return
-		try: 
-			os.remove(os.path.join(build_folder, 'CMakeCache.txt'))
-		except FileNotFoundError as e: 
-			pass
 		root_folder = cmake.get('root_folder')
 		if root_folder:
 			root_folder = os.path.realpath(root_folder)
