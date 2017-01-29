@@ -85,5 +85,3 @@ and then run
 * project\_name
 * project\_base\_name
 * project\_extension
-* machine
-* processor
