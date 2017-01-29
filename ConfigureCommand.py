@@ -55,7 +55,12 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 				'No "cmake: build_folder" variable found in {}.'.format(
 					project_path))
 			return
-		os.makedirs(build_folder, exist_ok=True)
+		try:
+			os.makedirs(build_folder, exist_ok=True)
+		except OSError as e:
+			sublime.error_message("Failed to create build directory: {}"
+				.format(str(e)))
+			return
 		try: 
 			os.remove(os.path.join(build_folder, 'CMakeCache.txt'))
 		except FileNotFoundError as e: 
