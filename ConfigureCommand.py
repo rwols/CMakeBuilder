@@ -1,4 +1,5 @@
 import sublime, sublime_plugin, os, functools, tempfile, Default.exec
+from .ExpandVariables import *
 
 class CmakeConfigureCommand(Default.exec.ExecCommand):
 	"""Configures a CMake project with options set in the sublime project
@@ -44,7 +45,17 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 			self.window.set_project_data(project)
 			project = self.window.project_data()
 			cmake = project['cmake']
-		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+		try:
+			# See ExpandVariables.py
+			cmake = expand_variables(cmake, self.window.extract_variables())
+		except KeyError as e:
+			sublime.error_message('Unknown variable in cmake dictionary: {}'
+				.format(str(e)))
+			return
+		except ValueError as e:
+			sublime.error_message('Invalid placeholder in cmake dictionary')
+			return
+		# cmake = sublime.expand_variables(cmake, self.window.extract_variables())
 		# Guaranteed to exist at this point.
 		build_folder = cmake.get('build_folder')
 		build_folder = os.path.realpath(build_folder)
