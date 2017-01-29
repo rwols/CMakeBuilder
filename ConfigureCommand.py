@@ -55,7 +55,6 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 		except ValueError as e:
 			sublime.error_message('Invalid placeholder in cmake dictionary')
 			return
-		# cmake = sublime.expand_variables(cmake, self.window.extract_variables())
 		# Guaranteed to exist at this point.
 		build_folder = cmake.get('build_folder')
 		build_folder = os.path.realpath(build_folder)

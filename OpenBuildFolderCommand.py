@@ -1,4 +1,5 @@
 import sublime, sublime_plugin, os
+from .ExpandVariables import *
 
 class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
 	"""Opens the build folder."""
@@ -13,7 +14,11 @@ class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
 		cmake = project.get('cmake')
 		if not cmake:
 			return False
-		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+		try:
+			# See ExpandVariables.py
+			cmake = expand_variables(cmake, self.window.extract_variables())
+		except Exception as e:
+			return False
 		build_folder = cmake.get('build_folder')
 		if not build_folder:
 			return False
@@ -28,7 +33,16 @@ class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
 	def run(self):
 		project = self.window.project_data()
 		cmake = project.get('cmake')
-		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+		try:
+			# See ExpandVariables.py
+			cmake = expand_variables(cmake, self.window.extract_variables())
+		except KeyError as e:
+			sublime.error_message('Unknown variable in cmake dictionary: {}'
+				.format(str(e)))
+			return
+		except ValueError as e:
+			sublime.error_message('Invalid placeholder in cmake dictionary')
+			return
 		build_folder = cmake.get('build_folder')
 		self.window.run_command(
 			'open_dir', args={'dir': os.path.realpath(build_folder)})

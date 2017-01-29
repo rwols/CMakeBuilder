@@ -1,4 +1,5 @@
 import sublime, sublime_plugin, os
+from .ExpandVariables import *
 
 class CmakeClearCacheAndConfigureCommand(sublime_plugin.WindowCommand):
     """Clears the CMake-generated files, and then configures the project."""
@@ -10,7 +11,11 @@ class CmakeClearCacheAndConfigureCommand(sublime_plugin.WindowCommand):
         cmake = project.get('cmake')
         if cmake is None:
             return False
-        cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+        try:
+            # See ExpandVariables.py
+            cmake = expand_variables(cmake, self.window.extract_variables())
+        except Exception as e:
+            return False
         build_folder = cmake.get('build_folder')
         if not build_folder:
             return False

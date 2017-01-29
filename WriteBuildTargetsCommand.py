@@ -1,4 +1,5 @@
 import sublime, sublime_plugin, os, Default.exec, multiprocessing
+from .ExpandVariables import *
 
 class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 	"""Writes a build system to the sublime project file. This only works
@@ -17,7 +18,11 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 		cmake = project.get('cmake')
 		if not cmake:
 			return False
-		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+		try:
+			# See ExpandVariables.py
+			cmake = expand_variables(cmake, self.window.extract_variables())
+		except Exception as e:
+			return False
 		build_folder = cmake.get('build_folder')
 		if not os.path.exists(os.path.join(build_folder, 'CMakeCache.txt')):
 			return False
@@ -35,7 +40,16 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
 		project_path = os.path.dirname(project_file_name)
 		cmake = project.get('cmake')
 		self.build_folder_pre_expansion = cmake.get('build_folder')
-		cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+		try:
+			# See ExpandVariables.py
+			cmake = expand_variables(cmake, self.window.extract_variables())
+		except KeyError as e:
+			sublime.error_message('Unknown variable in cmake dictionary: {}'
+				.format(str(e)))
+			return
+		except ValueError as e:
+			sublime.error_message('Invalid placeholder in cmake dictionary')
+			return
 		self.build_folder = cmake.get('build_folder')
 		self.filter_targets = cmake.get('filter_targets')
 		generator = cmake.get('generator')

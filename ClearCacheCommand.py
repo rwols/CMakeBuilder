@@ -1,4 +1,5 @@
 import sublime, sublime_plugin, os
+from .ExpandVariables import *
 
 # Note: Things in "CMakeFiles" folders get removed anyway. This is where you put
 # files that should be removed but are not inside CMakeFiles folders.
@@ -17,7 +18,11 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
         cmake = project.get('cmake')
         if cmake is None:
             return False
-        cmake = sublime.expand_variables(cmake, self.window.extract_variables())
+        try:
+            # See ExpandVariables.py
+            cmake = expand_variables(cmake, self.window.extract_variables())
+        except Exception as e:
+            return False
         build_folder = cmake.get('build_folder')
         if not build_folder:
             return False
