@@ -20,5 +20,5 @@ class CmakeClearCacheAndConfigureCommand(sublime_plugin.WindowCommand):
         return 'Clear Cache And Configure'
 
     def run(self):
-        self.window.run_command('cmake_cache_clear', args={'with_confirmation': False})
+        self.window.run_command('cmake_clear_cache', args={'with_confirmation': False})
         self.window.run_command('cmake_configure', args={'write_build_targets': False})
