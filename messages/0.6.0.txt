@@ -1,0 +1,19 @@
+* Added more strict checks for variable substitutions
+  
+  This should take care of subtle typo's in your cmake dictionary of your
+  sublime-project file.
+  (thanks, github.com/eugene-babichenko !)
+
+* Added new command (and variations): "Run CTest"
+
+  If you have unit tests defined with the "add_test" command from CMake, you can
+  run those tests by executing the commmand "Run CTest", either from the command
+  palette or from the "Tools -> CMakeBuilder" menu at the top of the window.
+  This command is only available when your build folder is populated with cmake-
+  related files.
+
+  See also:
+  https://cmake.org/cmake/help/v3.0/command/add_test.html
+
+If you have an idea for improvement or if you find a bug please let me know at
+github.com/rwols/CMakeBuilder/issues
