@@ -17,7 +17,18 @@
                     { "command": "cmake_write_build_targets" },
                     { "command": "cmake_open_build_folder" },
                     { "command": "cmake_clear_cache" },
-                    { "command": "cmake_clear_cache_and_configure" }
+                    { "command": "cmake_clear_cache_and_configure" },
+                    { "command": "cmake_run_ctest" },
+                    {
+                        "command": "cmake_run_ctest", 
+                        "caption": "Run CTest (Verbose)",
+                        "args": {"verbose": true}
+                    },
+                    {
+                        "command": "cmake_run_ctest", 
+                        "caption": "Run CTest (Extra Verbose)", 
+                        "args": {"extra_verbose": true}
+                    }
                 ]
             }
         ]

@@ -47,7 +47,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             cmake = project['cmake']
         try:
             # See ExpandVariables.py
-            cmake = expand_variables(cmake, self.window.extract_variables())
+            expand_variables(cmake, self.window.extract_variables())
         except KeyError as e:
             sublime.error_message('Unknown variable in cmake dictionary: {}'
                 .format(str(e)))

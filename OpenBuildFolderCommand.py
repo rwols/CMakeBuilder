@@ -16,7 +16,7 @@ class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
             return False
         try:
             # See ExpandVariables.py
-            cmake = expand_variables(cmake, self.window.extract_variables())
+            expand_variables(cmake, self.window.extract_variables())
         except Exception as e:
             return False
         build_folder = cmake.get('build_folder')
@@ -35,7 +35,7 @@ class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
         cmake = project.get('cmake')
         try:
             # See ExpandVariables.py
-            cmake = expand_variables(cmake, self.window.extract_variables())
+            expand_variables(cmake, self.window.extract_variables())
         except KeyError as e:
             sublime.error_message('Unknown variable in cmake dictionary: {}'
                 .format(str(e)))
