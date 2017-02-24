@@ -21,16 +21,17 @@
     },
     {
         "command": "cmake_run_ctest",
-        "caption": "CMakeBuilder: Run CTest"
+        "caption": "CMakeBuilder: Run CTest",
+        "args": { "extra_args": "--output-on-failure" }
     },
     {
         "command": "cmake_run_ctest",
         "caption": "CMakeBuilder: Run CTest (Verbose)",
-        "args": {"verbose": true }
+        "args": { "extra_args": "--verbose --output-on-failure" }
     },
     {
         "command": "cmake_run_ctest",
         "caption": "CMakeBuilder: Run CTest (Extra Verbose)", 
-        "args": {"extra_verbose": true}
+        "args": { "extra_args": "--extra-verbose --output-on-failure" }
     }
 ]

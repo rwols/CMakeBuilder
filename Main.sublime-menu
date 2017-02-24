@@ -8,26 +8,44 @@
             { 
                 "caption": "CMakeBuilder",
                 "id": "build",
-                "mnemonic": "c",
+                "mnemonic": "C",
                 "children":
                 [
                     // NOTE: The "captions" for these commands is given by
                     // the `description` method of the respective command.
-                    { "command": "cmake_configure" },
-                    { "command": "cmake_write_build_targets" },
-                    { "command": "cmake_open_build_folder" },
-                    { "command": "cmake_clear_cache" },
-                    { "command": "cmake_clear_cache_and_configure" },
-                    { "command": "cmake_run_ctest" },
                     {
-                        "command": "cmake_run_ctest", 
-                        "caption": "Run CTest (Verbose)",
-                        "args": {"verbose": true}
+                        "command": "cmake_configure", 
+                        "mnemonic": "C" 
+                    },
+                    {
+                        "command": "cmake_write_build_targets",
+                        "mnemonic": "W"
+                    },
+                    {
+                        "command": "cmake_open_build_folder",
+                        "mnemonic": "O"
+                    },
+                    {
+                        "command": "cmake_clear_cache" 
+                    },
+                    {
+                        "command": "cmake_clear_cache_and_configure"
+                    },
+                    {
+                        "command": "cmake_run_ctest",
+                        "mnemonic": "T"
                     },
                     {
                         "command": "cmake_run_ctest", 
+                        "mnemonic": "T",
+                        "caption": "Run CTest (Verbose)",
+                        "args": {"extra_args": "-V"}
+                    },
+                    {
+                        "command": "cmake_run_ctest", 
+                        "mnemonic": "T",
                         "caption": "Run CTest (Extra Verbose)", 
-                        "args": {"extra_verbose": true}
+                        "args": {"extra_args": "-VV"}
                     }
                 ]
             }
