@@ -1,0 +1,5 @@
+* Fix wrong mnemonics
+* CTest outputs whatever the program outputs on test failure
+
+If you have an idea for improvement or if you find a bug please let me know at
+github.com/rwols/CMakeBuilder/issues
