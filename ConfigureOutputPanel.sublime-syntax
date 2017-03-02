@@ -1,0 +1,25 @@
+%YAML 1.2
+---
+hidden: yes
+scope: text.log
+
+contexts:
+  main:
+    - match: ^(--)\s
+      captures:
+        1: markup.heading
+    - match: Configuring incomplete, errors occurred!
+      scope: invalid.illegal
+    - match: "(CMake Warning)(:? \\(dev\\))? at (.+):(\\d+)\\s?.*:"
+      captures:
+        1: invalid.deprecated
+        3: variable.parameter
+        4: constant.numeric.integer
+    - match: "(CMake Error) at (.+):(\\d+)\\s?.*:"
+      captures:
+        1: invalid.illegal
+        2: variable.parameter
+        3: constant.numeric.integer
+    - match: "Build files have been written to: (.+)"
+      captures:
+        1: variable.parameter
