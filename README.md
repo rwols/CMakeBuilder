@@ -65,18 +65,20 @@ Now you can enjoy building the correct targets right from Sublime Text 3.
 
 Here is an example configuration:
 
-    "cmake":
+```json
+"cmake":
+{
+    "build_folder": "${project_path}/build",
+    "command_line_overrides":
     {
-        "build_folder": "${project_path}/build",
-        "command_line_overrides":
-        {
-            "BUILD_SHARED_LIBS": true,
-            "CMAKE_BUILD_TYPE": "Debug",
-            "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-            "CMAKE_INSTALL_PREFIX": "${project_path}/build/install-test"
-        },
-        "generator": "Ninja"
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_INSTALL_PREFIX": "${project_path}/build/install-test"
     },
+    "generator": "Ninja"
+}
+```
 
 ##Extra Goodies
 
