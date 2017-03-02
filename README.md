@@ -63,6 +63,9 @@ Now you can enjoy building the correct targets right from Sublime Text 3.
 
 ![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/8.png "Building your defined targets with multithreaded make in Sublime Text 3")
 
+##Extra Goodies
+
+###Clearing the cache
 To force CMake files re-generation run
 
     CMakeBuilder: Clear Cache
@@ -71,7 +74,36 @@ and then run
 
     CMakeBuilder: Configure
 
-###List of valid variable substitutions
+or you can do both in one go with
+
+    CMakeBuilder: Clear Cache and Configure
+
+but be aware that this does not ask for confirmation for the deletion of the
+cache files.
+
+###Diagnostics/Help
+If you get stuck and don't know what to do, try running
+
+    CMakeBuilder: Diagnose (What Should I Do?)
+
+###Running unit tests with CTest
+If you have unit tests configured with the [add_test] function of CMake, then
+you can run those with the command
+
+    CMakeBuilder: Run CTest
+
+By default, this command will not output what your unit test outputs, unless the
+test fails. This gives you a clean overview of what runs correctly and what is
+failing and why.
+
+###Syntax highlighting for CMakeCache.txt and the output panel
+There is syntax highlighting for the CMakeCache.txt file and for the configure
+step. You can press F4 to go to the error message in the configuration step.
+
+##List of valid variable substitutions
+This is a reference list for the valid variable substitutions for your
+`.sublime-project` file.
+
 * packages
 * platform
 * file
