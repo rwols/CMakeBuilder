@@ -131,16 +131,20 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
         project = self.window.project_data()
         name = os.path.splitext(
             os.path.basename(self.window.project_file_name()))[0]
-        shell_cmd = None
+        shell_cmd = 'cmake --build .'
+        syntax = 'Packages/Text/Plain text.tmLanguage'
         if self.isMake:
             shell_cmd = 'make -j{}'.format(str(multiprocessing.cpu_count()))
-        else:
+            syntax = 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
+        elif self.isNinja:
             shell_cmd = 'cmake --build .'
+            syntax = 'Packages/CMakeBuilder/Syntax/Ninja.sublime-syntax'
         project['build_systems'] = [
             {'name': name,
             'shell_cmd': shell_cmd,
             'working_dir': self.build_folder_pre_expansion,
             'file_regex': REGEX,
+            'syntax': syntax,
             'variants': self.variants}]
         self.window.set_project_data(project)
         self.window.run_command('set_build_system', args={'index': 0})

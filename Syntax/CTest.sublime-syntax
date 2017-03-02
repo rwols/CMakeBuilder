@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+hidden: yes
+scope: text.log
+
+contexts:
+  main:
+    - match: \*\*\*Failed
+      scope: invalid.illegal
+    - match: \*\*\*Exception
+      scope: invalid.illegal
+...

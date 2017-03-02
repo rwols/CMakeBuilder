@@ -26,7 +26,7 @@ class CmakeRunCtestCommand(Default.exec.ExecCommand):
     def description(self):
         return 'Run CTest'
 
-    def run(self, extra_args=None):
+    def run(self, extra_args=None, test_framework='boost'):
         project = self.window.project_data()
         cmake = project.get('cmake')
         try:
@@ -44,7 +44,16 @@ class CmakeRunCtestCommand(Default.exec.ExecCommand):
         cmd = 'ctest'
         if extra_args:
             cmd += ' ' + extra_args
-        super().run(shell_cmd=cmd, working_dir=build_folder)
+
+        regex = r'(.+[^:]):(\d+):() (?:fatal )?((?:error|warning): .+)$'
+        #TODO: check out google test style errors, right now I just assume
+        #      everybody uses boost unit test framework
+
+        SYNTAX = 'Packages/CMakeBuilder/Syntax/CTest.sublime-syntax'
+        super().run(shell_cmd=cmd, 
+            working_dir=build_folder, 
+            file_regex=regex,
+            syntax=SYNTAX)
     
     def on_finished(self, proc):
         super().on_finished(proc)

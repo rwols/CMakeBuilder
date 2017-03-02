@@ -1,0 +1,19 @@
+%YAML 1.2
+---
+hidden: yes
+scope: text.log
+
+contexts:
+  main:
+    - match: ^\[\s*(\d+%)\]
+      captures:
+        1: constant.numeric.integer
+    - match: (Building CX?X? object) (.*)
+      captures:
+        1: keyword.operator
+        2: string
+    - match: "(Linking CX?X?(?: shared| static)? (?:library|executable)) (.*)"
+      captures:
+        1: keyword.control
+        2: string
+...

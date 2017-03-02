@@ -99,7 +99,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         super().run(shell_cmd=cmd, 
             working_dir=root_folder,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
-            syntax='Packages/CMakeBuilder/ConfigureOutputPanel.sublime-syntax')
+            syntax='Packages/CMakeBuilder/Syntax/Configure.sublime-syntax')
     
     def on_finished(self, proc):
         super().on_finished(proc)
