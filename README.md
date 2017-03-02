@@ -63,6 +63,21 @@ Now you can enjoy building the correct targets right from Sublime Text 3.
 
 ![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/8.png "Building your defined targets with multithreaded make in Sublime Text 3")
 
+Here is an example configuration:
+
+    "cmake":
+    {
+        "build_folder": "${project_path}/build",
+        "command_line_overrides":
+        {
+            "BUILD_SHARED_LIBS": true,
+            "CMAKE_BUILD_TYPE": "Debug",
+            "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+            "CMAKE_INSTALL_PREFIX": "${project_path}/build/install-test"
+        },
+        "generator": "Ninja"
+    },
+
 ##Extra Goodies
 
 ###Clearing the cache
