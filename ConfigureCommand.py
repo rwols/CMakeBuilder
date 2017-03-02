@@ -79,8 +79,11 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
                 'No "CMakeLists.txt" file in the project folder is present and \
                 no "root_folder" specified in the "cmake" dictionary of the \
                 sublime-project file.')
-        cmd = 'cmake "{}"'.format(
-            root_folder if root_folder else project_path)
+        else:
+            root_folder = project_path
+        # -H and -B are undocumented arguments.
+        # See: http://stackoverflow.com/questions/31090821
+        cmd = 'cmake -H"{}" -B"{}"'.format(root_folder, build_folder)
         if generator:
             cmd += ' -G "{}"'.format(generator)
         try:
@@ -93,7 +96,10 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             pass
         except ValueError as e:
             pass
-        super().run(shell_cmd=cmd, working_dir=build_folder)
+        super().run(shell_cmd=cmd, 
+            working_dir=root_folder,
+            file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
+            syntax='Packages/CMakeBuilder/ConfigureOutputPanel.sublime-syntax')
     
     def on_finished(self, proc):
         super().on_finished(proc)
