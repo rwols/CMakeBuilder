@@ -14,6 +14,10 @@
                     // NOTE: The "captions" for these commands is given by
                     // the `description` method of the respective command.
                     {
+                        "command": "cmake_diagnose",
+                        "mnemonic": "D"
+                    },
+                    {
                         "command": "cmake_configure", 
                         "mnemonic": "C" 
                     },

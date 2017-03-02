@@ -33,5 +33,9 @@
         "command": "cmake_run_ctest",
         "caption": "CMakeBuilder: Run CTest (Extra Verbose)", 
         "args": { "extra_args": "--extra-verbose --output-on-failure" }
+    },
+    {
+        "command": "cmake_diagnose",
+        "caption": "CMakeBuilder: Diagnose (What Should I Do?)"
     }
 ]

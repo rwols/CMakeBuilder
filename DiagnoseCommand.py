@@ -9,3 +9,6 @@ class CmakeDiagnoseCommand(sublime_plugin.ApplicationCommand):
         view.run_command('cmake_insert_diagnosis')
         view.set_read_only(True)
         sublime.active_window().focus_view(view)
+
+    def description(self):
+        return "Diagnose (Help! What should I do?)"

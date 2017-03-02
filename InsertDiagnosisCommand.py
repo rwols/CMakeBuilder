@@ -1,4 +1,4 @@
-import sublime, sublime_plugin, subprocess, os, shutil
+import sublime, sublime_plugin, subprocess, os
 
 class CmakeInsertDiagnosisCommand(sublime_plugin.TextCommand):
 
@@ -15,17 +15,6 @@ class CmakeInsertDiagnosisCommand(sublime_plugin.TextCommand):
         return shutil.which(cmd) is not None
 
     def _diagnose(self, edit):
-
-        if self._command_exists('cmake'):
-            self._OK(edit, 'CMake executable exists.')
-        else:
-            self._ERR(edit, 'Could not find the CMake executable! Make sure CMake is installed.')
-
-        if self._command_exists('ctest'):
-            self._OK(edit, 'CTest executable exists.')
-        else:
-            self._ERR(edit, 'Could not find the CTest executable! Make sure CMake is installed.')
-
         project = self.view.window().project_data()
         projectFilename = self.view.window().project_file_name()
 
