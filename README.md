@@ -41,7 +41,7 @@ can invoke the command
     CMakeBuilder: Configure
 
 from the Command Palette. This will configure the project in the specified
-`builder_folder`, and if specified, with the CMakeLists.txt file in
+`build_folder`, and if specified, with the CMakeLists.txt file in
 `root_folder`, otherwise the current project path is assumed to have a
 CMakeLists.txt file.
 
