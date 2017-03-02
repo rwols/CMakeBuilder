@@ -5,5 +5,12 @@ NEW features:
 - Syntax highlighting for the cmake output panel at the configuration step
 - Goto error/warning at the configuration step (press F4)
 
+The supplied in-line message for the "goto error/warning" is kind of bonkers.
+That's because Sublime Text 3 cannot handle multi-line error messages; see for
+example [1] or [2]. Anyway, that's the best I can do for now.
+
 If you have an idea for improvement or if you find a bug please let me know at
 github.com/rwols/CMakeBuilder/issues
+
+[1]: https://github.com/SublimeTextIssues/Core/issues/1412
+[2]: https://github.com/SublimeTextIssues/Core/issues/1430
