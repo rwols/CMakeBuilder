@@ -1,0 +1,9 @@
+NEW features:
+
+- Diagnose command if you get stuck on what to do
+- Syntax highlighting for the CMakeCache.txt file
+- Syntax highlighting for the cmake output panel at the configuration step
+- Goto error/warning at the configuration step (press F4)
+
+If you have an idea for improvement or if you find a bug please let me know at
+github.com/rwols/CMakeBuilder/issues
