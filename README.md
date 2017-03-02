@@ -1,5 +1,5 @@
 # CMakeBuilder
-Configure and build a CMake project right from within Sublime Text 3.
+Configure, build and test a CMake project right from within Sublime Text 3.
 
 ## Instruction Manual
 Have a `.sublime-project` file in your project folder. In that file, create a
