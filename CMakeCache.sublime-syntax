@@ -1,0 +1,19 @@
+%YAML 1.2
+---
+file_extensions: [txt]
+first_line_match: "# This is the CMakeCache file."
+scope: source.cmakecache
+
+contexts:
+  main:
+    - match: \/\/.*
+      scope: comment
+    - match: "#.*"
+      scope: comment
+    - match: "^([\\w'-]+)(:)(\\w+)(=)(.*)"
+      captures:
+        1: variable.parameter
+        2: keyword.operator
+        3: storage.type
+        4: keyword.operator
+        5: string
