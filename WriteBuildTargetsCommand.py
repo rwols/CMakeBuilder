@@ -143,3 +143,4 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
             'file_regex': REGEX,
             'variants': self.variants}]
         self.window.set_project_data(project)
+        self.window.run_command('set_build_system', args={'index': 0})
