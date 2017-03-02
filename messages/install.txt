@@ -9,4 +9,17 @@ a .sublime-project file with a "cmake" dictionary sitting next to "settings",
 "folders", and so forth.
 
 For the "Instruction Manual", please see: https://github.com/rwols/CMakeBuilder
+
+Extra goodies:
+- Run your unit tests from within Sublime with CTest
+- Diagnose command if you get stuck on what to do
+- Syntax highlighting for the CMakeCache.txt file
+- Syntax highlighting for the cmake output panel at the configuration step
+- Goto error/warning at the configuration step (press F4)
+
+Note that commands are "disabled" when they feel that they cannot be run.
+For example, if there is no CMakeLists.txt file in your project folder, the
+command "CMakeBuilder: Configure" will not show up in the command palette.
+The command "CMakeBuilder: Diagnose" can always be run and you can use that as
+a hint as to what is wrong.
 +--++++====++++--------------------------------------------------++++====++++--+
