@@ -87,7 +87,7 @@ If you get stuck and don't know what to do, try running
     CMakeBuilder: Diagnose (What Should I Do?)
 
 ###Running unit tests with CTest
-If you have unit tests configured with the [add_test] function of CMake, then
+If you have unit tests configured with the [add_test](https://cmake.org/cmake/help/latest/command/add_test.html) function of CMake, then
 you can run those with the command
 
     CMakeBuilder: Run CTest
