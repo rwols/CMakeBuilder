@@ -22,4 +22,10 @@ For example, if there is no CMakeLists.txt file in your project folder, the
 command "CMakeBuilder: Configure" will not show up in the command palette.
 The command "CMakeBuilder: Diagnose" can always be run and you can use that as
 a hint as to what is wrong.
+
+This plugin is not a replacement for "serious" build users. In a real build,
+you probably want to create shared and static versions of your library, and
+debug and release versions. Perhaps 32 bit and 64 bit too. That's what the
+command line is for. This plugin is for the developer working on a CMake project
+and wanting to quickly build/test the project.
 +--++++====++++--------------------------------------------------++++====++++--+
