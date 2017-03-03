@@ -22,6 +22,12 @@
                         "mnemonic": "C" 
                     },
                     {
+                        "command": "cmake_configure",
+                        "caption": "Configure & Update Build System Targets",
+                        "mnemonic": "U",
+                        "args": {"write_build_targets": true}
+                    },
+                    {
                         "command": "cmake_write_build_targets",
                         "mnemonic": "W"
                     },

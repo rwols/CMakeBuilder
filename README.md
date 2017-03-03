@@ -114,8 +114,16 @@ test fails. This gives you a clean overview of what runs correctly and what is
 failing and why.
 
 ###Syntax highlighting for CMakeCache.txt and the output panel
-There is syntax highlighting for the CMakeCache.txt file and for the configure
-step. You can press F4 to go to the error message in the configuration step.
+There is syntax highlighting for the CMakeCache.txt file, for the configure
+step, and for the CTest output. You can press F4 to go to the error message in
+the configuration step and the CTest output. Goto error in the CTest output
+only works if you're using something that outputs error messages in the form
+of the boost unit test framework right now, but I'll look into the google test
+framework in the future.
+
+![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/11.png "11")
+
+![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/12.png "12")
 
 ##List of valid variable substitutions
 This is a reference list for the valid variable substitutions for your
