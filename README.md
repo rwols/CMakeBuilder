@@ -24,7 +24,10 @@ setting can be useful if your project is "embedded" into a larger project.
 
 ###command\_line\_overrides (optional)
 A dictionary of key-value pairs that are passed to the cmake invocation as `-D`
-options.
+options. If a CMake variable is a boolean type, you can use JSON `true` and
+`false` values. Everything else is interpreted as a string and will be passed
+literally as-is to the CMake invocation. See the [example configuration](#Example configuration)
+to see how this works out.
 
 ###generator (optional)
 The generator, passed to the cmake invocation via `-G`. Currently, only
@@ -63,7 +66,7 @@ Now you can enjoy building the correct targets right from Sublime Text 3.
 
 ![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/8.png "Building your defined targets with multithreaded make in Sublime Text 3")
 
-Here is an example configuration:
+###Example configuration
 
 ```json
 "cmake":
