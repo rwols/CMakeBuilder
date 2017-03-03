@@ -103,6 +103,10 @@ If you get stuck and don't know what to do, try running
 
     CMakeBuilder: Diagnose (What Should I Do?)
 
+###Tools Menu
+All commands are also visible in the Tools menu under "CMakeBuilder".
+![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/11.png "The commands inside the tools menu")
+
 ###Running unit tests with CTest
 If you have unit tests configured with the [add_test](https://cmake.org/cmake/help/latest/command/add_test.html) function of CMake, then
 you can run those with the command
@@ -121,9 +125,9 @@ only works if you're using something that outputs error messages in the form
 of the boost unit test framework right now, but I'll look into the google test
 framework in the future.
 
-![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/11.png "11")
-
-![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/12.png "12")
+![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/9.png "basic highlighting")
+![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/10.png "basic highlighting")
+![The CMake dictionary item](https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/12.png "basic highlighting")
 
 ##List of valid variable substitutions
 This is a reference list for the valid variable substitutions for your
