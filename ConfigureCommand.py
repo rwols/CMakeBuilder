@@ -108,3 +108,4 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
                 functools.partial(
                     self.window.run_command, 
                     'cmake_write_build_targets'), 0)
+
