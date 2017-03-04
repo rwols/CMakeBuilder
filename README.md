@@ -1,6 +1,24 @@
 # CMakeBuilder
 Configure, build and test a CMake project right from within Sublime Text 3.
 
+##Installation
+
+Via package control: Run the command
+
+    Package Control: Install Package
+
+and look for CMakeBuilder. You can also install the package manually via git.
+Go to your packages folder, and then run
+
+    $ git clone https://github.com/rwols/CMakeBuilder.git
+
+But be aware that updates are not automatic this way. You'll have to call
+
+    $ git pull
+
+every once in a while inside the folder "Packages/CMakeBuilder" to get the
+latest updates.
+
 ## Instruction Manual
 Have a `.sublime-project` file in your project folder. In that file, create a
 new dictionary called `cmake`, as in the following screenshot.
