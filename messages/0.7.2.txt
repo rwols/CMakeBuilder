@@ -1,0 +1,8 @@
+The problem with the syntax files was that CMakeBuilder got installed in the
+"Installed Packages" directory, while syntax paths were supplied as
+"Packages/Syntax/some-syntax.sublime-syntax", so users got errors complaining
+about missing syntax files when building. This was patched by adding a
+.no-sublime-package file in the root directory. This is patch #2.
+
+If the error persists, please reinstall from package control. CMakeBuilder
+should install in your "Packages" directory now, not in "Installed Packages".
