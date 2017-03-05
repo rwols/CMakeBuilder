@@ -9,6 +9,11 @@
     },
     {
         "command": "cmake_configure", 
+        "caption": "CMakeBuilder: Configure (silence dev warnings)",
+        "args": { "silence_dev_warnings": true }
+    },
+    {
+        "command": "cmake_configure", 
         "caption": "CMakeBuilder: Configure & Update Build System Targets",
         "args": { "write_build_targets": true }
     },

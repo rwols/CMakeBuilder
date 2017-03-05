@@ -17,7 +17,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
     def description(self):
         return 'Configure'
 
-    def run(self, write_build_targets=False):
+    def run(self, write_build_targets=False, silence_dev_warnings=False):
         self.write_build_targets = write_build_targets
         project = self.window.project_data()
         project_file_name = self.window.project_file_name()
@@ -84,6 +84,8 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         # -H and -B are undocumented arguments.
         # See: http://stackoverflow.com/questions/31090821
         cmd = 'cmake -H"{}" -B"{}"'.format(root_folder, build_folder)
+        if silence_dev_warnings:
+            cmd += ' -Wno-dev'
         if generator:
             cmd += ' -G "{}"'.format(generator)
         try:

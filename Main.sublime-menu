@@ -23,6 +23,12 @@
                     },
                     {
                         "command": "cmake_configure",
+                        "caption": "Configure (silence dev warnings)",
+                        "mnemonic": "C",
+                        "args": {"silence_dev_warnings": true}
+                    },
+                    {
+                        "command": "cmake_configure",
                         "caption": "Configure & Update Build System Targets",
                         "mnemonic": "U",
                         "args": {"write_build_targets": true}
