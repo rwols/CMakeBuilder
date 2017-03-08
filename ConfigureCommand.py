@@ -91,16 +91,18 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             cmd += ' -Wno-dev'
         if generator:
             cmd += ' -G "{}"'.format(generator)
-        for key, value in overrides.items():
-            try:
-                if type(value) is bool:
-                    cmd += ' -D{}={}'.format(key, 'ON' if value else 'OFF')
-                else:
-                    cmd += ' -D{}={}'.format(key, str(value))
-            except AttributeError as e:
-                pass
-            except ValueError as e:
-                pass
+        override_keyvalue_pairs = overrides.items()
+        if override_keyvalue_pairs:
+            for key, value in overrides.items():
+                try:
+                    if type(value) is bool:
+                        cmd += ' -D{}={}'.format(key, 'ON' if value else 'OFF')
+                    else:
+                        cmd += ' -D{}={}'.format(key, str(value))
+                except AttributeError as e:
+                    pass
+                except ValueError as e:
+                    pass
         super().run(shell_cmd=cmd, 
             working_dir=root_folder,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
