@@ -66,5 +66,35 @@
                 ]
             }
         ]
-    }
+    },
+	{
+		"caption": "Preferences",
+		"id": "preferences",
+		"children": 
+		[
+			{
+				"caption": "Package Settings",
+				"id": "package-settings",
+				"children": 
+				[
+					{
+						"caption": "CMakeBuilder",
+						"id": "cmakebuilder",
+						"children": 
+						[
+							{
+								"command": "edit_settings",
+								"caption": "Settings",
+								"mnemonic": "C",
+                                "args":
+                                {
+                                    "base_file": "${packages}/CMakeBuilder/CMakeBuilder.sublime-settings"
+                                }
+							}
+						]
+					}
+				]
+			}
+		]
+	}
 ]

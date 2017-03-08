@@ -18,7 +18,10 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         return 'Configure'
 
     def run(self, write_build_targets=False, silence_dev_warnings=False):
-        self.write_build_targets = write_build_targets
+        settings = sublime.load_settings('CMakeBuilder.sublime-settings')
+        if settings.get('always_clear_cache_before_configure', False):
+            self.window.run_command('cmake_clear_cache', args={'with_confirmation': False})
+        # self.write_build_targets = write_build_targets
         project = self.window.project_data()
         project_file_name = self.window.project_file_name()
         project_name = os.path.splitext(project_file_name)[0]
@@ -84,20 +87,20 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         # -H and -B are undocumented arguments.
         # See: http://stackoverflow.com/questions/31090821
         cmd = 'cmake -H"{}" -B"{}"'.format(root_folder, build_folder)
-        if silence_dev_warnings:
+        if settings.get('silence_developer_warnings', False):
             cmd += ' -Wno-dev'
         if generator:
             cmd += ' -G "{}"'.format(generator)
-        try:
-            for key, value in overrides.items():
+        for key, value in overrides.items():
+            try:
                 if type(value) is bool:
                     cmd += ' -D{}={}'.format(key, 'ON' if value else 'OFF')
                 else:
                     cmd += ' -D{}={}'.format(key, str(value))
-        except AttributeError as e:
-            pass
-        except ValueError as e:
-            pass
+            except AttributeError as e:
+                pass
+            except ValueError as e:
+                pass
         super().run(shell_cmd=cmd, 
             working_dir=root_folder,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
@@ -105,9 +108,11 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
     
     def on_finished(self, proc):
         super().on_finished(proc)
-        if self.write_build_targets:
-            sublime.set_timeout(
-                functools.partial(
-                    self.window.run_command, 
-                    'cmake_write_build_targets'), 0)
+        if proc.exit_code() == 0:
+            settings = sublime.load_settings('CMakeBuilder.sublime-settings')
+            if settings.get('write_build_targets_after_successful_configure', False):
+                rc = self.window.run_command
+                name = 'cmake_write_build_targets'
+                func = functools.partial(rc, name)
+                sublime.set_timeout(func, 0)
 

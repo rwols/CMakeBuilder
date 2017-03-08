@@ -1,3 +1,4 @@
 - Add "Configure (silence dev warnings)" variational command. This silences
   dev warnings with -Wno-dev.
 - Only optionally run "Write build targets" after a successful configure.
+- Add settings file (go to Preferences -> Package Settings -> CMakeBuilder)

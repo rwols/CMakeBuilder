@@ -1,0 +1,36 @@
+{
+    // These are the default settings. They are located in 
+    // 
+    //    Packages/CMakeBuilder/CMakeBuilder.sublime-settings
+    //    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // 
+    // You should not edit this file, as it gets overwritten after every update.
+    // Instead, if you want to override the default settings, create a new file
+    // in Packages/User/CMakeBuilder.sublime-settings, and copy and paste over
+    // from this file. Then change what you want.
+    // 
+    // If you came here from
+    // 
+    //    Preferences -> Package Settings -> CMakeBuilder -> Settings,
+    //
+    // then Sublime Text has already opened a "user" file for you to the right
+    // of this view in which you may override settings.
+    
+    //==========================================================================
+    
+    // If the command "CMakeBuilder: Configure" exited with status 0, should we
+    // write/update build targets in the sublime project file immediately?
+    "write_build_targets_after_successful_configure": false,
+
+    // If true, adds the option -Wno-dev to the cmake invocation during
+    // configure time.
+    "silence_developer_warnings": false,
+
+    // If true, completely clears the cache when you run
+    // "CMakeBuilder: Configure"
+    "always_clear_cache_before_configure": false,
+
+    // The command line arguments that are passed to CTest when you run the 
+    // command "CMakeBuilder: Run CTest".
+    "ctest_command_line_args": "--output-on-failure"
+}

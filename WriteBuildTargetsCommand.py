@@ -132,10 +132,10 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
         name = os.path.splitext(
             os.path.basename(self.window.project_file_name()))[0]
         shell_cmd = 'cmake --build .'
-        syntax = 'Packages/Text/Plain text.tmLanguage'
+        syntax = 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
         if self.isMake:
             shell_cmd = 'make -j{}'.format(str(multiprocessing.cpu_count()))
-            syntax = 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
+            # syntax = 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
         elif self.isNinja:
             shell_cmd = 'cmake --build .'
             syntax = 'Packages/CMakeBuilder/Syntax/Ninja.sublime-syntax'
