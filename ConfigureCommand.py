@@ -91,8 +91,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             cmd += ' -Wno-dev'
         if generator:
             cmd += ' -G "{}"'.format(generator)
-        override_keyvalue_pairs = overrides.items()
-        if override_keyvalue_pairs:
+        if overrides:
             for key, value in overrides.items():
                 try:
                     if type(value) is bool:
