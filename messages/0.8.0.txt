@@ -1,4 +1,26 @@
-- Add "Configure (silence dev warnings)" variational command. This silences
-  dev warnings with -Wno-dev.
-- Only optionally run "Write build targets" after a successful configure.
 - Add settings file (go to Preferences -> Package Settings -> CMakeBuilder)
+
+- The following settings are available as options in the settings file:
+
+  - write_build_targets_after_successful_configure (boolean)
+  - silence_developer_warnings                     (boolean)
+  - always_clear_cache_before_configure            (boolean)
+  - configure_on_save                              (boolean)
+  - ctest_command_line_args                        (string)
+
+  Refer to the package settings for more details.
+
+- With the settings present, some commands are now obsolete. They are:
+  
+  - Configure (Silence Dev Warnings)
+    You can set silence_developer_warnings to true in your settings
+    file for the same effect.
+
+  - Configure & Update Build System Targets
+    You can set write_build_targets_after_successful_configure to true in
+    your settings file for the same effect.
+
+  - Run CTest (Verbose), Run CTest (Extra Verbose)
+    You can set ctest_command_line_args to "--output-on-failure -VV".
+
+  These three commands will dissapear in 0.9 (current version is 0.8).

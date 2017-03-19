@@ -1,7 +1,7 @@
 import sublime
 import sublime_plugin
 
-class CMakeListsListener(sublime_plugin.EventListener):
+class EventListener(sublime_plugin.EventListener):
 
     def on_post_save(self, view):
         if not view:
