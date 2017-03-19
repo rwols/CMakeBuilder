@@ -30,6 +30,10 @@
     // "CMakeBuilder: Configure"
     "always_clear_cache_before_configure": false,
 
+    // If true, every time you save a CMakeLists.txt file or a CMakeCache.txt
+    // file, the "Configure" command will run.
+    "configure_on_save": false,
+
     // The command line arguments that are passed to CTest when you run the 
     // command "CMakeBuilder: Run CTest".
     "ctest_command_line_args": "--output-on-failure"
