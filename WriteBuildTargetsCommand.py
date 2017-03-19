@@ -1,5 +1,115 @@
-import sublime, sublime_plugin, os, Default.exec, multiprocessing
+import sublime, sublime_plugin, os, Default.exec, multiprocessing, sys
 from .ExpandVariables import *
+from .Generators import *
+from .Support import *
+import subprocess
+import glob
+import re
+import threading
+
+class CmakeWriteBuildTargetsImprovedCommand(sublime_plugin.WindowCommand):
+
+    def is_enabled(self):
+        """You may only run this command if there's a `build_folder` with a
+        `CMakeCache.txt` file in it. That's when we assume that the project has
+        been configured."""
+        project = self.window.project_data()
+        if project is None:
+            return False
+        project_file_name = self.window.project_file_name()
+        if not project_file_name:
+            return False
+        cmake = project.get('cmake')
+        if not cmake:
+            return False
+        try:
+            # See ExpandVariables.py
+            expand_variables(cmake, self.window.extract_variables())
+        except Exception as e:
+            return False
+        build_folder = get_cmake_value(cmake, 'build_folder')
+        if not os.path.exists(os.path.join(build_folder, 'CMakeCache.txt')):
+            return False
+        return True
+
+    def description(self):
+        return 'Write Build Targets to Sublime Project'
+
+    def run(self):
+        project = self.window.project_data()
+        project_file_name = self.window.project_file_name()
+        project_path = os.path.dirname(project_file_name)
+        cmake = project.get('cmake')
+        if not cmake:
+            return
+        generator = get_cmake_value(cmake, 'generator')
+        if not generator:
+            if sublime.platform() == 'linux': 
+                generator = 'Unix Makefiles'
+            elif sublime.platform() == 'osx':
+                generator = 'Unix Makefiles'
+            elif sublime.platform() == 'windows':
+                generator = 'Visual Studio'
+            else:
+                sublime.error_message('Unknown sublime platform: {}'.format(sublime.platform()))
+                return
+
+        # See Generators/__init__.py
+        module_name = get_module_name(generator)
+        if not module_name in sys.modules:
+            valid_generators = get_valid_generators()
+            sublime.error_message('CMakeBuilder: "%s" is not a valid generator. The valid generators for this platform are: %s' % (generator, ','.join(valid_generators)))
+            return
+        GeneratorModule = sys.modules[module_name]
+        GeneratorClass = None
+        try:
+            GeneratorClass = getattr(GeneratorModule, generator.replace(' ', '_'))
+        except AttributeError:
+            sublime.error_message('Internal error.')
+            return
+        builder = None
+        try:
+            builder = GeneratorClass(self.window, cmake)
+        except KeyError as e:
+            sublime.error_message('Unknown variable in cmake dictionary: {}'
+                .format(str(e)))
+            return
+        except ValueError as e:
+            sublime.error_message('Invalid placeholder in cmake dictionary')
+            return
+        try:
+            build_system = {}
+            build_system['name'] = os.path.splitext(os.path.basename(project_file_name))[0]
+            build_system[sublime.platform()] = builder.create_sublime_build_system()
+            project['build_systems'] = [build_system]
+            self.window.set_project_data(project)
+            self.window.run_command('set_build_system', args={'index': 0})
+        except Exception as e:
+            print(str(e))
+        
+        # if generator in sys.modules:
+        #     GeneratorModule = sys.modules[generator]
+        #     GeneratorClass = getattr(GeneratorModule, generator)
+        #     if GeneratorClass:
+        #         builder = GeneratorClass(project_path, project_file_name, cmake)
+
+        # asdf = Visual_Studio.Visual_Studio(project_path, project_file_name, cmake)
+        # bs = asdf.create_sublime_build_system()
+        # print(bs)
+
+        # packages = pkgutil.walk_packages(path='.')
+        # for importer, name, is_package in packages:
+        #     print(importer, name, is_package)
+        # module_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'CMakeGenerators/__init__.py').replace('/', '.').replace('\\', '.')
+        # print(module_path)
+        # m = SourceFileLoader("module.name", module_path).load_module()
+        # print(m)
+        # generator = generator.replace(' ', '_')
+        # importlib.import_module('.User.CMakeGenerators')
+        # GeneratorClass = str2class(generator)
+        # print(GeneratorClass)
+
+        
 
 class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
     """Writes a build system to the sublime project file. This only works
@@ -32,6 +142,15 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
         return 'Write Build Targets to Sublime Project'
 
     def run(self):
+        platform = sublime.platform()
+        if platform == 'linux':
+            self.run_linux()
+        elif platform == 'osx':
+            self.run_osx()
+        elif platform == 'windows':
+            self.run_windows()
+
+    def run_linux(self):
         self.variants = []
         self.isNinja = False
         self.isMake = False
@@ -66,8 +185,72 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
             return
         shell_cmd = 'cmake --build . --target help'
         super().run(shell_cmd=shell_cmd, working_dir=self.build_folder)
+
+    def run_osx(self):
+        self.run_linux()
+
+    def run_windows(self):
+        self.variants = []
+        project = self.window.project_data()
+        project_file_name = self.window.project_file_name()
+        project_path = os.path.dirname(project_file_name)
+        cmake = project.get('cmake')
+        self.build_folder_pre_expansion = cmake.get('build_folder')
+        try:
+            # See ExpandVariables.py
+            expand_variables(cmake, self.window.extract_variables())
+        except KeyError as e:
+            sublime.error_message('Unknown variable in cmake dictionary: {}'
+                .format(str(e)))
+            return
+        except ValueError as e:
+            sublime.error_message('Invalid placeholder in cmake dictionary')
+            return
+        self.build_folder = cmake.get('build_folder')
+        self.filter_targets = cmake.get('filter_targets')
+        for root, dirs, files in os.walk(self.build_folder):
+            if 'CMakeFiles' in root:
+                continue
+            for file in files:
+                if not file.endswith('.vcxproj'):
+                    continue
+                file = file[:-len('.vcxproj')]
+                commonprefix = os.path.commonprefix([root, self.build_folder])
+                relative = root[len(commonprefix):]
+                if relative.startswith('\\'):
+                    relative = relative[1:]
+                relative = relative.replace('\\', '/')
+                if relative == '/' or not relative:
+                    target = file
+                else:
+                    target = relative + '/' + file
+                shell_cmd = 'cmake --build . --target {}'.format(target)
+                self.variants.append({'name': target, 'shell_cmd': shell_cmd})
+        shell_cmd = 'cmake --build .'
+        regex = r'  (.+[^\(])\(\d+\): error \w\d+: (.*) \['
+        # syntax = 'Packages/CMakeBuilder/Syntax/MSBuild.sublime-syntax'
+        name = os.path.splitext(
+            os.path.basename(self.window.project_file_name()))[0]
+        project['build_systems'] = [
+            {'name': name,
+            'shell_cmd': shell_cmd,
+            'working_dir': self.build_folder_pre_expansion,
+            'file_regex': regex,
+            # 'syntax': syntax,
+            'variants': self.variants}]
+        self.window.set_project_data(project)
+        self.window.run_command('set_build_system', args={'index': 0})
         
     def on_data(self, proc, data):
+        platform = sublime.platform()
+        if platform == 'linux':
+            self.on_data_linux(proc, data)
+        elif platform == 'osx':
+            self.on_data_osx(proc, data)
+        elif platform == 'windows':
+            self.on_data_windows(proc, data)
+
+    def on_data_linux(self, proc, data):
         super().on_data(proc, data)
 
         EXCLUDES = [
@@ -123,10 +306,25 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
             print(e)
             sublime.error_message(str(e))
 
+    def on_data_osx(self, proc, data):
+        self.on_data_linux(proc, data)
+
+    def on_data_windows(self, proc, data):
+        super().on_data(proc, data)
+
     def on_finished(self, proc):
+        platform = sublime.platform()
+        if platform == 'linux':
+            self.on_finished_linux(proc)
+        elif platform == 'osx':
+            self.on_finished_osx(proc)
+        elif platform == 'windows':
+            self.on_finished_windows(proc)
+
+    def on_finished_linux(self, proc):
         super().on_finished(proc)
 
-        REGEX = '(.+[^:]):(\d+):(\d+): (?:fatal )?((?:error|warning): .+)$'
+        regex = '(.+[^:]):(\d+):(\d+): (?:fatal )?((?:error|warning): .+)$'
 
         project = self.window.project_data()
         name = os.path.splitext(
@@ -143,8 +341,14 @@ class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
             {'name': name,
             'shell_cmd': shell_cmd,
             'working_dir': self.build_folder_pre_expansion,
-            'file_regex': REGEX,
+            'file_regex': regex,
             'syntax': syntax,
             'variants': self.variants}]
         self.window.set_project_data(project)
         self.window.run_command('set_build_system', args={'index': 0})
+
+    def on_finished_osx(self, proc):
+        self.on_finished_linux(proc)
+
+    def on_finished_windows(self, proc):
+        pass

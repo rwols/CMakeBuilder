@@ -1,5 +1,6 @@
 import sublime, sublime_plugin, os, functools, tempfile, Default.exec
-from .ExpandVariables import *
+# from .ExpandVariables import *
+from .Support import *
 
 class CmakeConfigureCommand(Default.exec.ExecCommand):
     """Configures a CMake project with options set in the sublime project
@@ -7,7 +8,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
 
     def is_enabled(self):
         project = self.window.project_data()
-        if project is None:
+        if not project:
             return False
         project_file_name = self.window.project_file_name()
         if not project_file_name:
@@ -39,7 +40,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             self.window.set_project_data(project)
             project = self.window.project_data()
             cmake = project['cmake']
-        build_folder_before_expansion = cmake.get('build_folder')
+        build_folder_before_expansion = get_cmake_value(cmake, 'build_folder')
         if build_folder_before_expansion is None:
             cmake['build_folder'] = tempdir
             print('CMakeBuilder: Temporary directory shall be "{}"'
@@ -59,15 +60,10 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             sublime.error_message('Invalid placeholder in cmake dictionary')
             return
         # Guaranteed to exist at this point.
-        build_folder = cmake.get('build_folder')
+        build_folder = get_cmake_value(cmake, 'build_folder')
         build_folder = os.path.realpath(build_folder)
-        generator = cmake.get('generator')
-        overrides = cmake.get('command_line_overrides')
-        if build_folder is None:
-            sublime.error_message(
-                'No "cmake: build_folder" variable found in {}.'.format(
-                    project_path))
-            return
+        generator = get_cmake_value(cmake, 'generator')
+        overrides = get_cmake_value(cmake, 'command_line_overrides')
         try:
             os.makedirs(build_folder, exist_ok=True)
         except OSError as e:
@@ -89,7 +85,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         cmd = 'cmake -H"{}" -B"{}"'.format(root_folder, build_folder)
         if settings.get('silence_developer_warnings', False):
             cmd += ' -Wno-dev'
-        if generator:
+        if generator and sublime.platform() != 'windows':
             cmd += ' -G "{}"'.format(generator)
         if overrides:
             for key, value in overrides.items():
