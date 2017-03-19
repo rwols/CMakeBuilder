@@ -1,4 +1,8 @@
-import sublime, sublime_plugin, os, Default.exec, multiprocessing
+import sublime
+import sublime_plugin
+import os
+import Default.exec
+import multiprocessing
 from .ExpandVariables import *
 
 class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
