@@ -4,7 +4,7 @@ from .ExpandVariables import *
 # Note: Things in "CMakeFiles" folders get removed anyway. This is where you put
 # files that should be removed but are not inside CMakeFiles folders.
 TRY_TO_REMOVE = [
-    'CmakeCache.txt',
+    'CMakeCache.txt',
     'cmake_install.cmake'
 ]
 
