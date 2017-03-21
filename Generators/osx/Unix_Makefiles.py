@@ -1,16 +1,16 @@
 from .. import CMakeGenerator
 import subprocess
 
-class Ninja(CMakeGenerator):
+class Unix_Makefiles(CMakeGenerator):
 
     def __repr__(self):
-        return 'Ninja'
+        return 'Unix Makefiles'
 
     def syntax(self):
-        return r'(.+[^:]):(\d+):(\d+): (?:fatal )?((?:error|warning): .+)$'
+        return 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
 
     def file_regex(self):
-        return 'Packages/CMakeBuilder/Syntax/Ninja.sublime-syntax'
+        return r'(.+[^:]):(\d+):(\d+): (?:fatal )?((?:error|warning): .+)$'
 
     def variants(self):
         lines = subprocess.check_output('cmake --build . --target help', cwd=self.build_folder).decode('utf-8').splitlines()
@@ -32,11 +32,12 @@ class Ninja(CMakeGenerator):
             '.dll',
             '.dylib',
             '.a']
+            
         for target in lines:
             try:
                 if any(exclude in target for exclude in EXCLUDES): 
                     continue
-                target = target.rpartition(':')[0]
+                target = target[4:]
                 name = target
                 for ext in LIB_EXTENSIONS:
                     if name.endswith(ext):
@@ -46,10 +47,9 @@ class Ninja(CMakeGenerator):
                     not any(f in name for f in self.filter_targets)):
                     continue
                 shell_cmd = 'cmake --build . --target {}'.format(target)
-                self.variants.append({'name': name, 'shell_cmd': shell_cmd})
+                variants.append({'name': name, 'shell_cmd': shell_cmd})
             except Exception as e:
-                print(e)
                 sublime.error_message(str(e))
+                # Continue anyway; we're in a for-loop
         return variants
-
         

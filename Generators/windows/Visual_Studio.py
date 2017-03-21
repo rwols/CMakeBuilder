@@ -1,20 +1,18 @@
 from .. import CMakeGenerator
 import os
 
-class Visual_Studio_14_2015_Win64(CMakeGenerator):
+class Visual_Studio(CMakeGenerator):
 
-    def create_sublime_build_system(self):
+    def variants(self):
         variants = []
-        bf_pre = self.get_build_folder()
-        bf = self.expand_vars(bf_pre)
-        for root, dirs, files in os.walk(bf):
+        for root, dirs, files in os.walk(self.build_folder):
             if 'CMakeFiles' in root:
                 continue
             for file in files:
                 if not file.endswith('.vcxproj'):
                     continue
                 file = file[:-len('.vcxproj')]
-                commonprefix = os.path.commonprefix([root, bf])
+                commonprefix = os.path.commonprefix([root, self.build_folder])
                 relative = root[len(commonprefix):]
                 if relative.startswith('\\'):
                     relative = relative[1:]
@@ -25,15 +23,11 @@ class Visual_Studio_14_2015_Win64(CMakeGenerator):
                     target = relative + '/' + file
                 shell_cmd = 'cmake --build . --target {}'.format(target)
                 variants.append({'name': target, 'shell_cmd': shell_cmd})
-        shell_cmd = 'cmake --build .'
-        # regex = blah
-        # syntax = 'Packages/CMakeBuilder/Generators/windows/Visual_Studio.sublime-syntax
-        name = os.path.splitext(
-            os.path.basename(self.window.project_file_name()))[0]
-        return {'name': name,
-            'shell_cmd': shell_cmd,
-            'working_dir': self.build_folder_pre_expansion,
-            # 'file_regex': regex,
-            # 'syntax': syntax,
-            'variants': variants}
+        return variants
+
+    def syntax(self):
+        return 'Packages/CMakeBuilder/Syntax/Visual_Studio.sublime-syntax'
+
+    def file_regex(self):
+        return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
         

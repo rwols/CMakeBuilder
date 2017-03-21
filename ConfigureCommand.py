@@ -1,6 +1,12 @@
-import sublime, sublime_plugin, os, functools, tempfile, Default.exec
-# from .ExpandVariables import *
+import sublime
+import sublime_plugin
+import os
+import functools
+import tempfile
+import Default.exec
+import copy
 from .Support import *
+from .Generators import *
 
 class CmakeConfigureCommand(Default.exec.ExecCommand):
     """Configures a CMake project with options set in the sublime project
@@ -63,6 +69,16 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         build_folder = get_cmake_value(cmake, 'build_folder')
         build_folder = os.path.realpath(build_folder)
         generator = get_cmake_value(cmake, 'generator')
+        if not generator:
+            if sublime.platform() == 'linux': 
+                generator = 'Unix Makefiles'
+            elif sublime.platform() == 'osx':
+                generator = 'Unix Makefiles'
+            elif sublime.platform() == 'windows':
+                generator = 'Visual Studio'
+            else:
+                sublime.error_message('Unknown sublime platform: {}'.format(sublime.platform()))
+                return
         overrides = get_cmake_value(cmake, 'command_line_overrides')
         try:
             os.makedirs(build_folder, exist_ok=True)
@@ -70,7 +86,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             sublime.error_message("Failed to create build directory: {}"
                 .format(str(e)))
             return
-        root_folder = cmake.get('root_folder')
+        root_folder = get_cmake_value(cmake, 'root_folder')
         if root_folder:
             root_folder = os.path.realpath(root_folder)
         elif must_have_root_path:
@@ -85,7 +101,18 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         cmd = 'cmake -H"{}" -B"{}"'.format(root_folder, build_folder)
         if settings.get('silence_developer_warnings', False):
             cmd += ' -Wno-dev'
-        if generator and sublime.platform() != 'windows':
+        GeneratorClass = class_from_generator_string(generator)
+        builder = None
+        try:
+            builder = GeneratorClass(self.window, copy.deepcopy(cmake))
+        except KeyError as e:
+            sublime.error_message('Unknown variable in cmake dictionary: {}'
+                .format(str(e)))
+            return
+        except ValueError as e:
+            sublime.error_message('Invalid placeholder in cmake dictionary')
+            return
+        if generator != 'Visual Studio':
             cmd += ' -G "{}"'.format(generator)
         if overrides:
             for key, value in overrides.items():
@@ -98,13 +125,17 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
                     pass
                 except ValueError as e:
                     pass
+        self.builder = builder
+        self.builder.on_pre_configure()
         super().run(shell_cmd=cmd, 
             working_dir=root_folder,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
-            syntax='Packages/CMakeBuilder/Syntax/Configure.sublime-syntax')
+            syntax='Packages/CMakeBuilder/Syntax/Configure.sublime-syntax',
+            env=self.builder.env())
     
     def on_finished(self, proc):
         super().on_finished(proc)
+        self.builder.on_post_configure(proc.exit_code())
         if proc.exit_code() == 0:
             settings = sublime.load_settings('CMakeBuilder.sublime-settings')
             if settings.get('write_build_targets_after_successful_configure', False):

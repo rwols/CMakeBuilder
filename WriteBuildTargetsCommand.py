@@ -7,11 +7,12 @@ import subprocess
 import glob
 import re
 import threading
+import copy
 from .ExpandVariables import *
 from .Generators import *
 from .Support import *
 
-class CmakeWriteBuildTargetsImprovedCommand(sublime_plugin.WindowCommand):
+class CmakeWriteBuildTargetsCommand(sublime_plugin.WindowCommand):
     """Writes a build system to the sublime project file. This only works
     when a cmake project has been configured."""
 
@@ -64,33 +65,10 @@ class CmakeWriteBuildTargetsImprovedCommand(sublime_plugin.WindowCommand):
         if not cmake:
             return
         generator = get_cmake_value(cmake, 'generator')
-        if not generator:
-            if sublime.platform() == 'linux': 
-                generator = 'Unix Makefiles'
-            elif sublime.platform() == 'osx':
-                generator = 'Unix Makefiles'
-            elif sublime.platform() == 'windows':
-                generator = 'Visual Studio'
-            else:
-                sublime.error_message('Unknown sublime platform: {}'.format(sublime.platform()))
-                return
-
-        # See Generators/__init__.py
-        module_name = get_module_name(generator)
-        if not module_name in sys.modules:
-            valid_generators = get_valid_generators()
-            sublime.error_message('CMakeBuilder: "%s" is not a valid generator. The valid generators for this platform are: %s' % (generator, ','.join(valid_generators)))
-            return
-        GeneratorModule = sys.modules[module_name]
-        GeneratorClass = None
+        GeneratorClass = class_from_generator_string(generator)
         try:
-            GeneratorClass = getattr(GeneratorModule, generator.replace(' ', '_'))
-        except AttributeError:
-            sublime.error_message('Internal error.')
-            return
-        builder = None
-        try:
-            builder = GeneratorClass(self.window, cmake)
+            assert cmake
+            builder = GeneratorClass(self.window, copy.deepcopy(cmake))
         except KeyError as e:
             sublime.error_message('Unknown variable in cmake dictionary: {}'
                 .format(str(e)))
@@ -99,16 +77,14 @@ class CmakeWriteBuildTargetsImprovedCommand(sublime_plugin.WindowCommand):
             sublime.error_message('Invalid placeholder in cmake dictionary')
             return
         try:
-            build_system = {}
-            build_system['name'] = os.path.splitext(os.path.basename(project_file_name))[0]
-            build_system[sublime.platform()] = builder.create_sublime_build_system()
-            project['build_systems'] = [build_system]
+            assert builder
+            project['build_systems'] = [builder.create_sublime_build_system()]
             self.window.set_project_data(project)
             self.window.run_command('set_build_system', args={'index': 0})
         except Exception as e:
-            print(str(e))
+            sublime.error_message('An error occured during assigment of the sublime build system: %s' % str(e))
 
-class CmakeWriteBuildTargetsCommand(Default.exec.ExecCommand):
+class CmakeWriteBuildTargetsOldCommand(Default.exec.ExecCommand):
     """Writes a build system to the sublime project file. This only works
     when a cmake project has been configured."""
 

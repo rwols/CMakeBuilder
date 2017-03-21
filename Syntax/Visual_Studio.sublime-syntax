@@ -1,0 +1,24 @@
+%YAML 1.2
+---
+hidden: yes
+scope: text.log
+
+contexts:
+  main:
+    - match: InitializeBuildStatus\:|CustomBuild\:|FinalizeBuildStatus\:|Done Building Project\:|Link\:|
+      scope: keyword.control
+    - match: "ClCompile:"
+      scope: keyword.operator
+    - match: "^  (.+)\\((\\d+)\\)(): ((?:error|warning) \\w+\\d\\d\\d\\d: .*) \\[.*$"
+      captures:
+        1: string
+        2: keyword.control
+        3: constant.numeric.integer
+        4: constant.numeric.integer
+        5: invalid.deprecated
+    - match: "(error) (LNK\\d\\d\\d\\d): (unresolved external symbol)"
+      captures:
+        1: keyword.control
+        2: keyword.control
+        3: invalid.illegal
+...
