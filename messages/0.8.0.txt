@@ -1,3 +1,6 @@
+- Fix bug where if you didn't have the "command_line_overrides" key in the
+  cmake dictionary you'd get an exception.
+
 - Add settings file (go to Preferences -> Package Settings -> CMakeBuilder)
 
 - The following settings are available as options in the settings file:
@@ -24,3 +27,13 @@
     You can set ctest_command_line_args to "--output-on-failure -VV".
 
   These three commands will dissapear in 0.9 (current version is 0.8).
+
+- Separate generators into platform-specific python packages.
+  In the directory Packages/CMakeBuilder/Generators, we now have a Python
+  file for each generator. That is, we define a one-to-one correspondence
+  between pyfiles in those directories and platform-specific generators.
+
+- Add "Visual Studio" and "NMake Makefiles" generators for Windows.
+  Yes, there's Windows support now. Hello, windows users! I haven't
+  updated the package control channel yet, so they'll have to wait a bit
+  longer. But the functionality is present.

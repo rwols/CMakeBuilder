@@ -7,19 +7,20 @@ def plugin_loaded():
 
 \t[WindowCommand] cmake_build,                     args: { **kwargs }
 \t[WindowCommand] cmake_clear_cache_and_configure, args: None
-\t[WindowCommand] cmake_clear_cache,               args: None
+\t[WindowCommand] cmake_clear_cache,               args: { with_confirmation : bool }
 \t[WindowCommand] cmake_configure,                 args: None
 \t[WindowCommand] cmake_diagnose,                  args: None
 \t[WindowCommand] cmake_open_build_folder,         args: None
-\t[WindowCommand] cmake_run_ctest,                 args: { extra_args, test_framework }
+\t[WindowCommand] cmake_run_ctest,                 args: { extra_args : string, test_framework : string }
 \t[WindowCommand] cmake_write_build_targets,       args: None
 """)
     print('CMakeBuilder: Available generators for {}:\n'.format(sublime.platform()))
     gens = get_valid_generators()
     for gen in gens:
         print('\t{}'.format(gen))
+    print('')  
 
-class EventListener(sublime_plugin.EventListener):
+class ConfigureOnSaveListener(sublime_plugin.EventListener):
 
     def on_post_save(self, view):
         if not view:

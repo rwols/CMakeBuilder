@@ -22,12 +22,14 @@
                         "mnemonic": "C" 
                     },
                     {
+                        // DEPRECATED
                         "command": "cmake_configure",
                         "caption": "Configure (silence dev warnings)",
                         "mnemonic": "C",
                         "args": {"silence_dev_warnings": true}
                     },
                     {
+                        // DEPRECATED
                         "command": "cmake_configure",
                         "caption": "Configure & Update Build System Targets",
                         "mnemonic": "U",
@@ -39,7 +41,7 @@
                     },
                     {
                         "command": "cmake_open_build_folder",
-                        "mnemonic": "O"
+                        "mnemonic": "B"
                     },
                     {
                         "command": "cmake_clear_cache" 
@@ -49,17 +51,19 @@
                     },
                     {
                         "command": "cmake_run_ctest",
-                        "mnemonic": "T"
+                        "mnemonic": "C"
                     },
                     {
-                        "command": "cmake_run_ctest", 
-                        "mnemonic": "T",
+                        // DEPRECATED
+                        "command": "cmake_run_ctest_old", 
+                        "mnemonic": "C",
                         "caption": "Run CTest (Verbose)",
                         "args": {"extra_args": "-V"}
                     },
                     {
-                        "command": "cmake_run_ctest", 
-                        "mnemonic": "T",
+                        // DEPRECATED
+                        "command": "cmake_run_ctest_old", 
+                        "mnemonic": "C",
                         "caption": "Run CTest (Extra Verbose)", 
                         "args": {"extra_args": "-VV"}
                     }
@@ -85,7 +89,7 @@
 							{
 								"command": "edit_settings",
 								"caption": "Settings",
-								"mnemonic": "C",
+								"mnemonic": "S",
                                 "args":
                                 {
                                     "base_file": "${packages}/CMakeBuilder/CMakeBuilder.sublime-settings"

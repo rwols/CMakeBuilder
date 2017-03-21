@@ -19,7 +19,7 @@ class NMake_Makefiles(CMakeGenerator):
         return 'NMake Makefiles'
 
     def env(self):
-        VS_VERSION = [ 14, 13, 12, 11, 10, 9, 8 ]
+        VS_VERSION = [ 15, 14.1, 14, 13, 12, 11, 10, 9, 8 ]
         for version in VS_VERSION:
             vcvars = query_vcvarsall(version)
             if vcvars:
@@ -33,7 +33,10 @@ class NMake_Makefiles(CMakeGenerator):
         return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
 
     def variants(self):
-        lines = subprocess.check_output('cmake --build . --target help', cwd=self.build_folder).decode('utf-8').splitlines()
+        
+        lines = subprocess.check_output('cmake --build . --target help', 
+            cwd=self.build_folder).decode('utf-8').splitlines()
+
         variants = []
         EXCLUDES = [
             'are some of the valid targets for this Makefile:',
@@ -232,43 +235,7 @@ you can try compiling with MingW32, by passing "-c mingw32" to setup.py.""")
             s = s.replace(k, v)
         return s
 
-def get_build_version():
-    """Return the version of MSVC that was used to build Python.
-
-    For Python 2.3 and up, the version number is included in
-    sys.version.  For earlier versions, assume the compiler is MSVC 6.
-    """
-    prefix = "MSC v."
-    i = sys.version.find(prefix)
-    if i == -1:
-        return 6
-    i = i + len(prefix)
-    s, rest = sys.version[i:].split(" ", 1)
-    majorVersion = int(s[:-2]) - 6
-    minorVersion = int(s[2:3]) / 10.0
-    # I don't think paths are affected by minor version in version 6
-    if majorVersion == 6:
-        minorVersion = 0
-    if majorVersion >= 6:
-        return majorVersion + minorVersion
-    # else we don't know what version of the compiler this is
-    return None
-
-def normalize_and_reduce_paths(paths):
-    """Return a list of normalized paths with duplicates removed.
-
-    The current order of paths is maintained.
-    """
-    # Paths are normalized so things like:  /a and /a/ aren't both preserved.
-    reduced_paths = []
-    for p in paths:
-        np = os.path.normpath(p)
-        # XXX(nnorwitz): O(n**2), if reduced_paths gets long perhaps use a set.
-        if np not in reduced_paths:
-            reduced_paths.append(np)
-    return reduced_paths
-
-def removeDuplicates(variable):
+def remove_duplicates(variable):
     """Remove duplicate values of an environment variable.
     """
     oldList = variable.split(os.pathsep)
@@ -352,7 +319,7 @@ def query_vcvarsall(version, arch="x86"):
         if key in interesting:
             if value.endswith(os.pathsep):
                 value = value[:-1]
-            result[key] = removeDuplicates(value)
+            result[key] = remove_duplicates(value)
 
     if len(result) != len(interesting):
         raise ValueError(str(list(result.keys())))
