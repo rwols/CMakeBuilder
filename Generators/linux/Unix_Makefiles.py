@@ -1,19 +1,42 @@
 from .. import CMakeGenerator
 import subprocess
+import sublime
+import multiprocessing
 
 class Unix_Makefiles(CMakeGenerator):
 
     def __repr__(self):
         return 'Unix Makefiles'
 
-    def syntax(self):
-        return 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
-
     def file_regex(self):
         return r'(.+[^:]):(\d+):(\d+): (?:fatal )?((?:error|warning): .+)$'
 
+    def syntax(self):
+        return 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
+
+    def shell_cmd(self):
+        return 'make -j{}'.format(str(multiprocessing.cpu_count()))
+
     def variants(self):
-        lines = subprocess.check_output('cmake --build . --target help', cwd=self.build_folder).decode('utf-8').splitlines()
+        env = None
+        if self.window.active_view():
+            env = self.window.active_view().settings().get('build_env')
+            
+        shell_cmd = 'cmake --build . --target help'
+        proc = subprocess.Popen(
+            ['/bin/bash', '-l', '-c', shell_cmd],
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False,
+            cwd=self.build_folder)
+        outs, errs = proc.communicate()
+        errs = errs.decode('utf-8')
+        if errs:
+            sublime.error_message(errs)
+            return
+        lines = outs.decode('utf-8').splitlines()
+
         variants = []
         EXCLUDES = [
             'are some of the valid targets for this Makefile:',
@@ -26,12 +49,6 @@ class Unix_Makefiles(CMakeGenerator):
             '.o',
             '.i',
             '.s']
-
-        LIB_EXTENSIONS = [
-            '.so',
-            '.dll',
-            '.dylib',
-            '.a']
             
         for target in lines:
             try:
@@ -39,14 +56,14 @@ class Unix_Makefiles(CMakeGenerator):
                     continue
                 target = target[4:]
                 name = target
-                for ext in LIB_EXTENSIONS:
-                    if name.endswith(ext):
-                        name = name[:-len(ext)]
-                        break
+                # for ext in LIB_EXTENSIONS:
+                #     if name.endswith(ext):
+                #         name = name[:-len(ext)]
+                #         break
                 if (self.filter_targets and 
                     not any(f in name for f in self.filter_targets)):
                     continue
-                shell_cmd = 'cmake --build . --target {}'.format(target)
+                shell_cmd = 'make -j{} {}'.format(str(multiprocessing.cpu_count()), target)
                 variants.append({'name': name, 'shell_cmd': shell_cmd})
             except Exception as e:
                 sublime.error_message(str(e))

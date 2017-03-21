@@ -1,5 +1,23 @@
 import sublime
 import sublime_plugin
+from .Generators import get_valid_generators
+
+def plugin_loaded():
+    print("""CMakeBuilder: Available commands:
+
+\t[WindowCommand] cmake_build,                     args: { **kwargs }
+\t[WindowCommand] cmake_clear_cache_and_configure, args: None
+\t[WindowCommand] cmake_clear_cache,               args: None
+\t[WindowCommand] cmake_configure,                 args: None
+\t[WindowCommand] cmake_diagnose,                  args: None
+\t[WindowCommand] cmake_open_build_folder,         args: None
+\t[WindowCommand] cmake_run_ctest,                 args: { extra_args, test_framework }
+\t[WindowCommand] cmake_write_build_targets,       args: None
+""")
+    print('CMakeBuilder: Available generators for {}:\n'.format(sublime.platform()))
+    gens = get_valid_generators()
+    for gen in gens:
+        print('\t{}'.format(gen))
 
 class EventListener(sublime_plugin.EventListener):
 

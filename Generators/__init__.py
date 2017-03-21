@@ -128,18 +128,14 @@ def _import_all_platform_specific_generators():
         base = os.path.basename(file)
         if base.startswith('__'): continue
         generator = base[:-3]
-        print('\t%s' % generator.replace('_', ' '))
         result.append(generator)
     return result
 
 if sublime.platform() == 'linux':
-    print('CMakeBuilder: Generators available on linux:')
     from .linux import *
 elif sublime.platform() == 'osx':
-    print('CMakeBuilder: Generators available on osx:')
     from .osx import *
 elif sublime.platform() == 'windows':
-    print('CMakeBuilder: Generators available on windows:')
     from .windows import *
 else:
     sublime.error_message('Unknown platform: %s' % sublime.platform())
