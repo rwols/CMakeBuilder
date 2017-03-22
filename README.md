@@ -213,23 +213,6 @@ commands are
 * `cmake_write_build_targets` and
 * `cmake_run_ctest`.
 
-### Example configuration
-
-```json
-"cmake":
-{
-    "build_folder": "${project_path}/build",
-    "command_line_overrides":
-    {
-        "BUILD_SHARED_LIBS": true,
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-        "CMAKE_INSTALL_PREFIX": "${project_path}/build/install-test"
-    },
-    "generator": "Ninja"
-}
-```
-
 ## Extra Goodies
 
 ### Clearing the cache
