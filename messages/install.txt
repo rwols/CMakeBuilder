@@ -57,7 +57,4 @@ project and wanting to quickly build/test the project.
 
 This plugin does not provide syntax highlighting for CMakeLists.txt files 
 and .cmake files. Download CMakeEditor for that.
-
-As of this writing the plugin is designed only for macOS and Linux. I hope
-to write Windows support someday.
 +--++++====++++----------------------------------------------++++====++++--+
