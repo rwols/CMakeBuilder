@@ -21,9 +21,12 @@ class NMake_Makefiles(CMakeGenerator):
     def env(self):
         VS_VERSION = [ 15, 14.1, 14, 13, 12, 11, 10, 9, 8 ]
         for version in VS_VERSION:
-            vcvars = query_vcvarsall(version)
-            if vcvars:
-                return vcvars
+            try:
+                vcvars = query_vcvarsall(version)
+                if vcvars:
+                    return vcvars
+            except DistutilsPlatformError:
+                continue
         return {}
 
     def syntax(self):
@@ -49,12 +52,6 @@ class NMake_Makefiles(CMakeGenerator):
             '.o',
             '.i',
             '.s']
-
-        LIB_EXTENSIONS = [
-            '.so',
-            '.dll',
-            '.dylib',
-            '.a']
             
         for target in lines:
             try:
@@ -62,10 +59,6 @@ class NMake_Makefiles(CMakeGenerator):
                     continue
                 target = target[4:]
                 name = target
-                for ext in LIB_EXTENSIONS:
-                    if name.endswith(ext):
-                        name = name[:-len(ext)]
-                        break
                 if (self.filter_targets and 
                     not any(f in name for f in self.filter_targets)):
                     continue
@@ -300,9 +293,14 @@ def query_vcvarsall(version, arch="x86"):
     if vcvarsall is None:
         raise DistutilsPlatformError("Unable to find vcvarsall.bat")
     log.debug("Calling 'vcvarsall.bat %s' (version=%s)", arch, version)
+    startupinfo = None
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     popen = subprocess.Popen('"%s" %s & set' % (vcvarsall, arch),
                              stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+                             stderr=subprocess.PIPE,
+                             startupinfo=startupinfo)
 
     stdout, stderr = popen.communicate()
     if popen.wait() != 0:
