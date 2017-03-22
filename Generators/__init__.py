@@ -123,12 +123,14 @@ def class_from_generator_string(generator_string):
 
 def _import_all_platform_specific_generators():
     result = []
+    print('CMakeBuilder: Available generators on {}:'.format(sublime.platform()))
     for file in glob.iglob(os.path.dirname(__file__) + '/' + sublime.platform() + '/*.py'):
         if not os.path.isfile(file): continue
         base = os.path.basename(file)
         if base.startswith('__'): continue
         generator = base[:-3]
         result.append(generator)
+        print('\t{}'.format(generator))
     return result
 
 if sublime.platform() == 'linux':
