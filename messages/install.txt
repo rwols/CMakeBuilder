@@ -26,6 +26,14 @@ For the "Instruction Manual", please see:
     https://github.com/rwols/CMakeBuilder
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Alternatively, you can open the README.md file located at
+
+    Packages/CMakeBuilder/README.md
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is most easily accomplished with the "ReadmePlease" package
+(install it with Package Control!)
+
 Extra goodies:
 - Goto error/warning at the configuration step (press F4)
 - Goto error/warning at the build step (press F4)

@@ -5,7 +5,6 @@ from .Generators import get_valid_generators
 def plugin_loaded():
     print("""CMakeBuilder: Available commands:
 
-\t[WindowCommand] cmake_build,                     args: { **kwargs }
 \t[WindowCommand] cmake_clear_cache_and_configure, args: None
 \t[WindowCommand] cmake_clear_cache,               args: { with_confirmation : bool }
 \t[WindowCommand] cmake_configure,                 args: None

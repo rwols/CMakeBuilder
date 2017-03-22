@@ -37,3 +37,7 @@
   Yes, there's Windows support now. Hello, windows users! I haven't
   updated the package control channel yet, so they'll have to wait a bit
   longer. But the functionality is present.
+
+- Rewrite README.md for new users.
+
+- Add CONTRIBUTING.md file.
