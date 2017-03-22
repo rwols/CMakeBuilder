@@ -2,7 +2,7 @@ import sublime
 import sys
 import os
 import glob
-from ..ExpandVariables import *
+from ..support import *
 
 class CMakeGenerator(object):
     def __init__(self, window, cmake):
@@ -81,7 +81,7 @@ class CMakeGenerator(object):
         return expand_variables(dict_or_string, windowvars)
 
 def get_generator_module_prefix():
-    return 'CMakeBuilder.Generators.' + sublime.platform() + '.'
+    return 'CMakeBuilder.generators.' + sublime.platform() + '.'
 
 def get_module_name(generator):
     return get_generator_module_prefix() + generator.replace(' ', '_')

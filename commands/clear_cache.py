@@ -1,5 +1,5 @@
 import sublime, sublime_plugin, os
-from .ExpandVariables import *
+from ..support import *
 
 # Note: Things in "CMakeFiles" folders get removed anyway. This is where you put
 # files that should be removed but are not inside CMakeFiles folders.

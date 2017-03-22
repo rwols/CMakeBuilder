@@ -1,5 +1,5 @@
 import sublime, sublime_plugin, os
-from .ExpandVariables import *
+from ..support import *
 
 class CmakeClearCacheAndConfigureCommand(sublime_plugin.WindowCommand):
     """Clears the CMake-generated files, and then configures the project."""

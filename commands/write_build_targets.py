@@ -8,9 +8,8 @@ import glob
 import re
 import threading
 import copy
-from .ExpandVariables import *
-from .Generators import *
-from .Support import *
+from ..support import *
+from ..generators import *
 
 class CmakeWriteBuildTargetsCommand(sublime_plugin.WindowCommand):
     """Writes a build system to the sublime project file. This only works

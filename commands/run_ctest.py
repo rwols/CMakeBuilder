@@ -1,5 +1,5 @@
 import sublime, sublime_plugin, os, functools, tempfile, Default.exec
-from .ExpandVariables import *
+from ..support import *
 
 class CmakeRunCtestOldCommand(Default.exec.ExecCommand):
     """Runs CTest in a console window."""

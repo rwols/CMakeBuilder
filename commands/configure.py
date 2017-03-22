@@ -5,8 +5,8 @@ import functools
 import tempfile
 import Default.exec
 import copy
-from .Support import *
-from .Generators import *
+from ..support import *
+from ..generators import *
 
 class CmakeConfigureCommand(Default.exec.ExecCommand):
     """Configures a CMake project with options set in the sublime project

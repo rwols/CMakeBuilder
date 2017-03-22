@@ -1,5 +1,5 @@
 import sublime, sublime_plugin, os
-from .ExpandVariables import *
+from ..support import *
 
 class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
     """Opens the build folder."""
