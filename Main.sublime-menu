@@ -1,104 +1,104 @@
 [
-    {
-        "caption": "Tools",
-        "mnemonic": "T",
-        "id": "tools",
+  {
+    "caption": "Tools",
+    "mnemonic": "T",
+    "id": "tools",
+    "children":
+    [
+      { 
+        "caption": "CMakeBuilder",
+        "id": "build",
+        "mnemonic": "C",
         "children":
         [
-            { 
-                "caption": "CMakeBuilder",
-                "id": "build",
-                "mnemonic": "C",
-                "children":
-                [
-                    // NOTE: The "captions" for these commands is given by
-                    // the `description` method of the respective command.
-                    {
-                        "command": "cmake_diagnose",
-                        "mnemonic": "D"
-                    },
-                    {
-                        "command": "cmake_configure", 
-                        "mnemonic": "C" 
-                    },
-                    {
-                        // DEPRECATED
-                        "command": "cmake_configure",
-                        "caption": "Configure (silence dev warnings)",
-                        "mnemonic": "C",
-                        "args": {"silence_dev_warnings": true}
-                    },
-                    {
-                        // DEPRECATED
-                        "command": "cmake_configure",
-                        "caption": "Configure & Update Build System Targets",
-                        "mnemonic": "U",
-                        "args": {"write_build_targets": true}
-                    },
-                    {
-                        "command": "cmake_write_build_targets",
-                        "mnemonic": "W"
-                    },
-                    {
-                        "command": "cmake_open_build_folder",
-                        "mnemonic": "B"
-                    },
-                    {
-                        "command": "cmake_clear_cache" 
-                    },
-                    {
-                        "command": "cmake_clear_cache_and_configure"
-                    },
-                    {
-                        "command": "cmake_run_ctest",
-                        "mnemonic": "C"
-                    },
-                    {
-                        // DEPRECATED
-                        "command": "cmake_run_ctest_old", 
-                        "mnemonic": "C",
-                        "caption": "Run CTest (Verbose)",
-                        "args": {"extra_args": "-V"}
-                    },
-                    {
-                        // DEPRECATED
-                        "command": "cmake_run_ctest_old", 
-                        "mnemonic": "C",
-                        "caption": "Run CTest (Extra Verbose)", 
-                        "args": {"extra_args": "-VV"}
-                    }
-                ]
-            }
+          // NOTE: The "captions" for these commands is given by
+          // the `description` method of the respective command.
+          {
+            "command": "cmake_diagnose",
+            "mnemonic": "D"
+          },
+          {
+            "command": "cmake_configure", 
+            "mnemonic": "C" 
+          },
+          {
+            // DEPRECATED
+            "command": "cmake_configure",
+            "caption": "Configure (silence dev warnings)",
+            "mnemonic": "C",
+            "args": {"silence_dev_warnings": true}
+          },
+          {
+            // DEPRECATED
+            "command": "cmake_configure",
+            "caption": "Configure & Update Build System Targets",
+            "mnemonic": "U",
+            "args": {"write_build_targets": true}
+          },
+          {
+            "command": "cmake_write_build_targets",
+            "mnemonic": "W"
+          },
+          {
+            "command": "cmake_open_build_folder",
+            "mnemonic": "B"
+          },
+          {
+            "command": "cmake_clear_cache" 
+          },
+          {
+            "command": "cmake_clear_cache_and_configure"
+          },
+          {
+            "command": "cmake_run_ctest",
+            "mnemonic": "C"
+          },
+          {
+            // DEPRECATED
+            "command": "cmake_run_ctest_old", 
+            "mnemonic": "C",
+            "caption": "Run CTest (Verbose)",
+            "args": {"extra_args": "-V"}
+          },
+          {
+            // DEPRECATED
+            "command": "cmake_run_ctest_old", 
+            "mnemonic": "C",
+            "caption": "Run CTest (Extra Verbose)", 
+            "args": {"extra_args": "-VV"}
+          }
         ]
-    },
-	{
-		"caption": "Preferences",
-		"id": "preferences",
-		"children": 
-		[
-			{
-				"caption": "Package Settings",
-				"id": "package-settings",
-				"children": 
-				[
-					{
-						"caption": "CMakeBuilder",
-						"id": "cmakebuilder",
-						"children": 
-						[
-							{
-								"command": "edit_settings",
-								"caption": "Settings",
-								"mnemonic": "S",
-                                "args":
-                                {
-                                    "base_file": "${packages}/CMakeBuilder/CMakeBuilder.sublime-settings"
-                                }
-							}
-						]
-					}
-				]
-			}
-		]
-	}
+      }
+    ]
+  },
+  {
+    "caption": "Preferences",
+    "id": "preferences",
+    "children": 
+    [
+      {
+        "caption": "Package Settings",
+        "id": "package-settings",
+        "children": 
+        [
+          {
+            "caption": "CMakeBuilder",
+            "id": "cmakebuilder",
+            "children": 
+            [
+              {
+                "command": "edit_settings",
+                "caption": "Settings",
+                "mnemonic": "S",
+                "args":
+                {
+                  "base_file": "${packages}/CMakeBuilder/CMakeBuilder.sublime-settings"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
 ]

@@ -1,54 +1,54 @@
 [
-    {
-        "command": "cmake_open_build_folder",   
-        "caption": "CMakeBuilder: Browse Build Folder…"
-    },
-    {
-        "command": "cmake_configure",
-        "caption": "CMakeBuilder: Configure"
-    },
-    {
-        // DEPRECATED
-        "command": "cmake_configure", 
-        "caption": "CMakeBuilder: Configure (silence dev warnings)",
-        "args": { "silence_dev_warnings": true }
-    },
-    {
-        // DEPRECATED
-        "command": "cmake_configure", 
-        "caption": "CMakeBuilder: Configure & Update Build System Targets",
-        "args": { "write_build_targets": true }
-    },
-    {
-        "command": "cmake_write_build_targets", 
-        "caption": "CMakeBuilder: Write Build Targets to Sublime Project File"
-    },
-    {
-        "command": "cmake_clear_cache",
-        "caption": "CMakeBuilder: Clear Cache"
-    },
-    {
-        "command": "cmake_clear_cache_and_configure",
-        "caption": "CMakeBuilder: Clear Cache and Configure"
-    },
-    {
-        "command": "cmake_run_ctest",
-        "caption": "CMakeBuilder: Run CTest",
-    },
-    {
-        // DEPRECATED
-        "command": "cmake_run_ctest_old",
-        "caption": "CMakeBuilder: Run CTest (Verbose)",
-        "args": { "extra_args": "--verbose --output-on-failure" }
-    },
-    {
-        // DEPRECATED
-        "command": "cmake_run_ctest_old",
-        "caption": "CMakeBuilder: Run CTest (Extra Verbose)", 
-        "args": { "extra_args": "--extra-verbose --output-on-failure" }
-    },
-    {
-        "command": "cmake_diagnose",
-        "caption": "CMakeBuilder: Diagnose (What Should I Do?)"
-    }
+  {
+    "command": "cmake_open_build_folder",   
+    "caption": "CMakeBuilder: Browse Build Folder…"
+  },
+  {
+    "command": "cmake_configure",
+    "caption": "CMakeBuilder: Configure"
+  },
+  {
+    // DEPRECATED
+    "command": "cmake_configure", 
+    "caption": "CMakeBuilder: Configure (silence dev warnings)",
+    "args": { "silence_dev_warnings": true }
+  },
+  {
+    // DEPRECATED
+    "command": "cmake_configure", 
+    "caption": "CMakeBuilder: Configure & Update Build System Targets",
+    "args": { "write_build_targets": true }
+  },
+  {
+    "command": "cmake_write_build_targets", 
+    "caption": "CMakeBuilder: Write Build Targets to Sublime Project File"
+  },
+  {
+    "command": "cmake_clear_cache",
+    "caption": "CMakeBuilder: Clear Cache"
+  },
+  {
+    "command": "cmake_clear_cache_and_configure",
+    "caption": "CMakeBuilder: Clear Cache and Configure"
+  },
+  {
+    "command": "cmake_run_ctest",
+    "caption": "CMakeBuilder: Run CTest",
+  },
+  {
+    // DEPRECATED
+    "command": "cmake_run_ctest_old",
+    "caption": "CMakeBuilder: Run CTest (Verbose)",
+    "args": { "extra_args": "--verbose --output-on-failure" }
+  },
+  {
+    // DEPRECATED
+    "command": "cmake_run_ctest_old",
+    "caption": "CMakeBuilder: Run CTest (Extra Verbose)", 
+    "args": { "extra_args": "--extra-verbose --output-on-failure" }
+  },
+  {
+    "command": "cmake_diagnose",
+    "caption": "CMakeBuilder: Diagnose (What Should I Do?)"
+  }
 ]
