@@ -121,17 +121,41 @@ def class_from_generator_string(generator_string):
         sublime.error_message('Internal error.')
     return GeneratorClass
 
-def _import_all_platform_specific_generators():
-    result = []
-    print('CMakeBuilder: Available generators on {}:'.format(sublime.platform()))
-    for file in glob.iglob(os.path.dirname(__file__) + '/' + sublime.platform() + '/*.py'):
+def _import_pyfiles_from_dir(dir):
+    for file in glob.iglob(dir + '/*.py'):
         if not os.path.isfile(file): continue
         base = os.path.basename(file)
         if base.startswith('__'): continue
         generator = base[:-3]
-        result.append(generator)
-        print('\t{}'.format(generator))
-    return result
+        yield generator
+
+def _import_all_platform_specific_generators():
+    path = os.path.join(os.path.dirname(__file__), sublime.platform())
+    return list(_import_pyfiles_from_dir(path))
+
+def import_user_generators():
+    path = os.path.join(sublime.packages_path(), 'User', 'generators', sublime.platform())
+    return list(_import_pyfiles_from_dir(path))
+
+#     result = []
+#     print('CMakeBuilder: Available generators on {}:'.format(sublime.platform()))
+#     for file in glob.iglob(os.path.dirname(__file__) + '/' + sublime.platform() + '/*.py'):
+#         if not os.path.isfile(file): continue
+#         base = os.path.basename(file)
+#         if base.startswith('__'): continue
+#         generator = base[:-3]
+#         result.append(generator)
+#         print('\t{}'.format(generator))
+#     return result
+
+# def import_user_generators():
+#     path = os.path.join(sublime.packages_path(), 'User', 'generators', sublime.platform())
+#     for file in glob.iglob(path + '/*.py')
+#         if not os.path.isfile(file): continue
+#         base = os.path.basename(file)
+#         if base.startswith('__'): continue
+#         generator = base[:-3]
+#         yield generator
 
 if sublime.platform() == 'linux':
     from .linux import *
