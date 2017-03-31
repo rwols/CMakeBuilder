@@ -1,7 +1,7 @@
 {
     "target": "cmake_build",
     "source_folder": "${project_path}",
-    "build_folder": "${project_path}/build",
+    "build_folder": "${project_path}/build/debug/static",
     "ctest_command_line_args": "--output-on-failure",
     "ctest_test_framework": "boost",
     "command_line_overrides":
@@ -13,6 +13,10 @@
     [
         "Debug"
     ]
+    "windows":
+    {
+        "build_folder": "${project_path}/build"
+    }
     "variants":
     [
         {
