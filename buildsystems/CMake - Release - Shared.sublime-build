@@ -8,15 +8,15 @@
     {
         "BUILD_SHARED_LIBS": true,
         "CMAKE_BUILD_TYPE": "Release"
-    }
+    },
     "configurations":
     [
         "Release"
-    ]
+    ],
     "windows":
     {
         "build_folder": "${project_path:${folder:${file_path}}}/build"
-    }
+    },
     "variants":
     [
         {
