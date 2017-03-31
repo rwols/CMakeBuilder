@@ -15,7 +15,7 @@ class Unix_Makefiles(CMakeGenerator):
         return 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
 
     def shell_cmd(self, target):
-        return 'make -j{} --target {}'.format(str(multiprocessing.cpu_count()), target)
+        return 'make -j{} {}'.format(str(multiprocessing.cpu_count()), target)
 
     def variants(self):
         env = None

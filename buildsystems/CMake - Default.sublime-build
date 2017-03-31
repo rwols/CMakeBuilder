@@ -1,7 +1,7 @@
 {
     "target": "cmake_build",
-    "source_folder": "${project_path}",
-    "build_folder": "${project_path}/build",
+    "source_folder": "${project_path:${folder:${file_path}}}",
+    "build_folder": "${project_path:${folder:${file_path}}}/build",
     "ctest_command_line_args": "--output-on-failure",
     "ctest_test_framework": "boost",
     "variants":
