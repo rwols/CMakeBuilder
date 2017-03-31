@@ -1,0 +1,35 @@
+{
+    "target": "cmake_build",
+    "source_folder": "${project_path}",
+    "build_folder": "${project_path}/build",
+    "ctest_command_line_args": "--output-on-failure",
+    "ctest_test_framework": "boost",
+    "command_line_overrides":
+    {
+        "BUILD_SHARED_LIBS": false,
+        "CMAKE_BUILD_TYPE": "Release"
+    }
+    "configurations":
+    [
+        "Release"
+    ]
+    "variants":
+    [
+        {
+            "name": "Configure",
+            "configure": true,
+        },
+        {
+            "name": "Build Target...",
+            "select": true
+        },
+        {
+            "name": "Clear Cache",
+            "clear_cache": true
+        },
+        {
+            "name": "Run CTest",
+            "run_ctest": true,
+        }
+    ]
+}

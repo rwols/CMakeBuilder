@@ -11,34 +11,34 @@ TRY_TO_REMOVE = [
 class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
     """Clears the CMake-generated files"""
 
-    def is_enabled(self):
-        project = self.window.project_data()
-        if project is None:
-            return False
-        cmake = project.get('cmake')
-        if cmake is None:
-            return False
-        try:
-            # See ExpandVariables.py
-            expand_variables(cmake, self.window.extract_variables())
-        except Exception as e:
-            return False
-        build_folder = cmake.get('build_folder')
-        if not build_folder:
-            return False
-        if not os.path.exists(os.path.join(build_folder, 'CMakeCache.txt')):
-            return False
-        return True
+    # def is_enabled(self):
+    #     project = self.window.project_data()
+    #     if project is None:
+    #         return False
+    #     cmake = project.get('cmake')
+    #     if cmake is None:
+    #         return False
+    #     try:
+    #         # See ExpandVariables.py
+    #         expand_variables(cmake, self.window.extract_variables())
+    #     except Exception as e:
+    #         return False
+    #     build_folder = cmake.get('build_folder')
+    #     if not build_folder:
+    #         return False
+    #     if not os.path.exists(os.path.join(build_folder, 'CMakeCache.txt')):
+    #         return False
+    #     return True
 
     def description(self):
         return 'Clear Cache'
 
-    def run(self, with_confirmation=True):
-        cmake = sublime.expand_variables(
-            self.window.project_data().get('cmake'), 
-            self.window.extract_variables())
+    def run(self, build_folder, with_confirmation=True):
+        # cmake = sublime.expand_variables(
+        #     self.window.project_data().get('cmake'), 
+        #     self.window.extract_variables())
         # Guaranteed to exist because is_enabled checks for it.
-        build_folder = cmake.get('build_folder')
+        # build_folder = cmake.get('build_folder')
         files_to_remove = []
         dirs_to_remove = []
         cmakefiles_dir = os.path.join(build_folder, 'CMakeFiles')

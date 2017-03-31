@@ -13,4 +13,4 @@ class ConfigureOnSave(sublime_plugin.EventListener):
         if not name:
             return
         if name.endswith('CMakeLists.txt') or name.endswith('CMakeCache.txt'):
-            view.window().run_command('cmake_configure')
+            view.window().run_command('build')

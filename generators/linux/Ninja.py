@@ -13,6 +13,9 @@ class Ninja(CMakeGenerator):
     def syntax(self):
         return 'Packages/CMakeBuilder/Syntax/Ninja.sublime-syntax'
 
+    def shell_cmd(self, target):
+        return 'cmake --build . --target {}'.format(target)
+
     def variants(self):
         env = None
         if self.window.active_view():
@@ -50,18 +53,8 @@ class Ninja(CMakeGenerator):
             try:
                 if any(exclude in target for exclude in EXCLUDES): 
                     continue
-                print(target)
                 target = target.rpartition(':')[0]
-                name = target
-                # for ext in LIB_EXTENSIONS:
-                #     if name.endswith(ext):
-                #         name = name[:-len(ext)]
-                #         break
-                if (self.filter_targets and 
-                    not any(f in name for f in self.filter_targets)):
-                    continue
-                shell_cmd = 'cmake --build . --target {}'.format(target)
-                variants.append({'name': name, 'shell_cmd': shell_cmd})
+                variants.append(target)
             except Exception as e:
                 print(e)
                 sublime.error_message(str(e))

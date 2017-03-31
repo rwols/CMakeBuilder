@@ -6,7 +6,7 @@
   {
     "command": "cmake_configure",
     "caption": "CMakeBuilder: Configure"
-  }
+  },
   {
     "command": "cmake_write_build_targets", 
     "caption": "CMakeBuilder: Write Build Targets to Sublime Project File"
@@ -14,7 +14,7 @@
   {
     "command": "cmake_clear_cache",
     "caption": "CMakeBuilder: Clear Cache"
-  }
+  },
   {
     "command": "cmake_run_ctest",
     "caption": "CMakeBuilder: Run CTest",

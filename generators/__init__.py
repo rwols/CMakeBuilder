@@ -2,40 +2,77 @@ import sublime
 import sys
 import os
 import glob
+import json
 from ..support import *
 
 class CMakeGenerator(object):
-    def __init__(self, window, cmake):
+    def __init__(self, 
+            window, 
+            source_folder, 
+            build_folder, 
+            generator, 
+            configurations=[], 
+            command_line_overrides={}, 
+            env={}):
         super(CMakeGenerator, self).__init__()
         self.window = window
-        self.cmake = cmake
-        try:
-            self.cmake_platform = self.cmake[sublime.platform()]
-        except Exception as e:
-            self.cmake_platform = None
-        self.build_folder_pre_expansion = self.get_cmake_key('build_folder')
-        assert self.build_folder_pre_expansion
-        windowvars = self.window.extract_variables()
-        expand_variables(self.cmake, windowvars)
-        self.build_folder = self.get_cmake_key('build_folder')
-        self.filter_targets = self.get_cmake_key('filter_targets')
-        self.command_line_overrides = self.get_cmake_key('command_line_overrides')
-        assert self.build_folder
+        self.source_folder = source_folder
+        self.build_folder = build_folder
+        self.generator = generator
+        self.configurations = configurations
+        self.command_line_overrides = command_line_overrides
+        self.build_env = env
+        # self.cmake = cmake
+        # try:
+        #     self.cmake_platform = self.cmake[sublime.platform()]
+        # except Exception as e:
+        #     self.cmake_platform = None
+        # self.build_folder_pre_expansion = self.get_cmake_key('build_folder')
+        # assert self.build_folder_pre_expansion
+        # windowvars = self.window.extract_variables()
+        # expand_variables(self.cmake, windowvars)
+        # self.build_folder = self.get_cmake_key('build_folder')
+        # self.filter_targets = self.get_cmake_key('filter_targets')
+        # self.command_line_overrides = self.get_cmake_key('command_line_overrides')
+        # assert self.build_folder
 
     def __repr__(self):
         return repr(type(self))
 
     def env(self):
-        return {} # Empty dict
+        return self.build_env
 
     def variants(self):
         return [] # Empty list
 
     def on_pre_configure(self):
-        pass
+        path = os.path.join(self.build_folder, 'CMakeFiles', 'CMakeBuilder.json')
+        with open(path, 'w') as f:
+            json.dump({ 
+                'configuring': True, 
+                'success' : False, 
+                'generator': str(self),
+                'last_selected_target': None,
+                'targets': []}, f)
 
     def on_post_configure(self, exit_code):
-        pass
+        path = os.path.join(self.build_folder, 'CMakeFiles', 'CMakeBuilder.json')
+        if exit_code == 0:
+            cache = {
+                'configuring' : False,
+                'success': True,
+                'generator': str(self), 
+                'last_selected_target': None, 
+                'targets': self.variants() }
+        else:
+            cache = { 
+                'configuring': False, 
+                'success' : False, 
+                'generator': str(self),
+                'last_selected_target': None,
+                'targets': [] }
+        with open(path, 'w') as f:
+            json.dump(cache, f)
 
     def get_build_invocation(self, **kwargs):
         raise NotImplemented()
