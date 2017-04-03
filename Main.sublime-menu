@@ -59,6 +59,15 @@
             "children": 
             [
               {
+                "command": "open_url",
+                "caption": "README",
+                "mnemonic": "R",
+                "args":
+                {
+                  "url": "https://github.com/rwols/CMakeBuilder"
+                }
+              },
+              {
                 "command": "edit_settings",
                 "caption": "Settings",
                 "mnemonic": "S",
