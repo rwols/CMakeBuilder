@@ -25,7 +25,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         return 'Configure'
 
     def run(self, write_build_targets=False, silence_dev_warnings=False):
-        self.settings = sublime.active_view().settings()
+        self.settings = self.window.active_view().settings()
         if self.settings.get('always_clear_cache_before_configure', False):
             self.window.run_command('cmake_clear_cache', args={'with_confirmation': False})
         # self.write_build_targets = write_build_targets

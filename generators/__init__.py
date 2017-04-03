@@ -43,7 +43,9 @@ class CMakeGenerator(object):
     def create_sublime_build_system(self):
         settings = self.window.active_view().settings()
         name = settings.get('generated_name_for_build_system')
+        print(name)
         name = sublime.expand_variables(name, self.window.extract_variables())
+        print(name)
         build_system = {
             'name': name,
             'shell_cmd': self.shell_cmd(), 
