@@ -40,8 +40,7 @@ class CmakeRunCtestCommand(Default.exec.ExecCommand):
             sublime.error_message('Invalid placeholder in cmake dictionary')
             return
         cmd = 'ctest'
-        settings = sublime.active_view().settings()
-        command_line_args = settings.get('ctest_command_line_args', None)
+        command_line_args = get_setting(self.window.active_view(), 'ctest_command_line_args')
         if command_line_args:
             cmd += ' ' + command_line_args
         #TODO: check out google test style errors, right now I just assume

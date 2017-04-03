@@ -25,8 +25,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         return 'Configure'
 
     def run(self, write_build_targets=False, silence_dev_warnings=False):
-        self.settings = self.window.active_view().settings()
-        if self.settings.get('always_clear_cache_before_configure', False):
+        if get_setting(self.window.active_view(), 'always_clear_cache_before_configure', False):
             self.window.run_command('cmake_clear_cache', args={'with_confirmation': False})
         # self.write_build_targets = write_build_targets
         project = self.window.project_data()
@@ -99,7 +98,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         # -H and -B are undocumented arguments.
         # See: http://stackoverflow.com/questions/31090821
         cmd = 'cmake -H"{}" -B"{}"'.format(root_folder, build_folder)
-        if self.settings.get('silence_developer_warnings', False):
+        if get_setting(self.window.active_view(), 'silence_developer_warnings', False):
             cmd += ' -Wno-dev'
         GeneratorClass = class_from_generator_string(generator)
         builder = None
@@ -137,7 +136,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         super().on_finished(proc)
         self.builder.on_post_configure(proc.exit_code())
         if proc.exit_code() == 0:
-            if self.settings.get('write_build_targets_after_successful_configure', False):
+            if get_setting(self.window.active_view(), 'write_build_targets_after_successful_configure', False):
                 rc = self.window.run_command
                 name = 'cmake_write_build_targets'
                 func = functools.partial(rc, name)

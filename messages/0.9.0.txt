@@ -1,3 +1,4 @@
 - Fix write_build_targets overwriting all of your other build systems.
 - Allow custom name for your new build system. See the settings.
 - Remove deprecated commands.
+- Uniformize getting settings
