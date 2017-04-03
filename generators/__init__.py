@@ -41,8 +41,11 @@ class CMakeGenerator(object):
         raise NotImplemented()
 
     def create_sublime_build_system(self):
+        settings = self.window.active_view().settings()
+        name = settings.get('generated_name_for_build_system')
+        name = sublime.expand_variables(name, self.window.extract_variables())
         build_system = {
-            'name': os.path.splitext(os.path.basename(self.window.project_file_name()))[0],
+            'name': name,
             'shell_cmd': self.shell_cmd(), 
             'working_dir': self.build_folder_pre_expansion,
             'variants': self.variants()
@@ -122,11 +125,13 @@ def class_from_generator_string(generator_string):
     return GeneratorClass
 
 def _import_pyfiles_from_dir(dir):
+    print('CMakeBuilder: Available generators on this platform:')
     for file in glob.iglob(dir + '/*.py'):
         if not os.path.isfile(file): continue
         base = os.path.basename(file)
         if base.startswith('__'): continue
         generator = base[:-3]
+        print('\t{}'.format(generator.replace('_', ' ')))
         yield generator
 
 def _import_all_platform_specific_generators():

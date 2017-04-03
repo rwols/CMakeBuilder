@@ -36,5 +36,9 @@
 
     // The command line arguments that are passed to CTest when you run the 
     // command "CMakeBuilder: Run CTest".
-    "ctest_command_line_args": "--output-on-failure"
+    "ctest_command_line_args": "--output-on-failure",
+
+    // When the command "CMakeBuilder: Write Build Targets" is run, what should
+    // the name be of the generated build system?
+    "generated_name_for_build_system": "${project_base_name} - (${platform})"
 }
