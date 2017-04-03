@@ -23,6 +23,9 @@ for command in __all__:
     import re
     def convert(name):
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+        name =  re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+        if name.endswith('_command'):
+            name = name[:-len('_command')]
+        return name
     print('\t{}'.format(convert(command)))
 
