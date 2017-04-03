@@ -22,20 +22,6 @@
             "mnemonic": "C" 
           },
           {
-            // DEPRECATED
-            "command": "cmake_configure",
-            "caption": "Configure (silence dev warnings)",
-            "mnemonic": "C",
-            "args": {"silence_dev_warnings": true}
-          },
-          {
-            // DEPRECATED
-            "command": "cmake_configure",
-            "caption": "Configure & Update Build System Targets",
-            "mnemonic": "U",
-            "args": {"write_build_targets": true}
-          },
-          {
             "command": "cmake_write_build_targets",
             "mnemonic": "W"
           },
@@ -52,20 +38,6 @@
           {
             "command": "cmake_run_ctest",
             "mnemonic": "C"
-          },
-          {
-            // DEPRECATED
-            "command": "cmake_run_ctest_old", 
-            "mnemonic": "C",
-            "caption": "Run CTest (Verbose)",
-            "args": {"extra_args": "-V"}
-          },
-          {
-            // DEPRECATED
-            "command": "cmake_run_ctest_old", 
-            "mnemonic": "C",
-            "caption": "Run CTest (Extra Verbose)", 
-            "args": {"extra_args": "-VV"}
           }
         ]
       }
