@@ -41,7 +41,12 @@ class CMakeGenerator(object):
         raise NotImplemented()
 
     def create_sublime_build_system(self):
-        name = get_setting(self.window.active_view(), 'generated_name_for_build_system')
+        view = self.window.active_view()
+        if not view:
+            sublime.error_message('Could not get the active view!')
+        name = get_setting(view, 'generated_name_for_build_system')
+        if not name:
+            sublime.error_message('Could not find the key "generated_name_for_build_system" in the settings!')
         name = sublime.expand_variables(name, self.window.extract_variables())
         build_system = {
             'name': name,

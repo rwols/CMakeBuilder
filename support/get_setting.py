@@ -5,6 +5,5 @@ def get_setting(view, key, default=None):
         settings = view.settings()
         if settings.has(key):
             return settings.get(key)
-    else:
-        settings = sublime.load_settings('CMakeBuilder.sublime-settings')
-        return settings.get(key, default)
+    settings = sublime.load_settings('CMakeBuilder.sublime-settings')
+    return settings.get(key, default)
