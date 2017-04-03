@@ -40,5 +40,5 @@
 
     // When the command "CMakeBuilder: Write Build Targets" is run, what should
     // the name be of the generated build system?
-    "generated_name_for_build_system": "${project_base_name} - (${platform})"
+    "generated_name_for_build_system": "${project_base_name} (${platform})"
 }

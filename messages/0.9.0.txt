@@ -1,4 +1,34 @@
+Dear earlybirds,
+
+This is version 0.9 of CMakeBuilder. I believe it has reached a mature
+state, so it's almost ready for version 1.0.
+
 - Fix write_build_targets overwriting all of your other build systems.
-- Allow custom name for your new build system. See the settings.
+
+  Previously, all other build systems that were present got overwritten.
+  This is no longer the case; all your custom-written build systems
+  remain intact.
+
+- Allow custom name for your new build system.
+
+  This is realized as a new setting called
+
+    "generated_name_for_build_system"
+
+  By default, its value is "${project_base_name} (${platform})". When
+  combined with the above fix, this allows multiple build systems (per
+  platform) to live inside a single sublime project file. Thus, it should
+  be possible to have a single cross-platform sublime project file now.
+
 - Remove deprecated commands.
+
+  Use the settings, Luke!
+
 - Uniformize getting settings
+
+  Every setting can be overridden in the "settings" dictionary of your
+  sublime project file. For instance, if you want
+  "silence_developer_warnings" to be off by default, but on for a
+  particular project, you can do so in the settings of the project file.
+
+- Add a link to the README in the preferences like a pro.
