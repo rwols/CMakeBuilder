@@ -10,6 +10,7 @@ __all__ = [
     'CmakeClearCacheCommand',
     'CmakeConfigureCommand',
     'CmakeDiagnoseCommand',
+    'CmakeInsertDiagnosisCommand',
     'CmakeOpenBuildFolderCommand',
     'CmakeRunCtestCommand',
     'CmakeWriteBuildTargetsCommand'
