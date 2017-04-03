@@ -1,1 +1,0 @@
-- Remove deprecated commands from the command palette. Use the settings now!

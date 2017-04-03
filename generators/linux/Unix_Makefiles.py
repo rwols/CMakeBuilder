@@ -14,8 +14,8 @@ class Unix_Makefiles(CMakeGenerator):
     def syntax(self):
         return 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
 
-    def shell_cmd(self, target):
-        return 'make -j{} {}'.format(str(multiprocessing.cpu_count()), target)
+    def shell_cmd(self):
+        return 'make -j{}'.format(str(multiprocessing.cpu_count()))
 
     def variants(self):
         env = None
@@ -55,7 +55,16 @@ class Unix_Makefiles(CMakeGenerator):
                 if any(exclude in target for exclude in EXCLUDES): 
                     continue
                 target = target[4:]
-                variants.append(target)
+                name = target
+                # for ext in LIB_EXTENSIONS:
+                #     if name.endswith(ext):
+                #         name = name[:-len(ext)]
+                #         break
+                if (self.filter_targets and 
+                    not any(f in name for f in self.filter_targets)):
+                    continue
+                shell_cmd = 'make -j{} {}'.format(str(multiprocessing.cpu_count()), target)
+                variants.append({'name': name, 'shell_cmd': shell_cmd})
             except Exception as e:
                 sublime.error_message(str(e))
                 # Continue anyway; we're in a for-loop

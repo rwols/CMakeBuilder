@@ -22,6 +22,9 @@ class Visual_Studio(CMakeGenerator):
                     target = file
                 else:
                     target = relative + '/' + file
+                if (self.filter_targets and 
+                    not any(f in target for f in self.filter_targets)):
+                    continue
                 if configs:
                     for config in configs:
                         shell_cmd = 'cmake --build . --target {} --config {}'.format(target, config)
@@ -31,14 +34,6 @@ class Visual_Studio(CMakeGenerator):
                     shell_cmd = 'cmake --build . --target {}'.format(target)
                     variants.append({'name': target, 'shell_cmd': shell_cmd})
         return variants
-
-    def shell_cmd(self, target):
-        start = target.find('[')
-        if -1 == start:
-            return 'cmake --build . --target {}'.format(target)
-        end = target.find(']', start)
-        return 'cmake --build . --target {} --config {}'.format(target.substr(0, start - 1), target.substr(start, end - start))
-
 
     def syntax(self):
         return 'Packages/CMakeBuilder/Syntax/Visual_Studio.sublime-syntax'

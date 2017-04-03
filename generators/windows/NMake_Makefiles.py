@@ -35,9 +35,6 @@ class NMake_Makefiles(CMakeGenerator):
     def file_regex(self):
         return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
 
-    def shell_cmd(self, target):
-        return 'cmake --build . --target {}'.format(target)
-
     def variants(self):
         
         lines = subprocess.check_output('cmake --build . --target help', 
@@ -61,13 +58,12 @@ class NMake_Makefiles(CMakeGenerator):
                 if any(exclude in target for exclude in EXCLUDES): 
                     continue
                 target = target[4:]
-                # name = target
-                # if (self.filter_targets and 
-                #     not any(f in name for f in self.filter_targets)):
-                #     continue
-                # shell_cmd = 'cmake --build . --target {}'.format(target)
-                # variants.append({'name': name, 'shell_cmd': shell_cmd})
-                variants.append(target)
+                name = target
+                if (self.filter_targets and 
+                    not any(f in name for f in self.filter_targets)):
+                    continue
+                shell_cmd = 'cmake --build . --target {}'.format(target)
+                variants.append({'name': name, 'shell_cmd': shell_cmd})
             except Exception as e:
                 sublime.error_message(str(e))
                 # Continue anyway; we're in a for-loop
