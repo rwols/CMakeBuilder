@@ -1,0 +1,37 @@
+{
+    "scope": "source.cmake", 
+    "completions": [
+        {
+            "trigger": "file\tWRITE",
+            "contents": "file(WRITE ${1:filename} ${2:content})"
+        },
+        {
+            "trigger": "file\tAPPEND",
+            "contents": "file(APPEND ${1:filename} ${2:content})"
+        },
+        {
+            "trigger": "file\tREAD",
+            "contents": "file(READ ${1:filename} ${2:variable}${3/.+/ /}${3:OFFSET ${4:offset}}${5/.+/ /}${5:LIMIT ${6:max-in}}${7/.+/ /}${7:HEX})"
+        },
+        {
+            "trigger": "file\tSTRINGS",
+            "contents": "file(STRINGS ${1:filename} ${3:variable} ${4:LENGTH_MAXIMUM ${5:max-len}} ${6:LENGTH_MINIMUM ${7:min-len}})"
+        },
+        {
+            "trigger": "target_compile_definitions\tINTERFACE",
+            "contents": "target_compile_definitions(${1:target} INTERFACE ${2:items})"
+        },
+        {
+            "trigger": "target_compile_definitions\tPUBLIC",
+            "contents": "target_compile_definitions(${1:target} PUBLIC ${2:items})"
+        },
+        {
+            "trigger": "target_compile_definitions\tPRIVATE",
+            "contents": "target_compile_definitions(${1:target} PRIVATE ${2:items})"
+        },
+        {
+            "trigger": "test",
+            "contents": "Original:     ${1:Hey, Joe!}\nTransformation: ${1/./=/g}"
+        }
+    ]
+}
