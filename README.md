@@ -114,7 +114,7 @@ accepts the following keys:
 * `cmake_configure`, arguments: `None`.
 * `cmake_diagnose`, arguments: `None`.
 * `cmake_open_build_folder`, arguments: `None`.
-* `cmake_run_ctest`, arguments: `None`
+* `cmake_run_ctest`, arguments: `{ test_framework : str }`
 * `cmake_write_build_targets`, arguments: `None`.
 
 ### Available Commands in the Command Palette
@@ -251,7 +251,7 @@ All commands are also visible in the Tools menu under "CMakeBuilder".
 ![11][11] <!-- Screenshot #11 -->
 
 ### Running unit tests with CTest
-If you have unit tests configured with the [add_test](https://cmake.org/cmake/help/latest/command/add_test.html) function of CMake, then
+If you have unit tests configured with the [add_test][2] function of CMake, then
 you can run those with the command
 
     CMakeBuilder: Run CTest
@@ -295,6 +295,7 @@ This is a reference list for the valid variable substitutions for your
 See [CONTRIBUTING.md][1]
 
 [1]: CONTRIBUTING.md
+[2]: https://cmake.org/cmake/help/latest/command/add_test.html
 [9]: https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/9.png
 [10]: https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/10.png
 [11]: https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/11.png
