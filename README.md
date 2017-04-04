@@ -111,6 +111,47 @@ Any key may be overridden by a platform-specific override. The platform keys
 are one of `"linux"`, `"osx"` or `"windows"`. For an example on how this works,
 see below.
 
+## Example Project File
+
+Here is an example Sublime project to get you started.
+
+```json
+{
+    "cmake":
+    {
+        "build_folder": "${project_path}/build",
+        "command_line_overrides":
+        {
+            "BUILD_SHARED_LIBS": true,
+            "CMAKE_BUILD_TYPE": "Debug",
+            "CMAKE_EXPORT_COMPILE_COMMANDS": true
+        },
+        "generator": "Unix Makefiles",
+        "windows":
+        {
+            "generator": "Visual Studio",
+            "configurations":
+            [
+                "Debug"
+            ]
+        }
+      }
+    },
+    "folders":
+    [
+        {
+            "path": "."
+        }
+    ],
+    "settings":
+    {
+
+    }
+}
+
+```
+
+
 ### Available Scripting Commands
 
 * `cmake_clear_cache_and_configure`, arguments: `None`.
@@ -165,46 +206,6 @@ menu at the top of the window.
 
   The name for the generated build system when you run
   `cmake_write_build_targets`. Can have arbitrary snippet-like variables.
-
-## Example Project File
-
-Here is an example Sublime project to get you started.
-
-```json
-{
-    "cmake":
-    {
-        "build_folder": "${project_path}/build",
-        "command_line_overrides":
-        {
-            "BUILD_SHARED_LIBS": true,
-            "CMAKE_BUILD_TYPE": "Debug",
-            "CMAKE_EXPORT_COMPILE_COMMANDS": true
-        },
-        "generator": "Unix Makefiles",
-        "windows":
-        {
-            "generator": "Visual Studio",
-            "configurations":
-            [
-                "Debug"
-            ]
-        }
-      }
-    },
-    "folders":
-    [
-        {
-            "path": "."
-        }
-    ],
-    "settings":
-    {
-
-    }
-}
-
-```
 
 ## How Do I Manage Cross-Platform Project Files?
 
