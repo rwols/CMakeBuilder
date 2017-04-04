@@ -135,7 +135,6 @@ Here is an example Sublime project to get you started.
                 "Debug"
             ]
         }
-      }
     },
     "folders":
     [
