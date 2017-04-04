@@ -78,16 +78,21 @@ class CmakeWriteBuildTargetsCommand(sublime_plugin.WindowCommand):
         try:
             assert builder
             new_build_system = builder.create_sublime_build_system()
-            build_systems = project.get('build_systems', [])
-            for i, build_system in enumerate(build_systems):
-                if build_system.get('name', '') == new_build_system['name']:
-                    build_systems[i] = new_build_system
-                    self.window.set_project_data(project)
-                    self.window.run_command('set_build_system', args={'index': i})
-                    return
-            build_systems.append(new_build_system)
-            self.window.set_project_data(project)
-            self.window.run_command('set_build_system', args={'index': len(build_systems) - 1})
+            build_systems = project.get('build_systems', None)
+            if build_systems:
+                for i, build_system in enumerate(build_systems):
+                    if build_system.get('name', '') == new_build_system['name']:
+                        build_systems[i] = new_build_system
+                        self.window.set_project_data(project)
+                        self.window.run_command('set_build_system', args={'index': i})
+                        return
+                build_systems.append(new_build_system)
+                self.window.set_project_data(project)
+                self.window.run_command('set_build_system', args={'index': len(build_systems) - 1})
+            else:
+                project['build_systems'] = [new_build_system]
+                self.window.set_project_data(project)
+                self.window.run_command('set_build_system', args={'index': 0})
         except Exception as e:
             sublime.error_message('An error occured during assigment of the sublime build system: %s' % str(e))
 
