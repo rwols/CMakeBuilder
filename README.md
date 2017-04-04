@@ -16,26 +16,26 @@ and look for CMakeBuilder.
 
 2. Add this to the project file on the same level as `"folders"`, `"settings"`:
 
-   ```json
-   "cmake":
-   {
+    ```json
+    "cmake":
+    {
        "build_folder": "${project_path}/build"
-   }
-   ```
+    }
+    ```
 
 3. Run the command
 
-   ```
-   CMakeBuilder: Configure
-   ```
+    ```
+    CMakeBuilder: Configure
+    ```
 
    from the command palette; wait for it to finish.
 
 4. Run the command
 
-   ```
-   CMakeBuilder: Write Build Targets to Sublime Project File
-   ```
+    ```
+    CMakeBuilder: Write Build Targets to Sublime Project File
+    ```
 
 5. Check out your new build system in your `.sublime-project`.
 
