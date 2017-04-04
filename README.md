@@ -84,17 +84,17 @@ accepts the following keys:
 
   A JSON string specifying the CMake generator. 
 
-  - Available generators for osx: "Ninja" and "Unix Makefiles".
+  * Available generators for osx: "Ninja" and "Unix Makefiles".
 
     If no generator is specified on osx, "Unix Makefiles" is the default
     generator. For "Ninja", you must have ninja installed. Install it with brew.
 
-  - Available generators for linux: "Ninja" and "Unix Makefiles".
+  * Available generators for linux: "Ninja" and "Unix Makefiles".
 
     If no generator is specified on osx, "Unix Makefiles" is the default
     generator. For "Ninja", you must have ninja installed. Install it with apt.
 
-  - Available generators for windows: "NMake Makefiles" and "Visual Studio".
+  * Available generators for windows: "NMake Makefiles" and "Visual Studio".
 
     If no generator is specified on windows, "Visual Studio" is the default
     generator. For both "Visual Studio" and "NMake Makefiles", you need
