@@ -177,7 +177,16 @@ Here is an example Sublime project to get you started.
             "CMAKE_BUILD_TYPE": "Debug",
             "CMAKE_EXPORT_COMPILE_COMMANDS": true
         },
-        "generator": "Unix Makefiles"
+        "generator": "Unix Makefiles",
+        "windows":
+        {
+            "generator": "Visual Studio",
+            "configurations":
+            [
+                "Debug"
+            ]
+        }
+      }
     },
     "folders":
     [
