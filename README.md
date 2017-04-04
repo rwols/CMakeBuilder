@@ -107,6 +107,10 @@ accepts the following keys:
   present, the directory where the sublime project file is located is assumed to
   have the root CMakeLists.txt file.
 
+Any key may be overridden by a platform-specific override. The platform keys
+are one of `"linux"`, `"osx"` or `"windows"`. For an example on how this works,
+see below.
+
 ### Available Scripting Commands
 
 * `cmake_clear_cache_and_configure`, arguments: `None`.
