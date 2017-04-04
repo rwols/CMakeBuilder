@@ -162,6 +162,11 @@ menu at the top of the window.
   Command line arguments passed to the CTest invocation when you run 
   `cmake_run_ctest`.
 
+* `generated_name_for_build_system` : JSON string
+
+  The name for the generated build system when you run
+  `cmake_write_build_targets`. Can have arbitrary snippet-like variables.
+
 ## Example Project File
 
 Here is an example Sublime project to get you started.
@@ -215,7 +220,7 @@ systems.
 
 ## Keybindings
 
-There are no default keybindings. You can create them yourself. the relevant
+There are no default keybindings. You can create them yourself. The relevant
 commands are
 
 * `cmake_configure`,

@@ -1,13 +1,22 @@
 Dear earlybirds,
 
 This is version 0.9 of CMakeBuilder. I believe it has reached a mature
-state, so it's almost ready for version 1.0.
+state, so it's almost ready for version 1.0. There are a couple things
+left to do, like make the NMake output a little better by filtering out
+the ansi color codes. On the other hand, NMake is not multithreaded, so
+I'm not sure if anybody in good conscience wants to use this generator.
 
 - Fix write_build_targets overwriting all of your other build systems.
 
   Previously, all other build systems that were present got overwritten.
   This is no longer the case; all your custom-written build systems
   remain intact.
+
+  !!!IMPORTANT!!! The new behaviour of write_build_targets is such that
+  it will probably create a new build system alongside your old one.
+  It's best to remove your old build system and generate a new one. The
+  new build system will update itself and not overwrite other build
+  build systems.
 
 - Allow custom name for your new build system.
 
