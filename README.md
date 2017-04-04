@@ -114,21 +114,16 @@ accepts the following keys:
 * `cmake_configure`, arguments: `None`.
 * `cmake_diagnose`, arguments: `None`.
 * `cmake_open_build_folder`, arguments: `None`.
-* `cmake_run_ctest`, arguments: `{extra_args : str, test_framework : str}`.
+* `cmake_run_ctest`, arguments: `None`
 * `cmake_write_build_targets`, arguments: `None`.
 
 ### Available Commands in the Command Palette
 
 * `CMakeBuilder: Browse Build Folder...`
 * `CMakeBuilder: Clear Cache`
-* `CMakeBuilder: Clear Cache And Configure`<sup>[deprecated]</sup>
 * `CMakeBuilder: Configure`
-* `CMakeBuilder: Configure & Update Build Targets`<sup>[deprecated]</sup>
-* `CMakeBuilder: Configure (silence dev warnings)`<sup>[deprecated]</sup>
 * `CMakeBuilder: Diagnose (What Should I Do?)`
 * `CMakeBuilder: Run CTest`
-* `CMakeBuilder: Run CTest (Verbose)`<sup>[deprecated]</sup>
-* `CMakeBuilder: Run CTest (Extra Verbose)`<sup>[deprecated]</sup>
 * `CMakeBuilder: Write Build Targets To Sublime Project File`
 
 All commands are accessible via both the command palette as well as the tools
