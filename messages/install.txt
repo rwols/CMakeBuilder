@@ -31,8 +31,9 @@ Alternatively, you can open the README.md file located at
     Packages/CMakeBuilder/README.md
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is most easily accomplished with the "ReadmePlease" package
-(install it with Package Control!)
+Or, you can even just go to
+
+    Preferences -> Package Settings -> CMakeBuilder -> README
 
 Extra goodies:
 - Goto error/warning at the configuration step (press F4)
@@ -56,5 +57,5 @@ command line is for. This plugin is for the developer working on a CMake
 project and wanting to quickly build/test the project.
 
 This plugin does not provide syntax highlighting for CMakeLists.txt files 
-and .cmake files. Download CMakeEditor for that.
+and .cmake files. Download "CMake" or "CMakeEditor" for that.
 +--++++====++++----------------------------------------------++++====++++--+
