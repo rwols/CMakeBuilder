@@ -8,14 +8,14 @@ from .write_build_targets import CmakeWriteBuildTargetsCommand
 from .wrap_as_variable import CmakeWrapAsVariableCommand
 
 __all__ = [
-    'CmakeClearCacheCommand',
-    'CmakeConfigureCommand',
-    'CmakeDiagnoseCommand',
-    'CmakeInsertDiagnosisCommand',
-    'CmakeOpenBuildFolderCommand',
-    'CmakeRunCtestCommand',
-    'CmakeWriteBuildTargetsCommand',
-    'CmakeWrapAsVariableCommand'
+    'CmakeClearCacheCommand'
+    , 'CmakeConfigureCommand'
+    , 'CmakeDiagnoseCommand'
+    , 'CmakeInsertDiagnosisCommand'
+    , 'CmakeOpenBuildFolderCommand'
+    , 'CmakeRunCtestCommand'
+    , 'CmakeWriteBuildTargetsCommand'
+    # , 'CmakeWrapAsVariableCommand'
 ]
 
 print('CMakeBuilder: Available commands:')

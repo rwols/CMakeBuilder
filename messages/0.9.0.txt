@@ -12,7 +12,9 @@ I'm not sure if anybody in good conscience wants to use this generator.
   This is no longer the case; all your custom-written build systems
   remain intact.
 
-  !!!IMPORTANT!!! The new behaviour of write_build_targets is such that
+  !!! IMPORTANT !!!
+
+  The new behaviour of write_build_targets is such that
   it will probably create a new build system alongside your old one.
   It's best to remove your old build system and generate a new one. The
   new build system will update itself and not overwrite other build
@@ -37,7 +39,7 @@ I'm not sure if anybody in good conscience wants to use this generator.
 
   Every setting can be overridden in the "settings" dictionary of your
   sublime project file. For instance, if you want
-  "silence_developer_warnings" to be off by default, but on for a
+  "silence_developer_warnings" to be off by default, but not for a
   particular project, you can do so in the settings of the project file.
 
 - Add a link to the README in the preferences like a pro.
