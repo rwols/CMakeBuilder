@@ -36,10 +36,8 @@ class NMake_Makefiles(CMakeGenerator):
         return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
 
     def variants(self):
-        
-        lines = subprocess.check_output('cmake --build . --target help', 
-            cwd=self.build_folder).decode('utf-8').splitlines()
-
+        lines = subprocess.check_output('cmake --build . --target help',
+            cwd=self.build_folder, env=self.env()).decode('utf-8').splitlines()
         variants = []
         EXCLUDES = [
             'are some of the valid targets for this Makefile:',
@@ -62,6 +60,7 @@ class NMake_Makefiles(CMakeGenerator):
                 if (self.filter_targets and 
                     not any(f in name for f in self.filter_targets)):
                     continue
+                log.debug("%s" % target)
                 shell_cmd = 'cmake --build . --target {}'.format(target)
                 variants.append({'name': name, 'shell_cmd': shell_cmd})
             except Exception as e:
@@ -283,16 +282,16 @@ def find_vcvarsall(version):
     log.debug("Unable to find vcvarsall.bat")
     return None
 
-def query_vcvarsall(version, arch="x86"):
+def query_vcvarsall(version):
     """Launch vcvarsall.bat and read the settings from its environment
     """
     vcvarsall = find_vcvarsall(version)
-    interesting = set(("include", "lib", "libpath", "path"))
+    arch = PLAT_TO_VCVARS[get_platform()]
+    interesting = set(("INCLUDE", "LIB", "LIBPATH", "Path"))
     result = {}
 
     if vcvarsall is None:
         raise DistutilsPlatformError("Unable to find vcvarsall.bat")
-    log.debug("Calling 'vcvarsall.bat %s' (version=%s)", arch, version)
     startupinfo = None
     if os.name == 'nt':
         startupinfo = subprocess.STARTUPINFO()
@@ -313,7 +312,6 @@ def query_vcvarsall(version, arch="x86"):
             continue
         line = line.strip()
         key, value = line.split('=', 1)
-        key = key.lower()
         if key in interesting:
             if value.endswith(os.pathsep):
                 value = value[:-1]
