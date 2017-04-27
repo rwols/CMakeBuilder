@@ -60,7 +60,6 @@ class NMake_Makefiles(CMakeGenerator):
                 if (self.filter_targets and 
                     not any(f in name for f in self.filter_targets)):
                     continue
-                log.debug("%s" % target)
                 shell_cmd = 'cmake --build . --target {}'.format(target)
                 variants.append({'name': name, 'shell_cmd': shell_cmd})
             except Exception as e:
