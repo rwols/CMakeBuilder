@@ -33,7 +33,7 @@ class NMake_Makefiles(CMakeGenerator):
         return 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
 
     def file_regex(self):
-        return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
+        return r'^(.+)\((\d+)\):() (.+)$'
 
     def variants(self):
         lines = subprocess.check_output('cmake --build . --target help',
