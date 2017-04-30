@@ -1,1 +1,1 @@
-- Revert NMake fixes; breaks for VS2015 for some reason.
+- Revert NMake fixes; breaks for Windows 10 VS2015 for some reason.

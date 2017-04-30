@@ -101,6 +101,10 @@ accepts the following keys:
     Microsoft Visual Studio C++. The latest version of Visual Studio is searched
     for. There is no support for 64-bit building as of this writing.
 
+    **Note**: If you find that the output of the NMake generator is garbled with
+    color escape codes, you can try to use `CMAKE_COLOR_MAKEFILE: false` in your
+    `command_line_overrides` dictionary.
+
 * `root_folder` [optional]
 
   The directory where the root CMakeLists.txt file resides. If this key is not
@@ -208,14 +212,9 @@ menu at the top of the window.
 
 ## How Do I Manage Cross-Platform Project Files?
 
-I played around with platform-specific overrides in the build system, but it
-looks like the `variants` key does not respond to platform overrides. In
-conclusion I believe the best way to have your project be cross-platform for
-Sublime Text is to write a `.sublime-project` file for each platform. For
-example, you'd have three files named `myproject (OSX).sublime-project`, 
-`myproject (Linux).sublime-project` and `myproject (Windows).sublime-project`.
-Each one then has its own CMake dictionary with relevant settings and build
-systems.
+By default, the name of the generated build system is the name of your project,
+followed by the platform in parentheses. Thus, multiple build systems may
+coexist in a single project file.
 
 ## Keybindings
 
