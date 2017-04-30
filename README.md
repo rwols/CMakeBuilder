@@ -102,8 +102,8 @@ accepts the following keys:
     for. There is no support for 64-bit building as of this writing.
 
     **Note**: If you find that the output of the NMake generator is garbled with
-    color escape codes, you can try to use `CMAKE_COLOR_MAKEFILE: false` in your
-    `command_line_overrides` dictionary.
+    color escape codes, you can try to use `"CMAKE_COLOR_MAKEFILE": false` in 
+    your `command_line_overrides` dictionary.
 
 * `root_folder` [optional]
 
