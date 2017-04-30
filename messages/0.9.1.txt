@@ -1,0 +1,2 @@
+- Fix NMake not working on x64 Windows 7 (thanks, paulfd)
+- Fix NMake file regex
