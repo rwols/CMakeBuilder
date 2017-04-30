@@ -36,8 +36,10 @@ class NMake_Makefiles(CMakeGenerator):
         return r'^(.+)\((\d+)\):() (.+)$'
 
     def variants(self):
-        lines = subprocess.check_output('cmake --build . --target help',
-            cwd=self.build_folder, env=self.env()).decode('utf-8').splitlines()
+        
+        lines = subprocess.check_output('cmake --build . --target help', 
+            cwd=self.build_folder).decode('utf-8').splitlines()
+
         variants = []
         EXCLUDES = [
             'are some of the valid targets for this Makefile:',
@@ -281,16 +283,16 @@ def find_vcvarsall(version):
     log.debug("Unable to find vcvarsall.bat")
     return None
 
-def query_vcvarsall(version):
+def query_vcvarsall(version, arch="x86"):
     """Launch vcvarsall.bat and read the settings from its environment
     """
     vcvarsall = find_vcvarsall(version)
-    arch = PLAT_TO_VCVARS[get_platform()]
-    interesting = set(("INCLUDE", "LIB", "LIBPATH", "Path"))
+    interesting = set(("include", "lib", "libpath", "path"))
     result = {}
 
     if vcvarsall is None:
         raise DistutilsPlatformError("Unable to find vcvarsall.bat")
+    log.debug("Calling 'vcvarsall.bat %s' (version=%s)", arch, version)
     startupinfo = None
     if os.name == 'nt':
         startupinfo = subprocess.STARTUPINFO()
@@ -311,6 +313,7 @@ def query_vcvarsall(version):
             continue
         line = line.strip()
         key, value = line.split('=', 1)
+        key = key.lower()
         if key in interesting:
             if value.endswith(os.pathsep):
                 value = value[:-1]
