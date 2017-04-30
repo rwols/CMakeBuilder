@@ -1,0 +1,1 @@
+- Revert NMake fixes; breaks for VS2015 for some reason.
