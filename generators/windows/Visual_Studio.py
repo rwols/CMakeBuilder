@@ -1,7 +1,51 @@
 from .. import CMakeGenerator
+from .support.vcvarsall import query_vcvarsall
 import os
+import re
+import subprocess
+import sublime
 
 class Visual_Studio(CMakeGenerator):
+
+    def __repr__(self):
+        startupinfo = None
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        lines = subprocess.check_output(
+            'cmake --help', 
+            startupinfo=startupinfo).decode('utf-8').splitlines()
+        years = {}
+        for line in lines:
+            print(line)
+            if 'Visual Studio' in line:
+                match = re.search(r'Visual Studio (\d+) (\d+)', line)
+                if not match:
+                    continue
+                ver = float(match.group(1))
+                year = int(match.group(2))
+                years[ver] = year
+        result = 'Visual Studio'
+        ok = False
+        vs_versions = self.visual_studio_versions
+        if not vs_versions:
+            vs_versions = [15.0, 14.1, 14.0, 13.0, 12.0, 11.0, 10.0]
+        for version in vs_versions:
+            if version in years:
+                if version.is_integer():
+                    result += ' %i %i' % (int(version), years[version])
+                else:
+                    result += ' %0.1f %i' % (version, years[version])
+                ok = True
+                break
+        if not ok:
+            raise Exception('Could not determine Visual Studio version!')
+        if self.target_architecture:
+            if self.target_architecture == 'amd64':
+                result += ' Win64'
+            elif self.target_architecture == 'arm':
+                result += ' ARM'
+        return result
 
     def variants(self):
         configs = self.get_cmake_key('configurations')
@@ -40,4 +84,33 @@ class Visual_Studio(CMakeGenerator):
 
     def file_regex(self):
         return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
-        
+
+    def env(self):
+        if self.visual_studio_versions:
+            vs_versions = self.visual_studio_versions
+        else:
+            vs_versions = [ 15, 14.1, 14, 13, 12, 11, 10, 9, 8 ]
+        if self.target_architecture:
+            arch = self.target_architecture
+        else:
+            arch = 'x86'
+        if sublime.arch() == 'x32':
+            host = 'x86'
+        elif sublime.arch() == 'x64':
+            host = 'amd64'
+        else:
+            sublime.error_message('Unknown Sublime architecture: %s' % sublime.arch())
+            return
+        if arch != host:
+            arch = host + '_' + arch
+        for version in vs_versions:
+            try:
+                vcvars = query_vcvarsall(version, arch)
+                if vcvars:
+                    print('found vcvarsall for version', version)
+                    return vcvars
+            except Exception:
+                print('could not find vsvcarsall for version', version)
+                continue
+        print('warning: did not find vcvarsall.bat')
+        return {}

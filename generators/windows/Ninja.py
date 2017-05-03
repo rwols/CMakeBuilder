@@ -4,10 +4,10 @@ import os
 import sublime
 import subprocess
 
-class NMake_Makefiles(CMakeGenerator):
+class Ninja(CMakeGenerator):
 
     def __repr__(self):
-        return 'NMake Makefiles'
+        return 'Ninja'
 
     def env(self):
         if self.visual_studio_versions:
@@ -18,8 +18,15 @@ class NMake_Makefiles(CMakeGenerator):
             arch = self.target_architecture
         else:
             arch = 'x86'
-        if arch != 'x86':
-            arch = 'x86_' + arch
+        if sublime.arch() == 'x32':
+            host = 'x86'
+        elif sublime.arch() == 'x64':
+            host = 'amd64'
+        else:
+            sublime.error_message('Unknown Sublime architecture: %s' % sublime.arch())
+            return
+        if arch != host:
+            arch = host + '_' + arch
         for version in vs_versions:
             try:
                 vcvars = query_vcvarsall(version, arch)
@@ -33,11 +40,11 @@ class NMake_Makefiles(CMakeGenerator):
         return {}
 
     def syntax(self):
-        return 'Packages/CMakeBuilder/Syntax/Make.sublime-syntax'
+        return 'Packages/CMakeBuilder/Syntax/Ninja+CL.sublime-syntax'
 
     def file_regex(self):
         return r'^(.+)\((\d+)\):() (.+)$'
-
+    
     def variants(self):
 
         startupinfo = None
@@ -77,4 +84,3 @@ class NMake_Makefiles(CMakeGenerator):
                 sublime.error_message(str(e))
                 # Continue anyway; we're in a for-loop
         return variants
-        

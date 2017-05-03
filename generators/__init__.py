@@ -20,6 +20,8 @@ class CMakeGenerator(object):
         self.build_folder = self.get_cmake_key('build_folder')
         self.filter_targets = self.get_cmake_key('filter_targets')
         self.command_line_overrides = self.get_cmake_key('command_line_overrides')
+        self.target_architecture = self.get_cmake_key('target_architecture')
+        self.visual_studio_versions = self.get_cmake_key('visual_studio_versions')
         assert self.build_folder
 
     def __repr__(self):
@@ -121,11 +123,12 @@ def class_from_generator_string(generator_string):
         sublime.error_message('CMakeBuilder: "%s" is not a valid generator. The valid generators for this platform are: %s' % (generator_string, ','.join(valid_generators)))
         return
     GeneratorModule = sys.modules[module_name]
+    print(GeneratorModule)
     GeneratorClass = None
     try:
         GeneratorClass = getattr(GeneratorModule, generator_string.replace(' ', '_'))
-    except AttributeError:
-        sublime.error_message('Internal error.')
+    except AttributeError as e:
+        sublime.error_message('Internal error: %s' % str(e))
     return GeneratorClass
 
 def _import_pyfiles_from_dir(dir):
@@ -145,26 +148,6 @@ def _import_all_platform_specific_generators():
 def import_user_generators():
     path = os.path.join(sublime.packages_path(), 'User', 'generators', sublime.platform())
     return list(_import_pyfiles_from_dir(path))
-
-#     result = []
-#     print('CMakeBuilder: Available generators on {}:'.format(sublime.platform()))
-#     for file in glob.iglob(os.path.dirname(__file__) + '/' + sublime.platform() + '/*.py'):
-#         if not os.path.isfile(file): continue
-#         base = os.path.basename(file)
-#         if base.startswith('__'): continue
-#         generator = base[:-3]
-#         result.append(generator)
-#         print('\t{}'.format(generator))
-#     return result
-
-# def import_user_generators():
-#     path = os.path.join(sublime.packages_path(), 'User', 'generators', sublime.platform())
-#     for file in glob.iglob(path + '/*.py')
-#         if not os.path.isfile(file): continue
-#         base = os.path.basename(file)
-#         if base.startswith('__'): continue
-#         generator = base[:-3]
-#         yield generator
 
 if sublime.platform() == 'linux':
     from .linux import *

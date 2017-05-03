@@ -111,8 +111,10 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         except ValueError as e:
             sublime.error_message('Invalid placeholder in cmake dictionary')
             return
-        if generator != 'Visual Studio':
-            cmd += ' -G "{}"'.format(generator)
+        self.builder = builder
+        cmd += ' -G"{}"'.format(repr(self.builder))
+        # if generator != 'Visual Studio':
+        #     cmd += ' -G "{}"'.format(generator)
         if overrides:
             for key, value in overrides.items():
                 try:
@@ -124,13 +126,17 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
                     pass
                 except ValueError as e:
                     pass
-        self.builder = builder
         self.builder.on_pre_configure()
+        env = self.builder.env()
+        user_env = get_cmake_value(cmake, 'env')
+        if user_env:
+            env.update(user_env)
+        print('env: {}'.format(self.builder.env()))
         super().run(shell_cmd=cmd, 
             working_dir=root_folder,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
             syntax='Packages/CMakeBuilder/Syntax/Configure.sublime-syntax',
-            env=self.builder.env())
+            env=env)
     
     def on_finished(self, proc):
         super().on_finished(proc)
