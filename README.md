@@ -66,13 +66,6 @@ accepts the following keys:
   pair `"BUILD_SHARED_LIBS": true`in the dictionary, the CMake invocation will
   contain `-DBUILD_SHARED_LIBS=ON`.
 
-* `configurations` [optional]
-
-  This key is only relevant for the Visual Studio generator (see `generator` 
-  down below). This shall be a JSON list of strings defining the desired 
-  configurations. For instance, `"Debug"` and `"Release"`. If omitted, the 
-  default target is built, which would be Debug.
-
 * `filter_targets` [optional]
 
   A JSON list consisting of strings. Each build target is tested against all of
@@ -94,7 +87,8 @@ accepts the following keys:
     If no generator is specified on osx, "Unix Makefiles" is the default
     generator. For "Ninja", you must have ninja installed. Install it with apt.
 
-  * Available generators for windows: "NMake Makefiles" and "Visual Studio".
+  * Available generators for windows: "Ninja", "NMake Makefiles" and 
+    "Visual Studio".
 
     If no generator is specified on windows, "Visual Studio" is the default
     generator. For both "Visual Studio" and "NMake Makefiles", you need
@@ -111,6 +105,13 @@ accepts the following keys:
   present, the directory where the sublime project file is located is assumed to
   have the root CMakeLists.txt file.
 
+* `configurations` [optional] [ONLY FOR WINDOWS]
+
+  This key is only relevant for the Visual Studio generator (see `generator` 
+  down below). This shall be a JSON list of strings defining the desired 
+  configurations. For instance, `"Debug"` and `"Release"`. If omitted, the 
+  default target is built, which would be Debug.
+
 * `target_architecture` [optional] [ONLY FOR WINDOWS]
 
   This must be a string with any one of these three values: `"x86"`, `"amd64"`
@@ -120,6 +121,9 @@ accepts the following keys:
   you can omit this key altogether. Note for advanced users: CMakeBuilder will
   automatically translate the given argument to the correct argument for
   `vcvarsall.bat`.
+  **Note**: If you're using the "NMake Makefiles" generator, you're out of luck.
+  This generator refuses to build for anything other than x86 it seems. Consider
+  switching to Ninja if you want a fast bare-bones build system.
 
 * `visual_studio_versions` [optional] [ONLY FOR WINDOWS]
 

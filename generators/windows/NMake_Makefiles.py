@@ -18,8 +18,15 @@ class NMake_Makefiles(CMakeGenerator):
             arch = self.target_architecture
         else:
             arch = 'x86'
-        if arch != 'x86':
-            arch = 'x86_' + arch
+        if sublime.arch() == 'x32':
+            host = 'x86'
+        elif sublime.arch() == 'x64':
+            host = 'amd64'
+        else:
+            sublime.error_message('Unknown Sublime architecture: %s' % sublime.arch())
+            return
+        if arch != host:
+            arch = host + '_' + arch
         for version in vs_versions:
             try:
                 vcvars = query_vcvarsall(version, arch)
