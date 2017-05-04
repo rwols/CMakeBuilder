@@ -16,6 +16,8 @@ contexts:
       captures:
         1: keyword.control
         2: string
+    - match: "In file included from .*"
+      scope: markup.quote
     - match: ((?:[^\\/]*\\|/)*)(.*)(:)(\d+)(:)(\d+)
       captures:
         2: string.unquoted.filepath

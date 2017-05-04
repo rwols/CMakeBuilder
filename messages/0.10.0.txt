@@ -12,6 +12,11 @@
 
 - Improve CMakeCache.txt syntax highlighting
 
+- Improve Ninja output panel syntax highlighting for OSX and Linux
+
+- Improve Unix Makefiles output panel syntax highlighting for OSX and
+  Linux
+
 - Allow Visual Studio to compile for 64 bit (see below).
 
 - New item in cmake dictionary: "env"
