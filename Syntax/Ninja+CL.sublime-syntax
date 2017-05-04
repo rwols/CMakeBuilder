@@ -5,16 +5,100 @@ scope: text.log
 
 contexts:
   main:
-    - match: ^\[(\d+)/(\d+)\]
+    - match: ^\[(?=\d)
+      push: expect-cmake-info-line
+    - match: (FAILED)(\:)((?:[^\\/]*\\|/)*)(.*)
       captures:
-        1: constant.numeric.integer
-        2: constant.numeric.integer
-    - match: (Building CX?X? object) (.*)
+        1: invalid.illegal
+        2: punctuation.separator
+        3:  string.unqouted.filepath
+        4:  string.unqouted.filepath
+    - match: ((?:[^\\/]*\\|/)*)(.*)\((\d+)\)
       captures:
-        1: keyword.operator
-        2: string
-    - match: "(Linking CX?X?(?: shared| static)? (?:library|executable)) (.*)"
+        3: constant.numeric.integer
+      push: expect-compiler-message
+    - match: \s{8}(with)
       captures:
-        1: keyword.control
-        2: string
+        1: punctuation.separator
+      push: expect-template-substitution
+
+  expect-template-substitution:
+    - match: \s{12}
+      push:
+        - match: (.+)(=)([^,]+)(,?)
+          captures:
+            1: markup.deleted
+            2: punctuation.separator
+            3: markup.deleted
+            4: punctuation.separator
+          pop: true
+    - match: \s{8}(\[)
+      captures:
+        1: punctuation.separator
+    - match: \s{8}(\])
+      captures:
+        1: punctuation.separator
+      pop: true
+
+  expect-cmake-info-line:
+    - meta_scope: meta.progress.cmake
+    - match: \]
+      set:
+        - meta_content_scope: meta.info.cmake
+        - match: $
+          pop: true # back to main context
+        - match: (Building CX?X? object) (.*)
+          captures:
+            1: keyword.operator.cmake
+            2: string.unqouted.filepath
+        - match: "(Linking CX?X?(?: shared| static)? (?:library|executable)) (.*)"
+          captures:
+            1: keyword.control.cmake
+            2: string.unqouted.filepath
+    - match: \d+
+      scope: constant.numeric.integer
+
+  expect-compiler-message:
+    - match: ':'
+      scope: punctuation.separator
+      set:
+        - match: \s*(warning) (\w+)(\d\d\d\d)
+          captures:
+            1: markup.changed
+            2: markup.bold
+            3: constant.numeric.integer
+          set:
+            - match: ':'
+              scope: punctuation.separator
+              set:
+                - match: (.+)
+                  scope: markup.changed
+                  pop: true
+        - match: \s*(error) (\w+)(\d\d\d\d)
+          captures:
+            1: markup.deleted
+            2: markup.bold
+            3: constant.numeric.integer
+          set:
+            - match: ':'
+              scope: punctuation.separator
+              set:
+                - match: (.+)
+                  scope: markup.deleted
+                  pop: true
+        - match: \s*(note)
+          captures:
+            1: markup.quote
+          set:
+            - match: ':'
+              scope: punctuation.separator
+              set:
+                - match: (.+)
+                  scope: markup.quote
+                  pop: true
+        - match: .
+          pop: true
+    - match: .
+      pop: true
+
 ...

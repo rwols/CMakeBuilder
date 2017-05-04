@@ -111,6 +111,24 @@ accepts the following keys:
   present, the directory where the sublime project file is located is assumed to
   have the root CMakeLists.txt file.
 
+* `target_architecture` [optional] [ONLY FOR WINDOWS]
+
+  This must be a string with any one of these three values: `"x86"`, `"amd64"`
+  or `"arm"`. What this does is it will call the `vcvarsall.bat` file in the
+  correct places. What this means in practise is that if you want to build 64
+  bit binaries, you have to set this value to `"amd64"`. For 32 bit binaries,
+  you can omit this key altogether. Note for advanced users: CMakeBuilder will
+  automatically translate the given argument to the correct argument for
+  `vcvarsall.bat`.
+
+* `visual_studio_versions` [optional] [ONLY FOR WINDOWS]
+
+  This must be a list of numbers specifying the preferred versions of Visual
+  Studio to look for. For instance, setting this to `[ 15, 14 ]`, CMakeBuilder
+  will first look for Visual Studio 15 2017, and if that can't be found, it will
+  look for Visual Studio 14 2015. Obviously, this is only applicable when your
+  generator is equal to `"Visual Studio"`.
+
 Any key may be overridden by a platform-specific override. The platform keys
 are one of `"linux"`, `"osx"` or `"windows"`. For an example on how this works,
 see below.
