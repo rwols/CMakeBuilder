@@ -1,7 +1,7 @@
 %YAML 1.2
 ---
 hidden: yes
-scope: text.log
+scope: output.build.visual-studio
 
 contexts:
   main:
