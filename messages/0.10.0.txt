@@ -1,0 +1,42 @@
+- Add Ninja generator for Windows.
+
+  For Windows users: to enable Ninja, download a binary from
+
+      github.com/ninja-build/ninja/releases
+
+  put it somewhere like C:\Ninja, and add that to your %PATH%.
+
+- Refactor vcvarsall.bat handling for Windows.
+
+- Allow Visual Studio to compile for 64 bit (see below).
+
+- New item in cmake dictionary: "env"
+
+  This is a dict of key-value pairs of strings. Place your environment 
+  variables at configure time in here. For example, to select clang as 
+  your compiler if you have gcc set as default, you can use
+
+      "env": { "CC": "clang", "CXX": "clang++" }
+
+- New item in cmake dictionary: "target_architecture"
+
+  This is only applicable for Windows users. "target_architecture" must be 
+  a string and can be one of "x86", "amd64" or "arm".
+
+- New item in cmake dictionary: "visual_studio_versions"
+
+  This is only applicable for Windows users. "visual_studio_versions" must 
+  be a list of numbers specifying the preferred versions of Visual Studio, 
+  provided that "Visual Studio" is the chosen generator. The priority is 
+  specified by the order that the numbers appear in the list. For example, 
+  if the list is
+
+      "visual_studio_versions": [ 15, 14 ]
+
+  then CMakeBuilder will first attempt to configure the project for Visual
+  Studio 15 2017, and if that's not found, then it will attempt to
+  configure for  Visual Studio 14 2015. Moreover, if "target_architecture"
+  is set, then it will append a further architecture argument to the cmake
+  generator invocation. For instance, if "target_architecture" is set to
+  "amd64" and "visual_studio_versions" is set to [ 15 ], the generator
+  invocation will be "Visual Studio 15 2017 Win64".
