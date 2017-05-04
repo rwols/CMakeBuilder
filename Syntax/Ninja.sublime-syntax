@@ -1,20 +1,95 @@
 %YAML 1.2
 ---
 hidden: yes
-scope: text.log
+scope: output.build.ninja
 
 contexts:
   main:
-    - match: ^\[(\d+)/(\d+)\]
+    - match: ^\[(?=\d)
+      push: expect-cmake-info-line
+    - match: (FAILED)(\:)((?:[^\\/]*\\|/)*)(.*)
       captures:
-        1: constant.numeric.integer
-        2: constant.numeric.integer
-    - match: (Building CX?X? object) (.*)
+        1: invalid.illegal.compilation.failed
+        2: punctuation.separator.ninja
+        3: string.unquoted.filepath
+        4: string.unquoted.filepath
+    - match: ((?:[^\\/]*\\|/)*)(.*)(:)(\d+)(:)(\d+)
       captures:
-        1: keyword.operator
-        2: string
-    - match: "(Linking CX?X?(?: shared| static)? (?:library|executable)) (.*)"
-      captures:
-        1: keyword.control
-        2: string
+        2: string.unquoted.filepath
+        3: punctuation.separator.compiler
+        4: constant.numeric.integer
+        5: punctuation.separator.compiler
+        6: constant.numeric.integer
+      push: expect-compiler-message
+    - match: \^
+      scope: punctuation.indicator.clang
+      push:
+        - match: $
+          pop: true
+        - match: '~+'
+          scope: punctuation.indicator.clang
+
+  expect-cmake-info-line:
+    - meta_scope: meta.block.progress.cmake
+    - match: \]
+      set:
+        - meta_content_scope: meta.block.info.cmake
+        - match: $
+          pop: true # back to main context
+        - match: (Building CX?X? object) (.*)
+          captures:
+            1: keyword.operator.cmake
+            2: string.unquoted.filepath
+        - match: "(Linking CX?X?(?: shared| static)? (?:library|executable)) (.*)"
+          captures:
+            1: keyword.control.cmake
+            2: string.unquoted.filepath
+    - match: \d+
+      scope: constant.numeric.integer
+
+  expect-compiler-message:
+    - meta_scope: meta.block.compiler.diagnostic
+    - match: ':'
+      scope: punctuation.separator
+      set:
+        - meta_content_scope: meta.block.compiler.diagnostic
+        - match: \s*(warning)
+          captures:
+            1: markup.changed
+          set:
+            - meta_content_scope: meta.block.compiler.diagnostic
+            - match: ':'
+              scope: punctuation.separator
+              set:
+                - meta_content_scope: meta.block.compiler.diagnostic
+                - match: (.+)
+                  scope: meta.block.compiler.diagnostic markup.changed
+                  pop: true
+        - match: \s*(error)
+          captures:
+            1: markup.deleted
+          set:
+            - meta_content_scope: meta.block.compiler.diagnostic
+            - match: ':'
+              scope: punctuation.separator
+              set:
+                - match: (.+)
+                  scope: markup.deleted
+                  pop: true
+        - match: \s*(note)
+          captures:
+            1: markup.quote
+          set:
+            - meta_content_scope: meta.block.compiler.diagnostic
+            - match: ':'
+              scope: punctuation.separator
+              set:
+                - match: (.+)
+                  scope: markup.quote
+                  pop: true
+        - match: .
+          pop: true
+    - match: .
+      pop: true
+
 ...
