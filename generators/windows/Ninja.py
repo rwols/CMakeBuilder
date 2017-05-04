@@ -58,22 +58,16 @@ class Ninja(CMakeGenerator):
 
         variants = []
         EXCLUDES = [
-            'are some of the valid targets for this Makefile:',
             'All primary targets available:', 
-            'depend',
-            'all (the default if no target is provided)',
             'help', 
             'edit_cache', 
-            '.ninja', 
-            '.o',
-            '.i',
-            '.s']
+            '.ninja']
             
         for target in lines:
             try:
                 if any(exclude in target for exclude in EXCLUDES): 
                     continue
-                target = target[4:]
+                target = target[:-len(': phony')]
                 name = target
                 if (self.filter_targets and 
                     not any(f in name for f in self.filter_targets)):
