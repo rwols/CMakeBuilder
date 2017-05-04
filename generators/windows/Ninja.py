@@ -65,15 +65,20 @@ class Ninja(CMakeGenerator):
             
         for target in lines:
             try:
+                if len(target) == 0:
+                    continue
                 if any(exclude in target for exclude in EXCLUDES): 
                     continue
-                target = target[:-len(': phony')]
-                name = target
+                if target.endswith(': phony'):
+                    target = target[:-len(': phony')]
+                elif target.endswith(': CLEAN'):
+                    target = target[:-len(': CLEAN')]
+                target = target.strip()
                 if (self.filter_targets and 
-                    not any(f in name for f in self.filter_targets)):
+                    not any(f in target for f in self.filter_targets)):
                     continue
                 shell_cmd = 'cmake --build . --target {}'.format(target)
-                variants.append({'name': name, 'shell_cmd': shell_cmd})
+                variants.append({'name': target, 'shell_cmd': shell_cmd})
             except Exception as e:
                 sublime.error_message(str(e))
                 # Continue anyway; we're in a for-loop
