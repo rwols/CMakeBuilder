@@ -105,6 +105,14 @@ accepts the following keys:
   present, the directory where the sublime project file is located is assumed to
   have the root CMakeLists.txt file.
 
+* `env` [optional]
+
+  This is a dict of key-value pairs of strings. Place your environment 
+  variables at configure time in here. For example, to select clang as 
+  your compiler if you have gcc set as default, you can use
+
+      "env": { "CC": "clang", "CXX": "clang++" }
+
 * `configurations` [optional] [ONLY FOR WINDOWS]
 
   This key is only relevant for the Visual Studio generator (see `generator` 
