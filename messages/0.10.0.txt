@@ -10,6 +10,8 @@
 
 - Improve Visual Studio output panel syntax highlighting
 
+- Improve CMakeCache.txt syntax highlighting
+
 - Allow Visual Studio to compile for 64 bit (see below).
 
 - New item in cmake dictionary: "env"

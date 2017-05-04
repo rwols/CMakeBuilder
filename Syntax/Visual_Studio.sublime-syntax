@@ -12,6 +12,8 @@ contexts:
       scope: keyword.control
     - match: "ClCompile:"
       scope: keyword.operator
+    - match: ^  (.+)\((\d)\)
+      
     - match: "^  (.+)\\((\\d+)\\): ((?:error|warning) \\w+\\d\\d\\d\\d: .*) (\\[.*\\])$"
       captures:
         1: string.unquoted.filepath
