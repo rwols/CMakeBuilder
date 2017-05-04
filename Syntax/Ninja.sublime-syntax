@@ -13,6 +13,8 @@ contexts:
         2: punctuation.separator.ninja
         3: string.unquoted.filepath
         4: string.unquoted.filepath
+    - match: "In file included from .*"
+      scope: markup.quote
     - match: ((?:[^\\/]*\\|/)*)(.*)(:)(\d+)(:)(\d+)
       captures:
         2: string.unquoted.filepath
