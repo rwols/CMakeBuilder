@@ -115,10 +115,10 @@ accepts the following keys:
 
 * `configurations` [optional] [ONLY FOR WINDOWS]
 
-  This key is only relevant for the Visual Studio generator (see `generator` 
-  down below). This shall be a JSON list of strings defining the desired 
-  configurations. For instance, `"Debug"` and `"Release"`. If omitted, the 
-  default target is built, which would be Debug.
+  This key is only relevant for the Visual Studio generator (see `generator`).
+  This shall be a JSON list of strings defining the desired  configurations. For
+  instance, `"Debug"` and `"Release"`. If omitted, the  default target is built,
+  which would be Debug.
 
 * `target_architecture` [optional] [ONLY FOR WINDOWS]
 
