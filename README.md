@@ -93,7 +93,7 @@ accepts the following keys:
     If no generator is specified on windows, "Visual Studio" is the default
     generator. For both "Visual Studio" and "NMake Makefiles", you need
     Microsoft Visual Studio C++. The latest version of Visual Studio is searched
-    for. There is no support for 64-bit building as of this writing.
+    for.
 
     **Note**: If you find that the output of the NMake generator is garbled with
     color escape codes, you can try to use `"CMAKE_COLOR_MAKEFILE": false` in 
