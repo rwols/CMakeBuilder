@@ -45,10 +45,7 @@ class Unix_Makefiles(CMakeGenerator):
             'all (the default if no target is provided)',
             'help', 
             'edit_cache', 
-            '.ninja', 
-            '.o',
-            '.i',
-            '.s']
+            '.ninja']
             
         for target in lines:
             try:

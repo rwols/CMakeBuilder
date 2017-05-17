@@ -5,7 +5,6 @@ from .insert_diagnosis import CmakeInsertDiagnosisCommand
 from .open_build_folder import CmakeOpenBuildFolderCommand
 from .run_ctest import CmakeRunCtestCommand
 from .write_build_targets import CmakeWriteBuildTargetsCommand
-# from .wrap_as_variable import CmakeWrapAsVariableCommand
 
 __all__ = [
     'CmakeClearCacheCommand'
@@ -15,7 +14,6 @@ __all__ = [
     , 'CmakeOpenBuildFolderCommand'
     , 'CmakeRunCtestCommand'
     , 'CmakeWriteBuildTargetsCommand'
-    # , 'CmakeWrapAsVariableCommand'
 ]
 
 print('CMakeBuilder: Available commands:')

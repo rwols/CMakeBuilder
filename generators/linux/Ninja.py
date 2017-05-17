@@ -40,10 +40,7 @@ class Ninja(CMakeGenerator):
             'all (the default if no target is provided)',
             'help', 
             'edit_cache', 
-            '.ninja', 
-            '.o',
-            '.i',
-            '.s']
+            '.ninja']
 
         variants = []
         for target in lines:

@@ -27,7 +27,6 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
     def run(self, write_build_targets=False, silence_dev_warnings=False):
         if get_setting(self.window.active_view(), 'always_clear_cache_before_configure', False):
             self.window.run_command('cmake_clear_cache', args={'with_confirmation': False})
-        # self.write_build_targets = write_build_targets
         project = self.window.project_data()
         project_file_name = self.window.project_file_name()
         project_name = os.path.splitext(project_file_name)[0]
@@ -113,8 +112,6 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             return
         self.builder = builder
         cmd += ' -G"{}"'.format(repr(self.builder))
-        # if generator != 'Visual Studio':
-        #     cmd += ' -G "{}"'.format(generator)
         if overrides:
             for key, value in overrides.items():
                 try:
