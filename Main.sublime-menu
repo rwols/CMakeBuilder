@@ -30,6 +30,9 @@
             "mnemonic": "B"
           },
           {
+            "command": "cmake_edit_cache"
+          },
+          {
             "command": "cmake_clear_cache" 
           },
           {

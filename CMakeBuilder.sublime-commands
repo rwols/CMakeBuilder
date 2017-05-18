@@ -12,6 +12,10 @@
     "caption": "CMakeBuilder: Write Build Targets to Sublime Project File"
   },
   {
+    "command": "cmake_edit_cache",
+    "caption": "CMakeBuilder: Edit Cache"
+  },
+  {
     "command": "cmake_clear_cache",
     "caption": "CMakeBuilder: Clear Cache"
   },

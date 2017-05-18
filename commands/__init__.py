@@ -1,6 +1,7 @@
 from .clear_cache import CmakeClearCacheCommand
 from .configure import CmakeConfigureCommand
 from .diagnose import CmakeDiagnoseCommand
+from .edit_cache import CmakeEditCacheCommand
 from .insert_diagnosis import CmakeInsertDiagnosisCommand
 from .open_build_folder import CmakeOpenBuildFolderCommand
 from .run_ctest import CmakeRunCtestCommand
@@ -10,6 +11,7 @@ __all__ = [
     'CmakeClearCacheCommand'
     , 'CmakeConfigureCommand'
     , 'CmakeDiagnoseCommand'
+    , 'CmakeEditCacheCommand'
     , 'CmakeInsertDiagnosisCommand'
     , 'CmakeOpenBuildFolderCommand'
     , 'CmakeRunCtestCommand'
