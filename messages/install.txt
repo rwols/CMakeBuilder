@@ -6,13 +6,13 @@
 
 The CMakeBuilder package is located at
 
-    Packages/CMakeBuilder
-    ~~~~~~~~~~~~~~~~~~~~~
+    (Installed) Packages/CMakeBuilder
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This message is the installation message. It can be found at
 
-    Packages/CMakeBuilder/messages/install.txt
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    (Installed) Packages/CMakeBuilder/messages/install.txt
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This plugin is very simple and can be seen as "glue" between the CMake build
 system and Sublime Text's own build system. It gives you a few useful
@@ -26,11 +26,6 @@ For the "Instruction Manual", please see:
     https://github.com/rwols/CMakeBuilder
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively, you can open the README.md file located at
-
-    Packages/CMakeBuilder/README.md
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Or, you can even just go to
 
     Preferences -> Package Settings -> CMakeBuilder -> README
@@ -43,6 +38,7 @@ Extra goodies:
 - Syntax highlighting for the CMakeCache.txt file
 - Syntax highlighting for the cmake output panel at the configuration step
 - Syntax highlighting for both Make- and Ninja-based build systems
+- Syntax highlighting for Visual Studio / MSBuild-style outputs
 
 Note that commands are "disabled" when they feel that they cannot be run.
 For example, if there is no CMakeLists.txt file in your project folder, the
@@ -57,5 +53,7 @@ command line is for. This plugin is for the developer working on a CMake
 project and wanting to quickly build/test the project.
 
 This plugin does not provide syntax highlighting for CMakeLists.txt files 
-and .cmake files. Download "CMake" or "CMakeEditor" for that.
+and .cmake files, nor does it provide highlighting for ".in" files suitable
+for "configure_file" commands from CMake; download the "CMake" package to
+that end.
 +--++++====++++----------------------------------------------++++====++++--+

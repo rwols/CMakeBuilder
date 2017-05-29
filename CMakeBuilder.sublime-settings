@@ -1,8 +1,8 @@
 {
     // These are the default settings. They are located in 
     // 
-    //    Packages/CMakeBuilder/CMakeBuilder.sublime-settings
-    //    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //    (Installed) Packages/CMakeBuilder/CMakeBuilder.sublime-settings
+    //    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // 
     // You should not edit this file, as it gets overwritten after every update.
     // Instead, if you want to override the default settings, create a new file
