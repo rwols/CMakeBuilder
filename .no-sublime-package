@@ -1,8 +1,0 @@
-This file exists because CMakeBuilder sets paths to syntax files in various
-places. I assume that CMakeBuilder is always present in "Packages/CMakeBuilder".
-But if you install it via Package Control, it gets installed to
-"Installed Packages/CMakeBuilder.sublime-package". So the paths to the syntax
-files get screwed up. Adding a ".no-sublime-package" file tells Package Control
-to install the package in the Packages folder, unzipped.
-
-See: https://packagecontrol.io/docs/customizing_packages
