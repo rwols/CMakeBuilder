@@ -36,9 +36,6 @@
             "command": "cmake_clear_cache" 
           },
           {
-            "command": "cmake_clear_cache_and_configure"
-          },
-          {
             "command": "cmake_run_ctest",
             "mnemonic": "C"
           }

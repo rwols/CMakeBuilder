@@ -1,0 +1,23 @@
+Whew version 1.0.0 !
+
+Thanks for sticking around!
+
+- Add "Edit Cache" command. This will simply open the CMakeCache.txt file.
+
+- Made variable names in the CMakeCache.txt syntax (locally) indexable.
+  What this means in practise is that you can "goto anything", type an
+  "@" character and all of the variables will show up if you're looking
+  at a cache file.
+
+- Remove deprecated command "CMake Clear Cache And Configure".
+
+- Allow this package to be a zip file. What this means is that you'll
+  no longer find CMakeBuilder in the Packages directory, but in the
+  Installed Packages directory. If you still want to hack on CMakeBuilder,
+  consider cloning this package via GitHub.
+
+## FUTURE ROADMAP
+I'm intrigued by CMake's experimental "server" feature that is available
+since version 3.7. It's supposed to give IDE-like features to editors.
+For version 2.0 of this plugin, I intend to take advantage of these server
+capabilities.

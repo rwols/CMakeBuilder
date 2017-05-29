@@ -120,7 +120,7 @@ def class_from_generator_string(generator_string):
     module_name = get_module_name(generator_string)
     if not module_name in sys.modules:
         valid_generators = get_valid_generators()
-        sublime.error_message('CMakeBuilder: "%s" is not a valid generator. The valid generators for this platform are: %s' % (generator_string, ','.join(valid_generators)))
+        sublime.error_message('CMakeBuilder: "%s" is not a valid generator. The valid generators for this platform are: %s' % (generator_string, ', '.join(valid_generators)))
         return
     GeneratorModule = sys.modules[module_name]
     print(GeneratorModule)
@@ -131,8 +131,7 @@ def class_from_generator_string(generator_string):
         sublime.error_message('Internal error: %s' % str(e))
     return GeneratorClass
 
-def _import_pyfiles_from_dir(dir):
-    print('CMakeBuilder: Available generators on this platform:')
+def _get_pyfiles_from_dir(dir):
     for file in glob.iglob(dir + '/*.py'):
         if not os.path.isfile(file): continue
         base = os.path.basename(file)
@@ -143,11 +142,11 @@ def _import_pyfiles_from_dir(dir):
 
 def _import_all_platform_specific_generators():
     path = os.path.join(os.path.dirname(__file__), sublime.platform())
-    return list(_import_pyfiles_from_dir(path))
+    return list(_get_pyfiles_from_dir(path))
 
 def import_user_generators():
     path = os.path.join(sublime.packages_path(), 'User', 'generators', sublime.platform())
-    return list(_import_pyfiles_from_dir(path))
+    return list(_get_pyfiles_from_dir(path))
 
 if sublime.platform() == 'linux':
     from .linux import *

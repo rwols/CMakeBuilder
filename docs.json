@@ -1,8 +1,0 @@
-{
-    "target_include_directories":
-    {
-        "brief": "Add include directories to a target.",
-        "synopsis": "target_include_directories(<target> [SYSTEM] [BEFORE] <INTERFACE|PUBLIC|PRIVATE> [items1...] [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])",
-        "detail": "TODO"
-    }
-}
