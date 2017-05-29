@@ -298,8 +298,7 @@ There is syntax highlighting for the CMakeCache.txt file, for the configure
 step, and for the CTest output. You can press F4 to go to the error message in
 the configuration step and the CTest output. Goto error in the CTest output
 only works if you're using something that outputs error messages in the form
-of the boost unit test framework right now, but I'll look into the google test
-framework in the future.
+of the boost unit test framework.
 
 ![9][9]   <!-- Screenshot #9  -->
 ![10][10] <!-- Screenshot #10 -->
