@@ -187,7 +187,6 @@ Here is an example Sublime project to get you started.
 
 ### Available Scripting Commands
 
-* `cmake_clear_cache_and_configure`, arguments: `None`.
 * `cmake_clear_cache`, arguments: `{ with_confirmation : bool }`.
 * `cmake_configure`, arguments: `None`.
 * `cmake_diagnose`, arguments: `None`.
