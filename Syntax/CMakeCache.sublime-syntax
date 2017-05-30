@@ -1,6 +1,6 @@
 %YAML 1.2
 ---
-file_extensions: [txt]
+file_extensions: [CMakeCache.txt]
 first_line_match: "# This is the CMakeCache file."
 scope: source.cmakecache
 
@@ -11,19 +11,12 @@ contexts:
   main:
     - include: comments
     - include: key-value-pair
-    - match: "^([\\w'-]+)(:)(\\w+)(=)(.*)"
-      captures:
-        1: variable.parameter
-        2: keyword.operator
-        3: storage.type
-        4: keyword.operator
-        5: string
 
   comments:
     - match: \/\/
       scope: punctuation.definition.comment.cmakecache
       push:
-        - meta_scope: comment.documentation.line.slashes.cmakecache
+        - meta_scope: comment.line.double-slash.doc.cmakecache
         - match: $
           pop: true
     - match: \#
@@ -42,7 +35,7 @@ contexts:
 
   expect-type:
     - match: ':'
-      scope: punctuation.definition.cmakecache
+      scope: punctuation.separator.cmakecache
     - match: '{{identifier}}'
       scope: storage.type.cmakecache
       set: expect-value
@@ -51,7 +44,7 @@ contexts:
 
   expect-value:
     - match: '='
-      scope: punctuation.definition.cmakecache
+      scope: keyword.operator.assignment.cmakecache
     - match: $
       pop: true
     - match: .*
