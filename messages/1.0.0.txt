@@ -5,7 +5,7 @@ Thanks for sticking around!
 - Add "Edit Cache" command. This will simply open the CMakeCache.txt file.
 
 - Made variable names in the CMakeCache.txt syntax (locally) indexable.
-  What this means in practise is that you can "goto anything", type an
+  What this means in practice is that you can "goto anything", type an
   "@" character and all of the variables will show up if you're looking
   at a cache file.
 
