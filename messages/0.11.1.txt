@@ -1,0 +1,2 @@
+- As always it seems, a tiny patch for tradition.
+  Fix typo in message dialog.
