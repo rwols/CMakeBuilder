@@ -14,13 +14,15 @@
 
 - Made the decision to put the "cmake" dict in the "settings" dict of the
   project file. This allows the plugin to react to changes in a more
-  dynamic way.
+  dynamic way. I've written a small migrator command to automate the
+  arduous process of moving the dict yourself. This command will go away
+  in version 1.0.0.
 
-- Set "reconfigure_on_save" to "true" by default.
+- Set "configure_on_save" to "true" by default.
 
 - Various improvements to handling settings.
 
-- "reconfigure_on_save" also reacts to changes to the cmake dict now.
+- "configure_on_save" also reacts to changes to the cmake dict now.
 
 - Set "write_build_targets_after_successful_configure" to "true" by
   default.
