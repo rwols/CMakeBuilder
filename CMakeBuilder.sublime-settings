@@ -20,7 +20,7 @@
     
     // If the command "CMakeBuilder: Configure" exited with status 0, should we
     // write/update build targets in the sublime project file immediately?
-    "write_build_targets_after_successful_configure": false,
+    "write_build_targets_after_successful_configure": true,
 
     // If true, adds the option -Wno-dev to the cmake invocation during
     // configure time.
@@ -30,9 +30,10 @@
     // "CMakeBuilder: Configure"
     "always_clear_cache_before_configure": false,
 
-    // If true, every time you save a CMakeLists.txt file or a CMakeCache.txt
-    // file, the "Configure" command will run.
-    "configure_on_save": false,
+    // If true, every time you save a CMakeLists.txt file, or a CMakeCache.txt
+    // file, or make changes to the "cmake" dictionary in the project settings,
+    // the "Configure" command will run.
+    "configure_on_save": true,
 
     // The command line arguments that are passed to CTest when you run the 
     // command "CMakeBuilder: Run CTest".

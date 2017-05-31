@@ -2,7 +2,7 @@ import sublime
 import sys
 import os
 import glob
-from ..support import *
+from CMakeBuilder.support import *
 
 class CMakeGenerator(object):
     def __init__(self, window, cmake):
@@ -15,8 +15,7 @@ class CMakeGenerator(object):
             self.cmake_platform = None
         self.build_folder_pre_expansion = self.get_cmake_key('build_folder')
         assert self.build_folder_pre_expansion
-        windowvars = self.window.extract_variables()
-        expand_variables(self.cmake, windowvars)
+        self.cmake = sublime.expand_variables(self.cmake, self.window.extract_variables())
         self.build_folder = self.get_cmake_key('build_folder')
         self.filter_targets = self.get_cmake_key('filter_targets')
         self.command_line_overrides = self.get_cmake_key('command_line_overrides')
@@ -85,10 +84,6 @@ class CMakeGenerator(object):
         else:
             return None
 
-    def expand_vars(self, dict_or_string):
-        windowvars = self.window.extract_variables()
-        return expand_variables(dict_or_string, windowvars)
-
 def get_generator_module_prefix():
     return 'CMakeBuilder.generators.' + sublime.platform() + '.'
 
@@ -123,7 +118,6 @@ def class_from_generator_string(generator_string):
         sublime.error_message('CMakeBuilder: "%s" is not a valid generator. The valid generators for this platform are: %s' % (generator_string, ', '.join(valid_generators)))
         return
     GeneratorModule = sys.modules[module_name]
-    print(GeneratorModule)
     GeneratorClass = None
     try:
         GeneratorClass = getattr(GeneratorModule, generator_string.replace(' ', '_'))
@@ -137,7 +131,6 @@ def _get_pyfiles_from_dir(dir):
         base = os.path.basename(file)
         if base.startswith('__'): continue
         generator = base[:-3]
-        print('\t{}'.format(generator.replace('_', ' ')))
         yield generator
 
 def _import_all_platform_specific_generators():

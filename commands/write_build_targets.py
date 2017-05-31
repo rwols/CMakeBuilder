@@ -8,8 +8,8 @@ import glob
 import re
 import threading
 import copy
-from ..support import *
-from ..generators import *
+from CMakeBuilder.support import *
+from CMakeBuilder.generators import *
 
 class CmakeWriteBuildTargetsCommand(sublime_plugin.WindowCommand):
     """Writes a build system to the sublime project file. This only works
@@ -19,48 +19,21 @@ class CmakeWriteBuildTargetsCommand(sublime_plugin.WindowCommand):
         """You may only run this command if there's a `build_folder` with a
         `CMakeCache.txt` file in it. That's when we assume that the project has
         been configured."""
-        project = self.window.project_data()
-
-        # If there's no project dict, go home.
-        if project is None:
-            return False
-
-        # If there's no project filename, go home.
-        if not self.window.project_file_name():
-            return False
-        cmake = project.get('cmake')
-
-        # If there's no cmake dict in the project dict, go home.
-        if not cmake:
-            return False
         try:
-            # See ExpandVariables.py
-            expand_variables(cmake, self.window.extract_variables())
+            build_folder = self.window.project_data()["settings"]["cmake"]["build_folder"]
+            build_folder = sublime.expand_variables(build_folder, self.window.extract_variables())
+            return os.path.exists(os.path.join(build_folder, "CMakeCache.txt"))
         except Exception as e:
-            # We'll end up here if the user wrote a substitution variable that
-            # we don't recognize. In that case we go home.
             return False
-        build_folder = get_cmake_value(cmake, 'build_folder')
-
-        # If there's no CMakeCache.txt file in the build folder, we assume the
-        # user hasn't configured the project yet. So we can't write build
-        # targets in that situation.
-        if not os.path.exists(os.path.join(build_folder, 'CMakeCache.txt')):
-            return False
-
-        # There's a build folder containing a CMakeCache.txt file; we think the
-        # project has been configured, so we allow this command to be run by the
-        # user.
-        return True
 
     def description(self):
         return 'Write Build Targets to Sublime Project'
 
-    def run(self):
+    def run(self, open_project_file=False):
         project = self.window.project_data()
         project_file_name = self.window.project_file_name()
         project_path = os.path.dirname(project_file_name)
-        cmake = project.get('cmake')
+        cmake = project["settings"]["cmake"]
         if not cmake:
             return
         generator = get_cmake_value(cmake, 'generator')
@@ -93,6 +66,8 @@ class CmakeWriteBuildTargetsCommand(sublime_plugin.WindowCommand):
                 project['build_systems'] = [new_build_system]
                 self.window.set_project_data(project)
                 self.window.run_command('set_build_system', args={'index': 0})
+            if open_project_file:
+                self.window.open_file(self.window.project_file_name())
         except Exception as e:
             sublime.error_message('An error occured during assigment of the sublime build system: %s' % str(e))
 

@@ -1,44 +1,23 @@
 import sublime, sublime_plugin, os, functools, tempfile, Default.exec
-from ..support import *
+from CMakeBuilder.support import *
 
 class CmakeRunCtestCommand(Default.exec.ExecCommand):
     """Runs CTest in a console window."""
 
     def is_enabled(self):
-        project = self.window.project_data()
-        if project is None:
-            return False
-        cmake = project.get('cmake')
-        if cmake is None:
-            return False
         try:
-            # See ExpandVariables.py
-            expand_variables(cmake, self.window.extract_variables())
+            build_folder = self.window.project_data()["settings"]["cmake"]["build_folder"]
+            build_folder = sublime.expand_variables(build_folder, self.window.extract_variables())
+            return os.path.exists(os.path.join(build_folder, "CMakeCache.txt"))
         except Exception as e:
             return False
-        build_folder = cmake.get('build_folder')
-        if not build_folder:
-            return False
-        if not os.path.exists(os.path.join(build_folder, 'CMakeCache.txt')):
-            return False
-        return True
 
     def description(self):
         return 'Run CTest'
 
     def run(self, test_framework='boost'):
-        project = self.window.project_data()
-        cmake = project.get('cmake')
-        try:
-            # See ExpandVariables.py
-            expand_variables(cmake, self.window.extract_variables())
-        except KeyError as e:
-            sublime.error_message('Unknown variable in cmake dictionary: {}'
-                .format(str(e)))
-            return
-        except ValueError as e:
-            sublime.error_message('Invalid placeholder in cmake dictionary')
-            return
+        cmake = self.window.project_data()["settings"]["cmake"]
+        cmake = sublime.expand_variables(cmake, self.window.extract_variables())
         cmd = 'ctest'
         command_line_args = get_setting(self.window.active_view(), 'ctest_command_line_args')
         if command_line_args:

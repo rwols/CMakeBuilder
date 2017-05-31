@@ -5,22 +5,20 @@ import functools
 import tempfile
 import Default.exec
 import copy
-from ..support import *
-from ..generators import *
+from CMakeBuilder.support import *
+from CMakeBuilder.generators import *
 
 class CmakeConfigureCommand(Default.exec.ExecCommand):
     """Configures a CMake project with options set in the sublime project
     file."""
-
     def is_enabled(self):
-        project = self.window.project_data()
-        if not project:
+        try:
+            cmake = self.window.project_data()["settings"]["cmake"]
+            build_folder = cmake["build_folder"]
+            return True
+        except Exception as e:
             return False
-        project_file_name = self.window.project_file_name()
-        if not project_file_name:
-            return False
-        return True
-
+    
     def description(self):
         return 'Configure'
 
@@ -35,24 +33,8 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             must_have_root_path = True
         else:
             must_have_root_path = False
-        tempdir = tempfile.mkdtemp()
-        cmake = project.get('cmake')
-        if cmake is None:
-            project['cmake'] = {'build_folder': tempdir}
-            print('CMakeBuilder: Temporary directory shall be "{}"'
-                .format(tempdir))
-            self.window.set_project_data(project)
-            project = self.window.project_data()
-            cmake = project['cmake']
+        cmake = project["settings"]["cmake"]
         build_folder_before_expansion = get_cmake_value(cmake, 'build_folder')
-        if build_folder_before_expansion is None:
-            cmake['build_folder'] = tempdir
-            print('CMakeBuilder: Temporary directory shall be "{}"'
-                .format(tempdir))
-            project['cmake'] = cmake
-            self.window.set_project_data(project)
-            project = self.window.project_data()
-            cmake = project['cmake']
         try:
             # See ExpandVariables.py
             expand_variables(cmake, self.window.extract_variables())
@@ -68,12 +50,9 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         build_folder = os.path.realpath(build_folder)
         generator = get_cmake_value(cmake, 'generator')
         if not generator:
-            if sublime.platform() == 'linux': 
-                generator = 'Unix Makefiles'
-            elif sublime.platform() == 'osx':
-                generator = 'Unix Makefiles'
-            elif sublime.platform() == 'windows':
-                generator = 'Visual Studio'
+            if   sublime.platform() == 'linux':   generator = 'Unix Makefiles'
+            elif sublime.platform() == 'osx':     generator = 'Unix Makefiles'
+            elif sublime.platform() == 'windows': generator = 'Visual Studio'
             else:
                 sublime.error_message('Unknown sublime platform: {}'.format(sublime.platform()))
                 return
@@ -126,9 +105,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         self.builder.on_pre_configure()
         env = self.builder.env()
         user_env = get_cmake_value(cmake, 'env')
-        if user_env:
-            env.update(user_env)
-        print('env: {}'.format(self.builder.env()))
+        if user_env: env.update(user_env)
         super().run(shell_cmd=cmd, 
             working_dir=root_folder,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',

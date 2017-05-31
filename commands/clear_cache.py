@@ -12,21 +12,11 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
     """Clears the CMake-generated files"""
 
     def is_enabled(self):
-        project = self.window.project_data()
-        if project is None:
-            return False
-        cmake = project.get('cmake')
-        if cmake is None:
-            return False
         try:
-            # See ExpandVariables.py
-            expand_variables(cmake, self.window.extract_variables())
+            build_folder = self.window.project_data()["settings"]["cmake"]["build_folder"]
+            build_folder = sublime.expand_variables(build_folder, self.window.extract_variables())
+            return os.path.exists(os.path.join(build_folder, "CMakeCache.txt"))
         except Exception as e:
-            return False
-        build_folder = cmake.get('build_folder')
-        if not build_folder:
-            return False
-        if not os.path.exists(os.path.join(build_folder, 'CMakeCache.txt')):
             return False
         return True
 
@@ -34,11 +24,9 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
         return 'Clear Cache'
 
     def run(self, with_confirmation=True):
-        cmake = sublime.expand_variables(
-            self.window.project_data().get('cmake'), 
+        build_folder = sublime.expand_variables(
+            self.window.project_data()["settings"]["cmake"]["build_folder"], 
             self.window.extract_variables())
-        # Guaranteed to exist because is_enabled checks for it.
-        build_folder = cmake.get('build_folder')
         files_to_remove = []
         dirs_to_remove = []
         cmakefiles_dir = os.path.join(build_folder, 'CMakeFiles')

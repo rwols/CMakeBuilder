@@ -28,4 +28,3 @@ for command in __all__:
             name = name[:-len('_command')]
         return name
     print('\t{}'.format(convert(command)))
-

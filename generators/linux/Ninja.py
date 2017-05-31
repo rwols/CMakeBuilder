@@ -1,4 +1,4 @@
-from .. import CMakeGenerator
+from CMakeBuilder.generators import CMakeGenerator
 import subprocess
 import sublime
 

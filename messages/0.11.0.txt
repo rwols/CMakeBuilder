@@ -1,7 +1,3 @@
-Whew version 1.0.0 !
-
-Thanks for sticking around!
-
 - Add "Edit Cache" command. This will simply open the CMakeCache.txt file.
 
 - Made variable names in the CMakeCache.txt syntax (locally) indexable.
@@ -16,8 +12,15 @@ Thanks for sticking around!
   Installed Packages directory. If you still want to hack on CMakeBuilder,
   consider cloning this package via GitHub.
 
-## FUTURE ROADMAP
-I'm intrigued by CMake's experimental "server" feature that is available
-since version 3.7. It's supposed to give IDE-like features to editors.
-For version 2.0 of this plugin, I intend to take advantage of these server
-capabilities.
+- Made the decision to put the "cmake" dict in the "settings" dict of the
+  project file. This allows the plugin to react to changes in a more
+  dynamic way.
+
+- Set "reconfigure_on_save" to "true" by default.
+
+- Various improvements to handling settings.
+
+- "reconfigure_on_save" also reacts to changes to the cmake dict now.
+
+- Set "write_build_targets_after_successful_configure" to "true" by
+  default.
