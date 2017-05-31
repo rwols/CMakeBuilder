@@ -26,7 +26,7 @@ class CmakeDictMigrateCommand(sublime_plugin.TextCommand):
     """Does the actual migration."""
     def run(self, edit):
         self.view.settings().set("_cmake_dont_ask_about_migration", True)
-        if sublime.ok_cancel_dialog("Since version 0.11.0 of CMakeBuilder the cmake dictionary needs to be in the settings dictionary of your project file. Click Migrate to auto-migrate, or Cancel to do nothing.\n\nNOTE: If it takes a long time, Sublime will probably start crashing. Just restart and everything should be okay."):
+        if sublime.ok_cancel_dialog("Since version 0.11.0 of CMakeBuilder the cmake dictionary needs to be in the settings dictionary of your project file. Click OK to auto-migrate, or Cancel to do nothing.\n\nNOTE: If it takes a long time, Sublime will probably start crashing. Just restart and everything should be okay."):
             window = self.view.window()
             filename = window.project_file_name()
             if not filename:
