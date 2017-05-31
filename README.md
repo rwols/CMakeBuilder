@@ -185,7 +185,7 @@ Here is an example Sublime project to get you started.
 * `cmake_open_build_folder`, arguments: `None`.
 * `cmake_run_ctest`, arguments: `{ test_framework : str }`
 * `cmake_write_build_targets`, arguments: `None`.
-* `cmake_new_project`, argumets: `None`.
+* `cmake_new_project`, arguments: `None`.
 
 ### Available Commands in the Command Palette
 
