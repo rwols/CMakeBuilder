@@ -1,5 +1,5 @@
 from CMakeBuilder.generators import CMakeGenerator
-from CMakeBuilder.generators.support.vcvarsall import query_vcvarsall
+from CMakeBuilder.generators.windows.support.vcvarsall import query_vcvarsall
 import os
 import re
 import subprocess
