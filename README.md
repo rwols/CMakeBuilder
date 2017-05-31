@@ -14,7 +14,7 @@ and look for CMakeBuilder.
 
 1. Open a `.sublime-project`.
 
-2. Add this to the project file on the same level as `"folders"`, `"settings"`:
+2. Add this to the project file in your `"settings"`:
 
     ```json
     "cmake":
@@ -23,33 +23,26 @@ and look for CMakeBuilder.
     }
     ```
 
-3. Run the command
+3. Save your project. This will trigger CMakeBuilder to configure your project.
+   If nothing happens, you can also run the command "CMakeBuilder: Configure"
+   from the command palette.
 
-    ```
-    CMakeBuilder: Configure
-    ```
+4. Check out your new build system in your `.sublime-project`. If no new build
+   system was created, you can also run the command "CMakeBuilder: Write Build 
+   Targets to Sublime Project File" from the command palette.
 
-   from the command palette; wait for it to finish.
+5. Press <kbd>CTRL</kbd> + <kbd>B</kbd> or <kbd>⌘</kbd> + <kbd>B</kbd>.
 
-4. Run the command
-
-    ```
-    CMakeBuilder: Write Build Targets to Sublime Project File
-    ```
-
-5. Check out your new build system in your `.sublime-project`.
-
-6. Press <kbd>CTRL</kbd> + <kbd>B</kbd> or <kbd>⌘</kbd> + <kbd>B</kbd>.
-
-7. Hit <kbd>F4</kbd> to jump to errors and/or warnings.
+6. Hit <kbd>F4</kbd> to jump to errors and/or warnings. Now you're programming
+   with CMakeBuilder 🕺.
 
 ## Reference
 
 ### The CMake Dictionary
 
-By "CMake dictionary" we mean the JSON dictionary that you define at the top
-level of your sublime project file with key "cmake". The CMake dictionary
-accepts the following keys:
+By "CMake dictionary" we mean the JSON dictionary that you define in your 
+`"settings"` of your sublime project file with key `"cmake"`. The CMake 
+dictionary accepts the following keys:
 
 * `build_folder` [required]
 
@@ -151,25 +144,6 @@ Here is an example Sublime project to get you started.
 
 ```json
 {
-    "cmake":
-    {
-        "build_folder": "${project_path}/build",
-        "command_line_overrides":
-        {
-            "BUILD_SHARED_LIBS": true,
-            "CMAKE_BUILD_TYPE": "Debug",
-            "CMAKE_EXPORT_COMPILE_COMMANDS": true
-        },
-        "generator": "Unix Makefiles",
-        "windows":
-        {
-            "generator": "Visual Studio",
-            "configurations":
-            [
-                "Debug"
-            ]
-        }
-    },
     "folders":
     [
         {
@@ -178,7 +152,25 @@ Here is an example Sublime project to get you started.
     ],
     "settings":
     {
-
+        "cmake":
+        {
+            "build_folder": "${project_path}/build",
+            "command_line_overrides":
+            {
+                "BUILD_SHARED_LIBS": true,
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
+            },
+            "generator": "Unix Makefiles",
+            "windows":
+            {
+                "generator": "Visual Studio",
+                "configurations":
+                [
+                    "Debug"
+                ]
+            }
+        }
     }
 }
 
@@ -193,6 +185,7 @@ Here is an example Sublime project to get you started.
 * `cmake_open_build_folder`, arguments: `None`.
 * `cmake_run_ctest`, arguments: `{ test_framework : str }`
 * `cmake_write_build_targets`, arguments: `None`.
+* `cmake_new_project`, argumets: `None`.
 
 ### Available Commands in the Command Palette
 
@@ -202,6 +195,7 @@ Here is an example Sublime project to get you started.
 * `CMakeBuilder: Diagnose (What Should I Do?)`
 * `CMakeBuilder: Run CTest`
 * `CMakeBuilder: Write Build Targets To Sublime Project File`
+* `CMakeBuilder: New Project`
 
 All commands are accessible via both the command palette as well as the tools
 menu at the top of the window.
@@ -256,6 +250,14 @@ commands are
 
 ## Extra Goodies
 
+### Project Template
+You can run the command
+
+    CMakeBuilder: New Project
+
+from the tools menu or from the command palette to create a new template
+project.
+
 ### Clearing the cache
 To force CMake files re-generation run
 
@@ -303,7 +305,7 @@ of the boost unit test framework.
 ![10][10] <!-- Screenshot #10 -->
 ![12][12] <!-- Screenshot #12 -->
 
-## List of Valid Variable Substitutions
+### List of Valid Variable Substitutions
 This is a reference list for the valid variable substitutions for your
 `.sublime-project` file.
 

@@ -3,6 +3,7 @@ from .configure import CmakeConfigureCommand
 from .diagnose import CmakeDiagnoseCommand
 from .edit_cache import CmakeEditCacheCommand
 from .insert_diagnosis import CmakeInsertDiagnosisCommand
+from .new_project import CmakeNewProjectCommand
 from .open_build_folder import CmakeOpenBuildFolderCommand
 from .run_ctest import CmakeRunCtestCommand
 from .write_build_targets import CmakeWriteBuildTargetsCommand
@@ -13,18 +14,8 @@ __all__ = [
     , 'CmakeDiagnoseCommand'
     , 'CmakeEditCacheCommand'
     , 'CmakeInsertDiagnosisCommand'
+    , 'CmakeNewProjectCommand'
     , 'CmakeOpenBuildFolderCommand'
     , 'CmakeRunCtestCommand'
     , 'CmakeWriteBuildTargetsCommand'
 ]
-
-print('CMakeBuilder: Available commands:')
-for command in __all__:
-    def convert(name):
-        import re
-        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-        name =  re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
-        if name.endswith('_command'):
-            name = name[:-len('_command')]
-        return name
-    print('\t{}'.format(convert(command)))

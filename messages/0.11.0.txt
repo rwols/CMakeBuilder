@@ -1,4 +1,14 @@
+!!! IMPORTANT !!!
+The decision was made to MOVE the cmake dict from the top-level dict to
+the settings dict. I have written a small utility that checks for this
+and then automatically migrates the cmake dict, but you can also do this
+manually. Having things in the settings dict is generally The Right Way(tm)
+
 - Add "Edit Cache" command. This will simply open the CMakeCache.txt file.
+  Try it out!
+
+- Add "New Project" command. This will create a template project for you.
+  Try it out!
 
 - Made variable names in the CMakeCache.txt syntax (locally) indexable.
   What this means in practice is that you can "goto anything", type an
@@ -25,4 +35,4 @@
 - "configure_on_save" also reacts to changes to the cmake dict now.
 
 - Set "write_build_targets_after_successful_configure" to "true" by
-  default.
+  default. It's mature enough.

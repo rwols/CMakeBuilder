@@ -24,6 +24,10 @@
     "caption": "CMakeBuilder: Run CTest",
   },
   {
+    "command": "cmake_new_project",
+    "caption": "CMakeBuilder: New Project"
+  },
+  {
     "command": "cmake_diagnose",
     "caption": "CMakeBuilder: Diagnose (What Should I Do?)"
   }

@@ -38,6 +38,10 @@
           {
             "command": "cmake_run_ctest",
             "mnemonic": "C"
+          },
+          {
+            "command": "cmake_new_project",
+            "mnemonic": "N"
           }
         ]
       }
