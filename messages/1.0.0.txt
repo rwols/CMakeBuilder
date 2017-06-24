@@ -1,0 +1,17 @@
+- Improved the diagnosis output somewhat by using the "tabulate" library.
+- Removed the migrator logic. I hope everybody migrated their cmake dicts
+  to the settings dict.
+
+It's finally here! The moment you've all been waiting for! Version 1.0!
+All kidding aside, I consider the plugin in a mature state now, so let's
+call this version 1.0.
+
+What will the future hold for this plugin? Since cmake version 3.7, there
+has been "server" functionality in the cmake executable. You can check if
+your cmake has a server mode by running "cmake -E capabilities".
+
+The server mode of cmake can configure the project, list all targets,
+and report on various progress updates. This is basically what we've been
+doing with this plugin "manually". The roadmap for version 2.0 of this
+plugin will be to integrate this server functionality with Sublime Text
+to give us a smoother cmake experience.
