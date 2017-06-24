@@ -1,0 +1,16 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/3/syntax.html
+name: CMakeBuilder Diagnosis
+hidden: true
+scope: text.diagnosis.cmakebuilder
+contexts:
+  main:
+    - match: '[═╒│╞╪╤╕╡┤┼─├╘╧╛]+'
+      scope: comment.diagnosis.cmakebuilder
+    - match: (CHECK|VALUE|SUGGESTION/FIX)
+      scope: comment.diagnosis.cmakebuilder
+    - match: \bTrue\b
+      scope: markup.inserted.latextools-system-check.available
+    - match: \b(NOT FOUND|False)\b
+      scope: keyword.control.latextools-system-check.available
