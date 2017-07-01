@@ -1,6 +1,7 @@
 - Improved the diagnosis output somewhat by using the "tabulate" library.
 - Removed the migrator logic. I hope everybody migrated their cmake dicts
   to the settings dict.
+- Improved "auto configure" somewhat.
 
 It's finally here! The moment you've all been waiting for! Version 1.0!
 All kidding aside, I consider the plugin in a mature state now, so let's
