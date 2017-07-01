@@ -2,6 +2,8 @@
 - Removed the migrator logic. I hope everybody migrated their cmake dicts
   to the settings dict.
 - Improved "auto configure" somewhat.
+- Removed CMakeCache syntax, it's in the CMake package now.
+  Make sure you have the "CMake" package!
 
 It's finally here! The moment you've all been waiting for! Version 1.0!
 All kidding aside, I consider the plugin in a mature state now, so let's
