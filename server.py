@@ -2,50 +2,57 @@ import Default.exec
 import json
 import sublime
 
-class CmakeServer(Default.exec.ProcessListener):
+class Server(Default.exec.ProcessListener):
 
-    def __init__(self, source_dir, build_dir, generator):
+    def __init__(self, 
+            source_dir, 
+            build_dir, 
+            generator, 
+            experimental=True, 
+            debug=True, 
+            protocol=(1,0),
+            env={}):
         self.source_dir = source_dir
         self.build_dir = build_dir
         self.generator = generator
+        self.experimental = experimental
+        self.protocol = protocol
+        self.is_configuring = False
+        cmd = ["cmake", "-E", "server"]
+        if experimental:
+            cmd.append("--experimental")
+        if debug:
+            cmd.append("--debug")
         self.proc = Default.exec.AsyncProcess(
-            cmd=["cmake", "-E", "server", "--experimental", "--debug"], 
+            cmd=cmd, 
             shell_cmd=None, 
             listener=self,
-            env={})
+            env=env)
 
     def __del__(self):
         self.proc.kill()
 
     def on_data(self, _, data):
+        data = data.decode("utf-8")
+        if data.startswith("CMake Error:"):
+            sublime.error_message(data)
+            return
         import re
-        for piece in re.split(r'\[== "CMake Server" ==\[|]== "CMake Server" ==]', data.decode('utf-8')):
+        for piece in re.split(
+                r'\[== "CMake Server" ==\[|]== "CMake Server" ==]', data):
             if piece == r'\n':
                 continue
             try:
                 thedict = json.loads(piece)
             except ValueError as e:
                 pass
-                # print(str(e),":", piece)
             else:
                 self.receive_dict(thedict)
-            
-        # print(data)
-        # start = b'\n[== "CMake Server" ==[\n'
-        # end = b'\n]== "CMake Server" ==]\n'
-        # first = 0
-        # while True:
-        #     first = data.find(start, first) + len(start)
-        #     if first == -1:
-        #         break
-        #     last = data.find(end, first)
-        #     if last == -1:
-        #         break
-        #     print(data[first:last])
-        #     self.receive_dict(json.loads(data[first:last].decode('utf-8')))
 
     def on_finished(self, _):
-        print("finished with status", self.proc.exit_status())
+        sublime.active_window().status_message(
+            "CMake Server has quit (exit code {})"
+            .format(self.proc.exit_code()))
 
     def send(self, data):
         self.proc.proc.stdin.write(data)
@@ -57,25 +64,42 @@ class CmakeServer(Default.exec.ProcessListener):
         data += b'\n]== "CMake Server" ==]\n'
         self.send(data)
 
-    def send_handshake(self, source_dir, build_dir, generator):
+    def send_handshake(self):
+        best_protocol = self.protocols[0]
+        for protocol in self.protocols:
+            if (protocol["major"] == self.protocol[0] and 
+                protocol["minor"] == self.protocol[1]):
+                best_protocol = protocol
+                break
+            if protocol["isExperimental"] and not self.experimental:
+                continue
+            if protocol["major"] > best_protocol["major"]:
+                best_protocol = protocol
+            elif (protocol["major"] == best_protocol["major"] and 
+                  protocol["minor"] > best_protocol["minor"]):
+                best_protocol = protocol
+        self.protocol = best_protocol
         self.send_dict({
             "type": "handshake",
-            "protocolVersion": self.protocols[0],
-            "sourceDirectory": source_dir,
-            "buildDirectory": build_dir,
-            "generator": generator
+            "protocolVersion": self.protocol,
+            "sourceDirectory": self.source_dir,
+            "buildDirectory": self.build_dir,
+            "generator": self.generator
             })
 
     def set_global_setting(self, key, value):
         self.send_dict({"type": "setGlobalSettings", key: value})
 
-    def set_global_setting_interactive(self):
-        self._global_settings_interactive = True
-        self.global_settings()
-
     def configure(self):
+        self.is_configuring = True
         window = sublime.active_window()
-        window.create_output_panel("cmake.configure", True)
+        view = window.create_output_panel("cmake.configure", True)
+        view.settings().set(
+            "result_file_regex", 
+            r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:')
+        view.settings().set("result_base_dir", self.source_dir)
+        view.set_syntax_file(
+            "Packages/CMakeBuilder/Syntax/Configure.sublime-syntax")
         window.run_command("show_panel", {"panel": "output.cmake.configure"})
         self.send_dict({"type": "configure"})
 
@@ -98,12 +122,10 @@ class CmakeServer(Default.exec.ProcessListener):
         self.send_dict({"type": "globalSettings"})
 
     def receive_dict(self, thedict):
-        print(thedict)
         t = thedict["type"]
         if t == "hello":
             self.protocols = thedict["supportedProtocolVersions"]
-            print(self.protocols)
-            self.send_handshake(self.source_dir, self.build_dir, self.generator)
+            self.send_handshake()
         elif t == "reply":
             self.receive_reply(thedict)
         elif t == "error":
@@ -116,45 +138,74 @@ class CmakeServer(Default.exec.ProcessListener):
             self.receive_signal(thedict)
         else:
             print('CMakeBuilder: Received unknown type "{}"'.format(t))
+            print(thedict)
 
     def receive_reply(self, thedict):
-        reply_to = thedict["inReplyTo"]
-        if reply_to == "handshake":
-            print("handshake is OK")
-        elif reply_to == "setGlobalSettings":
-            print("global setting was changed")
-        elif reply_to == "configure":
-            print("project is configured")
-        elif reply_to == "compute":
-            print("project is computed")
-        elif reply_to == "codemodel":
+        reply = thedict["inReplyTo"]
+        if reply == "handshake":
+            sublime.active_window().status_message(
+                "CMake server {}.{} at your service!"
+                .format(self.protocol["major"], self.protocol["minor"]))
+        elif reply == "setGlobalSettings":
+            sublime.active_window().status_message(
+                "Global CMake setting is modified")
+        elif reply == "configure":
+            sublime.active_window().status_message("Project is configured")
+        elif reply == "compute":
+            sublime.active_window().status_message("Project is generated")
+            self.is_configuring = False
+        elif reply == "codemodel":
             print(thedict)
-        elif reply_to == "fileSystemWatchers":
-            view = sublime.active_window().new_file()
-            view.set_scratch(True)
-            view.set_name("File System Watchers")
-            dirs = thedict["watchedDirectories"]
-            files = thedict["watchedFiles"]
-            view.run_command("append", {"characters": "watched directories:\n", "force": True})
-            for d in dirs:
-                view.run_command("append", {"characters": "\t{}\n".format(d), "force": True})
-            view.run_command("append", {"characters": "\n\nwatched files:\n", "force": True})
-            for f in files:
-                view.run_command("append", {"characters": "\t{}\n".format(f), "force": True})
-            view.set_read_only(True)
-        elif reply_to == "cmakeInputs":
+        elif reply == "fileSystemWatchers":
+            self.dump_to_new_view(thedict, "File System Watchers")
+        elif reply == "cmakeInputs":
+            self.dump_to_new_view(thedict, "CMake Inputs")
+        elif reply == "globalSettings":
+            thedict.pop("type")
+            thedict.pop("inReplyTo")
+            thedict.pop("cookie")
+            thedict.pop("capabilities")
+            self.items = []
+            self.types = []
+            for k,v in thedict.items():
+                if type(v) in (dict, list):
+                    continue
+                self.items.append([str(k), str(v)])
+                self.types.append(type(v))
+            window = sublime.active_window()
+            def on_done(index):
+                if index == -1:
+                    return
+                key = self.items[index][0]
+                old_value = self.items[index][1]
+                value_type = self.types[index]
+                def on_done_input(new_value):
+                    if value_type is bool:
+                        new_value = bool(new_value)
+                    self.set_global_setting(key, new_value)
+                window.show_input_panel(
+                    'new value for "' + key + '": ', 
+                    old_value, 
+                    on_done_input, 
+                    None, 
+                    None)
+            window.show_quick_panel(self.items, on_done)
+        elif reply == "codemodel":
+            print("received codemodel reply")
             print(thedict)
-        elif reply_to == "globalSettings":
-            pass
         else:
-            print("received unknown reply type:", reply_to)
+            print("received unknown reply type:", reply)
 
     def receive_error(self, thedict):
-        sublime.error_message("{} (in reply to {})".format(thedict["errorMessage"], thedict["inReplyTo"]))
+        reply = thedict["inReplyTo"]
+        msg = thedict["errorMessage"]
+        if reply in ("configure", "compute"):
+
+            sublime.active_window().status_message(msg)
+        else:
+            sublime.error_message("{} (in reply to {})".format(msg, reply))
 
     def receive_progress(self, thedict):
-        print("received progress")
-        print(thedict)
         view = sublime.active_window().active_view()
         minimum = thedict["progressMinimum"]
         maximum = thedict["progressMaximum"]
@@ -170,7 +221,6 @@ class CmakeServer(Default.exec.ProcessListener):
             view.set_status("cmake_" + thedict["inReplyTo"], status)
 
     def receive_message(self, thedict):
-        print(thedict)
         window = sublime.active_window()
         if thedict["inReplyTo"] in ("configure", "compute"):
             name = "cmake.configure"
@@ -180,8 +230,27 @@ class CmakeServer(Default.exec.ProcessListener):
         assert view
         window.run_command("show_panel", {"panel": "output.{}".format(name)})
         view = window.find_output_panel(name)
-        view.run_command("append", {"characters": thedict["message"] + "\n", "force": True, "scroll_to_end": True})
+        view.run_command("append", 
+            {"characters": thedict["message"] + "\n", 
+             "force": True, 
+             "scroll_to_end": True})
         
     def receive_signal(self, thedict):
-        print("received signal")
-        print(thedict)
+        if thedict["name"] == "dirty" and not self.is_configuring:
+            self.configure()
+        else:
+            print("received signal")
+            print(thedict)
+
+    def dump_to_new_view(self, thedict, name):
+        view = sublime.active_window().new_file()
+        view.set_scratch(True)
+        view.set_name(name)
+        thedict.pop("type")
+        thedict.pop("inReplyTo")
+        thedict.pop("cookie")
+        view.run_command(
+            "append", 
+            {"characters": json.dumps(thedict, indent=2), "force": True})
+        view.set_read_only(True)
+        view.set_syntax_file("Packages/JavaScript/JSON.sublime-syntax")
