@@ -18,6 +18,8 @@ class Server(Default.exec.ProcessListener):
         self.experimental = experimental
         self.protocol = protocol
         self.is_configuring = False
+        self.data_parts = ''
+        self.inside_json_object = False
         cmd = ["cmake", "-E", "server"]
         if experimental:
             cmd.append("--experimental")
@@ -33,21 +35,20 @@ class Server(Default.exec.ProcessListener):
         self.proc.kill()
 
     def on_data(self, _, data):
-        data = data.decode("utf-8")
+        data = data.decode("utf-8").strip()
         if data.startswith("CMake Error:"):
             sublime.error_message(data)
             return
-        import re
-        for piece in re.split(
-                r'\[== "CMake Server" ==\[|]== "CMake Server" ==]', data):
-            if piece == r'\n':
-                continue
-            try:
-                thedict = json.loads(piece)
-            except ValueError as e:
-                pass
-            else:
-                self.receive_dict(thedict)
+        data = data.splitlines()
+        for piece in data:
+            if piece == ']== "CMake Server" ==]':
+                self.inside_json_object = False
+                self.receive_dict(json.loads(self.data_parts))
+                self.data_parts = ''
+            if self.inside_json_object:
+                self.data_parts += piece
+            if piece == '[== "CMake Server" ==[':
+                self.inside_json_object = True
 
     def on_finished(self, _):
         sublime.active_window().status_message(
@@ -90,7 +91,7 @@ class Server(Default.exec.ProcessListener):
     def set_global_setting(self, key, value):
         self.send_dict({"type": "setGlobalSettings", key: value})
 
-    def configure(self):
+    def configure(self, cache_arguments=[]):
         self.is_configuring = True
         window = sublime.active_window()
         view = window.create_output_panel("cmake.configure", True)
@@ -101,7 +102,7 @@ class Server(Default.exec.ProcessListener):
         view.set_syntax_file(
             "Packages/CMakeBuilder/Syntax/Configure.sublime-syntax")
         window.run_command("show_panel", {"panel": "output.cmake.configure"})
-        self.send_dict({"type": "configure"})
+        self.send_dict({"type": "configure", "cacheArguments": cache_arguments})
 
     def compute(self):
         self.send_dict({"type": "compute"})
@@ -154,8 +155,6 @@ class Server(Default.exec.ProcessListener):
         elif reply == "compute":
             sublime.active_window().status_message("Project is generated")
             self.is_configuring = False
-        elif reply == "codemodel":
-            print(thedict)
         elif reply == "fileSystemWatchers":
             self.dump_to_new_view(thedict, "File System Watchers")
         elif reply == "cmakeInputs":
@@ -191,8 +190,41 @@ class Server(Default.exec.ProcessListener):
                     None)
             window.show_quick_panel(self.items, on_done)
         elif reply == "codemodel":
-            print("received codemodel reply")
-            print(thedict)
+            configurations = thedict.pop("configurations")
+            for config in configurations:
+                name = config.pop("name")
+                projects = config.pop("projects")
+                for project in projects:
+                    targets = project.pop("targets")
+                    for target in targets:
+                        if target["type"] == "EXECUTABLE":
+                            print(target["fullName"], target["buildDirectory"])
+        elif reply == "cache":
+            cache = thedict.pop("cache")
+            self.items = []
+            for item in cache:
+                t = item["type"]
+                if t in ("INTERNAL", "STATIC"):
+                    continue
+                docstring = item["properties"]["HELPSTRING"]
+                key = item["key"]
+                value = item["value"]
+                self.items.append([key + " [" + t.lower() + "]", value, docstring])
+            def on_done(index):
+                if index == -1:
+                    return
+                item = self.items[index]
+                key = item[0].split(" ")[0]
+                old_value = item[1]
+                def on_done_input(new_value):
+                    self.configure(["-D{}={}".format(key, new_value)])
+                sublime.active_window().show_input_panel(
+                    'new value for "' + key + '": ',
+                    old_value,
+                    on_done_input,
+                    None,
+                    None)
+            sublime.active_window().show_quick_panel(self.items, on_done)
         else:
             print("received unknown reply type:", reply)
 
