@@ -5,8 +5,8 @@ from CMakeBuilder.support import get_setting
 from CMakeBuilder.commands import CmakeConfigureCommand
 
 def _configure(window):
-    if not CmakeConfigureCommand(window).is_enabled(): return
-    window.run_command("cmake_configure")
+    if not CmakeConfigure2Command(window).is_enabled(): return
+    window.run_command("cmake_configure2")
 
 class ConfigureOnSave(sublime_plugin.EventListener):
 
