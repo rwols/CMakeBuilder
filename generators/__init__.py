@@ -108,7 +108,7 @@ class CMakeGenerator(object):
     def cmd(self, target=None):
         result = ["cmake", "--build", "."]
         if target:
-            result.extend(["--target", target[0]])
+            result.extend(["--target", target.name])
         return result
 
     def syntax(self):

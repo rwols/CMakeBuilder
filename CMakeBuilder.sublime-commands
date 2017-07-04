@@ -30,5 +30,13 @@
   {
     "command": "cmake_diagnose",
     "caption": "CMakeBuilder: Diagnose (What Should I Do?)"
+  },
+  {
+    "command": "cmake_set_target",
+    "caption": "CMakeBuilder: Set Target"
+  },
+  {
+    "command": "cmake_reveal_include_directories",
+    "caption": "CMakeBuilder: Reveal Include Directories"
   }
 ]

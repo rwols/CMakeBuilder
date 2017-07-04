@@ -18,13 +18,13 @@ class CmakeCommand(sublime_plugin.WindowCommand):
 
 class CmakeBuildCommand(CmakeCommand):
     
-    def run(self):
+    def run(self, select=False):
         if not self.is_enabled():
             sublime.error_message("Cannot build a CMake target!")
             return
         active_target = self.window.project_data().get("settings", {}).get("active_target", None)
-        if active_target is None:
-            self.items = [ [t[0], t[2], t[3]] for t in self.server.targets ]
+        if select or active_target is None:
+            self.items = [ [t.name, t.type, t.directory] for t in self.server.targets ]
             self.window.show_quick_panel(self.items, self._on_done)
         else:
             self._on_done(active_target)
@@ -33,15 +33,15 @@ class CmakeBuildCommand(CmakeCommand):
         if index == -1:
             return
         target = self.server.targets[index]
-        if target[2] == "RUN":
+        if target.type == "RUN":
             if sublime.platform() in ("linux", "osx"):
                 prefix = "./"
             else:
                 prefix = ""
             self.window.run_command(
                 "exec", {
-                    "shell_cmd": prefix + target[1],
-                    "working_dir": target[3]
+                    "shell_cmd": prefix + target.fullname,
+                    "working_dir": target.directory
                     }
                 )
         else:
@@ -53,7 +53,6 @@ class CmakeBuildCommand(CmakeCommand):
                     "working_dir": self.cmake.build_folder
                     }
                 )
-
 
 class CmakeConfigure2Command(CmakeCommand):
 
@@ -73,16 +72,32 @@ class CmakeRevealIncludeDirectories(CmakeCommand):
 class CmakeSetTarget(CmakeCommand):
 
     def run(self):
-        self.items = [ [t[0], t[2], t[3]] for t in self.server.targets ]
+        self.items = [ [t.name, t.type, t.directory] for t in self.server.targets ]
         self.window.show_quick_panel(self.items, self._on_done)
 
     def _on_done(self, index):
         data = self.window.project_data()
         if index == -1:
             data.get("settings", {}).pop("active_target", None)
+            self.window.active_view().erase_status("cmake_active_target")
         else:
             data["settings"]["active_target"] = index
+            name = self.server.targets[index].name
+            self.window.active_view().set_status("cmake_active_target", "TARGET: " + name)
         self.window.set_project_data(data)
+
+class Target(object):
+
+    __slots__ = ("name", "fullname", "type", "directory")
+
+    def __init__(self, name, fullname, type, directory):
+        self.name = name
+        self.fullname = fullname
+        self.type = type
+        self.directory = directory
+
+    def __hash__(self):
+        return hash(self.name)
 
 class ServerManager(sublime_plugin.EventListener):
 
@@ -110,29 +125,31 @@ class ServerManager(sublime_plugin.EventListener):
         elif str(server.cmake) != str(cmake):
             self.__class__._servers[window_id] = Server(cmake)
 
-    on_activated = on_clone = on_load
-
-
-class TargetDisplayer(sublime_plugin.EventListener):
-
-    def on_load(self, view):
-        view.settings().add_on_change("active_target", lambda: self.check(view))
-
-    def check(self, view):
-        t = view.settings().get("active_target", None)
-        if not t:
+    def on_activated(self, view):
+        self.on_load(view)
+        index = view.settings().get("active_target", None)
+        if not index:
             view.erase_status("cmake_active_target")
             return
-        server = ServerManager.get(view.window())
+        server = self.__class__.get(view.window())
         if not server:
             view.erase_status("cmake_active_target")
             return
         if not server.targets:
             view.erase_status("cmake_active_target")
             return
-        view.set_status("cmake_active_target", "TARGET: " + server.targets[int(t)][0])
+        view.set_status("cmake_active_target", "TARGET: " + server.targets[int(index)].name)
 
-    on_activated = check
+    on_clone = on_load
+
+    def on_window_command(self, window, command_name, command_args):
+        if command_name != "build" or command_args != {"select": True}:
+            return None
+        server = ServerManager.get(window)
+        if not server:
+            return None
+        return ("cmake_build", command_args)
+
 
 class Server(Default.exec.ProcessListener):
 
@@ -332,7 +349,7 @@ class Server(Default.exec.ProcessListener):
         elif reply == "codemodel":
             configurations = thedict.pop("configurations")
             self.include_paths = set()
-            self.targets = []
+            self.targets = set()
             for config in configurations:
                 name = config.pop("name")
                 projects = config.pop("projects")
@@ -346,9 +363,9 @@ class Server(Default.exec.ProcessListener):
                         except KeyError as e:
                             target_fullname = target_name
                         target_dir = target.pop("buildDirectory")
-                        self.targets.append((target_name, target_fullname, target_type, target_dir))
+                        self.targets.add(Target(target_name, target_fullname, target_type, target_dir))
                         if target_type == "EXECUTABLE":
-                            self.targets.append(("Run: " + target_name, target_fullname, "RUN", target_dir))
+                            self.targets.add(Target("Run: " + target_name, target_fullname, "RUN", target_dir))
                         file_groups = target.pop("fileGroups", [])
                         for file_group in file_groups:
                             include_paths = file_group.pop("includePath", [])
@@ -357,6 +374,7 @@ class Server(Default.exec.ProcessListener):
                                 if path:
                                     self.include_paths.add(path)
             data = self.cmake.window.project_data()
+            self.targets = list(self.targets)
             build_systems = data["build_systems"]
             found = False
             for build_system in build_systems:
