@@ -1,8 +1,8 @@
 import sublime
 import sublime_plugin
 import functools
-from CMakeBuilder.support import get_setting
-from CMakeBuilder.commands import CmakeConfigureCommand
+from ..support import get_setting
+from ..commands import CmakeConfigure2Command
 
 def _configure(window):
     if not CmakeConfigure2Command(window).is_enabled(): return

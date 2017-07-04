@@ -1,90 +1,8 @@
 import Default.exec
 import json
 import sublime
-import sublime_plugin
-import os
 import copy
-import CMakeBuilder.generators
 
-class CmakeCommand(sublime_plugin.WindowCommand):
-
-    def is_enabled(self):
-        try:
-            self.cmake = CMakeBuilder.generators.CMakeGenerator.create(self.window)
-        except Exception as e:
-            return False
-        self.server = ServerManager.get(self.window)
-        return self.server is not None and super(sublime_plugin.WindowCommand, self).is_enabled()
-
-class CmakeBuildCommand(CmakeCommand):
-    
-    def run(self, select=False):
-        if not self.is_enabled():
-            sublime.error_message("Cannot build a CMake target!")
-            return
-        active_target = self.window.project_data().get("settings", {}).get("active_target", None)
-        if select or active_target is None:
-            self.items = [ [t.name, t.type, t.directory] for t in self.server.targets ]
-            self.window.show_quick_panel(self.items, self._on_done)
-        else:
-            self._on_done(active_target)
-
-    def _on_done(self, index):
-        if index == -1:
-            return
-        target = self.server.targets[index]
-        if target.type == "RUN":
-            if sublime.platform() in ("linux", "osx"):
-                prefix = "./"
-            else:
-                prefix = ""
-            self.window.run_command(
-                "exec", {
-                    "shell_cmd": prefix + target.fullname,
-                    "working_dir": target.directory
-                    }
-                )
-        else:
-            self.window.run_command(
-                "exec", {
-                    "cmd": self.cmake.cmd(target),
-                    "file_regex": self.cmake.file_regex(),
-                    "syntax": self.cmake.syntax(),
-                    "working_dir": self.cmake.build_folder
-                    }
-                )
-
-class CmakeConfigure2Command(CmakeCommand):
-
-    def run(self):
-        self.server.configure(self.cmake.command_line_overrides)
-
-class CmakeRevealIncludeDirectories(CmakeCommand):
-    """Prints the include directories to a new view"""
-    
-    def run(self):
-        view = self.window.new_file()
-        view.set_name("Project Include Directories")
-        view.set_scratch(True)
-        for path in self.server.include_paths:
-            view.run_command("append", {"characters": path + "\n", "force": True})
-
-class CmakeSetTarget(CmakeCommand):
-
-    def run(self):
-        self.items = [ [t.name, t.type, t.directory] for t in self.server.targets ]
-        self.window.show_quick_panel(self.items, self._on_done)
-
-    def _on_done(self, index):
-        data = self.window.project_data()
-        if index == -1:
-            data.get("settings", {}).pop("active_target", None)
-            self.window.active_view().erase_status("cmake_active_target")
-        else:
-            data["settings"]["active_target"] = index
-            name = self.server.targets[index].name
-            self.window.active_view().set_status("cmake_active_target", "TARGET: " + name)
-        self.window.set_project_data(data)
 
 class Target(object):
 
@@ -99,57 +17,6 @@ class Target(object):
     def __hash__(self):
         return hash(self.name)
 
-class ServerManager(sublime_plugin.EventListener):
-
-    _servers = {}
-
-    @classmethod
-    def get(cls, window):
-        return cls._servers.get(window.id(), None)
-
-    def on_load(self, view):
-        try:
-            window_id = view.window().id()
-            cmake = CMakeBuilder.generators.CMakeGenerator.create(view.window())
-        except KeyError as e:
-            return
-        except AttributeError as e:
-            return
-        server = self.__class__._servers.get(window_id, None)
-        if not server:
-            try:
-                self.__class__._servers[window_id] = Server(cmake)
-            except Exception as e:
-                print(str(e))
-                return
-        elif str(server.cmake) != str(cmake):
-            self.__class__._servers[window_id] = Server(cmake)
-
-    def on_activated(self, view):
-        self.on_load(view)
-        index = view.settings().get("active_target", None)
-        if not index:
-            view.erase_status("cmake_active_target")
-            return
-        server = self.__class__.get(view.window())
-        if not server:
-            view.erase_status("cmake_active_target")
-            return
-        if not server.targets:
-            view.erase_status("cmake_active_target")
-            return
-        view.set_status("cmake_active_target", "TARGET: " + server.targets[int(index)].name)
-
-    on_clone = on_load
-
-    def on_window_command(self, window, command_name, command_args):
-        if command_name != "build" or command_args != {"select": True}:
-            return None
-        server = ServerManager.get(window)
-        if not server:
-            return None
-        return ("cmake_build", command_args)
-
 
 class Server(Default.exec.ProcessListener):
 
@@ -163,6 +30,7 @@ class Server(Default.exec.ProcessListener):
         self.experimental = experimental
         self.protocol = protocol
         self.is_configuring = False
+        self.is_building = False  # maintained by CmakeBuildCommand
         self.data_parts = ''
         self.inside_json_object = False
         self.include_paths = set()
@@ -197,7 +65,7 @@ class Server(Default.exec.ProcessListener):
                 self.inside_json_object = True
 
     def on_finished(self, _):
-        sublime.active_window().status_message(
+        self.cmake.window.status_message(
             "CMake Server has quit (exit code {})"
             .format(self.proc.exit_code()))
 
@@ -241,7 +109,7 @@ class Server(Default.exec.ProcessListener):
         if self.is_configuring:
             return
         self.is_configuring = True
-        window = sublime.active_window()
+        window = self.cmake.window
         view = window.create_output_panel("cmake.configure", True)
         view.settings().set(
             "result_file_regex", 
@@ -299,17 +167,17 @@ class Server(Default.exec.ProcessListener):
     def receive_reply(self, thedict):
         reply = thedict["inReplyTo"]
         if reply == "handshake":
-            sublime.active_window().status_message(
+            self.cmake.window.status_message(
                 "CMake server {}.{} at your service!"
                 .format(self.protocol["major"], self.protocol["minor"]))
             self.configure()
         elif reply == "setGlobalSettings":
-            sublime.active_window().status_message(
+            self.cmake.window.status_message(
                 "Global CMake setting is modified")
         elif reply == "configure":
-            sublime.active_window().status_message("Project is configured")
+            self.cmake.window.status_message("Project is configured")
         elif reply == "compute":
-            sublime.active_window().status_message("Project is generated")
+            self.cmake.window.status_message("Project is generated")
             self.is_configuring = False
             self.codemodel()
         elif reply == "fileSystemWatchers":
@@ -328,7 +196,7 @@ class Server(Default.exec.ProcessListener):
                     continue
                 self.items.append([str(k), str(v)])
                 self.types.append(type(v))
-            window = sublime.active_window()
+            window = self.cmake.window
             def on_done(index):
                 if index == -1:
                     return
@@ -410,13 +278,13 @@ class Server(Default.exec.ProcessListener):
                 old_value = item[1]
                 def on_done_input(new_value):
                     self.configure({key: value})
-                sublime.active_window().show_input_panel(
+                self.cmake.window.show_input_panel(
                     'new value for "' + key + '": ',
                     old_value,
                     on_done_input,
                     None,
                     None)
-            sublime.active_window().show_quick_panel(self.items, on_done)
+            self.cmake.window.show_quick_panel(self.items, on_done)
         else:
             print("received unknown reply type:", reply)
 
@@ -424,14 +292,14 @@ class Server(Default.exec.ProcessListener):
         reply = thedict["inReplyTo"]
         msg = thedict["errorMessage"]
         if reply in ("configure", "compute"):
-            sublime.active_window().status_message(msg)
+            self.cmake.window.status_message(msg)
             if self.is_configuring:
                 self.is_configuring = False
         else:
             sublime.error_message("{} (in reply to {})".format(msg, reply))
 
     def receive_progress(self, thedict):
-        view = sublime.active_window().active_view()
+        view = self.cmake.window.active_view()
         minimum = thedict["progressMinimum"]
         maximum = thedict["progressMaximum"]
         current = thedict["progressCurrent"]
@@ -446,7 +314,7 @@ class Server(Default.exec.ProcessListener):
             view.set_status("cmake_" + thedict["inReplyTo"], status)
 
     def receive_message(self, thedict):
-        window = sublime.active_window()
+        window = self.cmake.window
         if thedict["inReplyTo"] in ("configure", "compute"):
             name = "cmake.configure"
         else:
@@ -461,14 +329,14 @@ class Server(Default.exec.ProcessListener):
              "scroll_to_end": True})
         
     def receive_signal(self, thedict):
-        if thedict["name"] == "dirty" and not self.is_configuring:
+        if thedict["name"] == "dirty" and not self.is_configuring and not self.is_building:
             self.configure()
         else:
             print("received signal")
             print(thedict)
 
     def dump_to_new_view(self, thedict, name):
-        view = sublime.active_window().new_file()
+        view = self.cmake.window.new_file()
         view.set_scratch(True)
         view.set_name(name)
         thedict.pop("type")

@@ -7,6 +7,7 @@ import Default.exec
 import copy
 from CMakeBuilder.support import *
 from CMakeBuilder.generators import *
+from .command import ServerManager
 
 class CmakeConfigureCommand(Default.exec.ExecCommand):
     """Configures a CMake project with options set in the sublime project
@@ -23,6 +24,10 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         return 'Configure'
 
     def run(self, write_build_targets=False, silence_dev_warnings=False):
+        self.server = ServerManager.get(self.window)
+        if self.server:
+            self.window.run_command("cmake_configure2")
+            return
         if get_setting(self.window.active_view(), 'always_clear_cache_before_configure', False):
             self.window.run_command('cmake_clear_cache', args={'with_confirmation': False})
         project = self.window.project_data()

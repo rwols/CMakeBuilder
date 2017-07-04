@@ -1,5 +1,6 @@
 import sublime, sublime_plugin, os
 from CMakeBuilder.support import *
+from .command import ServerManager
 
 class CmakeEditCacheCommand(sublime_plugin.WindowCommand):
     """Edit an entry from the CMake cache."""
@@ -15,6 +16,10 @@ class CmakeEditCacheCommand(sublime_plugin.WindowCommand):
         return 'Edit Cache...'
 
     def run(self):
+        self.server = ServerManager.get(self.window)
+        if self.server:
+            self.server.cache()
+            return
         build_folder = self.window.project_data()["settings"]["cmake"]["build_folder"]
         build_folder = sublime.expand_variables(build_folder, self.window.extract_variables())
         self.window.open_file(os.path.join(build_folder, "CMakeCache.txt"))
