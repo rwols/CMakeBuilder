@@ -34,6 +34,7 @@ class Server(Default.exec.ProcessListener):
         self.data_parts = ''
         self.inside_json_object = False
         self.include_paths = set()
+        self.targets = None
         cmd = ["cmake", "-E", "server"]
         if experimental:
             cmd.append("--experimental")
@@ -241,20 +242,11 @@ class Server(Default.exec.ProcessListener):
                                 path = include_path.pop("path", None)
                                 if path:
                                     self.include_paths.add(path)
+            self.targets.add(Target("BUILD ALL", "BUILD ALL", "ALL", self.cmake.build_folder))
             data = self.cmake.window.project_data()
             self.targets = list(self.targets)
-            build_systems = data["build_systems"]
-            found = False
-            for build_system in build_systems:
-                if build_system.get("name", "") == "CMake":
-                    build_system["target"] = "cmake_build"
-                    found = True
-                    break
-            if not found:
-                build_systems.append({"name": "CMake", "target": "cmake_build"})
             data["settings"]["compile_commands"] = self.cmake.build_folder_pre_expansion
-            data["settings"]["ecc_flag_sources"] = [{"file": "compile_commands.json", "search_in": self.cmake.build_folder_pre_expansion}]
-            data["build_systems"] = build_systems
+            data["settings"]["ecc_flags_sources"] = [{"file": "compile_commands.json", "search_in": self.cmake.build_folder_pre_expansion}]
             self.cmake.window.set_project_data(data)
         elif reply == "cache":
             cache = thedict.pop("cache")

@@ -9,7 +9,7 @@ class Ninja(CMakeGenerator):
     def __repr__(self):
         return 'Ninja'
 
-    def env(self):
+    def get_env(self):
         if self.visual_studio_versions:
             vs_versions = self.visual_studio_versions
         else:

@@ -42,6 +42,20 @@
           {
             "command": "cmake_new_project",
             "mnemonic": "N"
+          },
+          {
+            "command": "cmake_set_target",
+            "mnemonic": "T"
+          },
+          {
+            "command": "cmake_reveal_include_directories",
+            "mnemonic": "I"
+          },
+          {
+            "command": "cmake_dump_file_system_watchers",
+          },
+          {
+            "command": "cmake_dump_inputs"
           }
         ]
       }

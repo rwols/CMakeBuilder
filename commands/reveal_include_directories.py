@@ -10,3 +10,6 @@ class CmakeRevealIncludeDirectories(CmakeCommand):
         view.set_scratch(True)
         for path in self.server.include_paths:
             view.run_command("append", {"characters": path + "\n", "force": True})
+
+    def description(self):
+        return "Reveal Include Directories"

@@ -1,6 +1,7 @@
+import sublime_plugin
 from ..generators import CMakeGenerator
 from ..server import Server
-import sublime_plugin
+from ..support import has_server_mode
 
 
 class CmakeCommand(sublime_plugin.WindowCommand):
@@ -25,6 +26,9 @@ class ServerManager(sublime_plugin.EventListener):
         return cls._servers.get(window.id(), None)
 
     def on_load(self, view):
+        if not has_server_mode():
+            print("cmake is not capable of server mode")
+            return
         try:
             window_id = view.window().id()
             cmake = CMakeGenerator.create(view.window())
@@ -60,7 +64,7 @@ class ServerManager(sublime_plugin.EventListener):
     on_clone = on_load
 
     def on_window_command(self, window, command_name, command_args):
-        if command_name != "build" or command_args != {"select": True}:
+        if command_name != "build":
             return None
         server = ServerManager.get(window)
         if not server:

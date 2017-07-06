@@ -38,5 +38,13 @@
   {
     "command": "cmake_reveal_include_directories",
     "caption": "CMakeBuilder: Reveal Include Directories"
+  },
+  {
+    "command": "cmake_dump_file_system_watchers",
+    "caption": "CMakeBuilder: Dump File System Watchers"
+  },
+  {
+    "command": "cmake_dump_inputs",
+    "caption": "CMakeBuilder: Dump CMake Inputs"
   }
 ]

@@ -62,7 +62,7 @@ class CMakeGenerator(object):
     def __repr__(self):
         return repr(type(self))
 
-    def env(self):
+    def get_env(self):
         return {} # Empty dict
 
     def variants(self):

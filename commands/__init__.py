@@ -3,6 +3,8 @@ from .clear_cache import CmakeClearCacheCommand
 from .configure import CmakeConfigureCommand
 from .configure2 import CmakeConfigure2Command
 from .diagnose import CmakeDiagnoseCommand
+from .dump_file_system_watchers import CmakeDumpFileSystemWatchersCommand
+from .dump_inputs import CmakeDumpInputsCommand
 from .edit_cache import CmakeEditCacheCommand
 from .insert_diagnosis import CmakeInsertDiagnosisCommand
 from .new_project import CmakeNewProjectCommand

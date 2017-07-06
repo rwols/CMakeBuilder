@@ -20,3 +20,6 @@ class CmakeSetTargetCommand(CmakeCommand):
             name = self.server.targets[index].name
             self.window.active_view().set_status("cmake_active_target", "TARGET: " + name)
         self.window.set_project_data(data)
+
+    def description(self):
+        return "Set Target..."

@@ -51,7 +51,7 @@ class CmakeBuildCommand(CmakeCommand):
             self.window.run_command(
                 "cmake_exec", {
                     "window_id": self.window.id(),
-                    "cmd": self.cmake.cmd(target),
+                    "cmd": self.cmake.cmd(None if target.type == "ALL" else target),
                     "file_regex": self.cmake.file_regex(),
                     "syntax": self.cmake.syntax(),
                     "working_dir": self.cmake.build_folder

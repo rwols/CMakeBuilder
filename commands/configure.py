@@ -86,7 +86,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         GeneratorClass = class_from_generator_string(generator)
         builder = None
         try:
-            builder = GeneratorClass(self.window, copy.deepcopy(cmake))
+            builder = GeneratorClass(self.window)
         except KeyError as e:
             sublime.error_message('Unknown variable in cmake dictionary: {}'
                 .format(str(e)))
@@ -108,7 +108,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
                 except ValueError as e:
                     pass
         self.builder.on_pre_configure()
-        env = self.builder.env()
+        env = self.builder.get_env()
         user_env = get_cmake_value(cmake, 'env')
         if user_env: env.update(user_env)
         super().run(shell_cmd=cmd, 
