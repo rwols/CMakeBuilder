@@ -32,12 +32,17 @@ class Visual_Studio(CMakeGenerator):
             vs_versions = [15.0, 14.1, 14.0, 13.0, 12.0, 11.0, 10.0]
         for version in vs_versions:
             if version in years:
-                if version.is_integer():
-                    result += ' %i %i' % (int(version), years[version])
-                else:
-                    result += ' %0.1f %i' % (version, years[version])
-                ok = True
-                break
+                if isinstance(version, int):
+                    result += ' %i %i' % (version, years[version])
+                    ok = True
+                    break
+                elif isinstance(version, float):
+                    if version.is_integer():
+                        result += ' %i %i' % (int(version), years[version])
+                    else:
+                        result += ' %0.1f %i' % (version, years[version])
+                    ok = True
+                    break
         if not ok:
             raise Exception('Could not determine Visual Studio version!')
         if self.target_architecture:
