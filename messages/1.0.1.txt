@@ -1,0 +1,2 @@
+- Integer parse fix for visual studio generator
+- Add new item to "Preferences" menu: "Report an Issue"

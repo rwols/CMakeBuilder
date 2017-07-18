@@ -72,6 +72,15 @@
                 }
               },
               {
+                "command": "open_url",
+                "caption": "Report an Issue",
+                "mnemonic": "R",
+                "args":
+                {
+                  "url": "https://github.com/rwols/CMakeBuilder/issues"
+                }
+              },
+              {
                 "command": "edit_settings",
                 "caption": "Settings",
                 "mnemonic": "S",
