@@ -47,7 +47,8 @@ class Server(Default.exec.ProcessListener):
             env=env)
 
     def __del__(self):
-        self.proc.kill()
+        if self.proc:
+            self.proc.kill()
 
     def on_data(self, _, data):
         data = data.decode("utf-8").strip()
