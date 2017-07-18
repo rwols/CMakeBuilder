@@ -56,6 +56,9 @@
           },
           {
             "command": "cmake_dump_inputs"
+          },
+          {
+            "command": "cmake_set_global_setting"
           }
         ]
       }

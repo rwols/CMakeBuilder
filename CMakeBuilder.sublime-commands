@@ -46,5 +46,9 @@
   {
     "command": "cmake_dump_inputs",
     "caption": "CMakeBuilder: Dump CMake Inputs"
+  },
+  {
+    "command": "cmake_set_global_setting",
+    "caption": "CMakeBuilder: Set Global Setting"
   }
 ]
