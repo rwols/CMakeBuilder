@@ -25,6 +25,8 @@ class CmakeBuildCommand(CmakeCommand):
             return
         active_target = self.window.project_data().get("settings", {}).get("active_target", None)
         if select or active_target is None:
+            if not self.server.targets:
+                sublime.error_message("No targets found. Did you configure the project?")
             self.items = [ [t.name, t.type, t.directory] for t in self.server.targets ]
             self.window.show_quick_panel(self.items, self._on_done)
         else:

@@ -30,9 +30,12 @@ class CMakeGenerator(object):
         self.build_folder = self._pop(data, "build_folder")
         if not self.build_folder:
             raise KeyError('missing required key "build_folder"')
+        self.build_folder = os.path.abspath(self.build_folder).replace("\\", "/")
         self.source_folder = os.path.dirname(window.project_file_name())
         while os.path.isfile(os.path.join(self.source_folder, "..", "CMakeLists.txt")):
             self.source_folder = os.path.join(self.source_folder, "..")
+        self.source_folder = os.path.abspath(self.source_folder)
+        self.source_folder = self.source_folder.replace("\\", "/")
         self.command_line_overrides = self._pop(data, "command_line_overrides", {})
         self.filter_targets = self._pop(data, "filter_targets", [])
         self.configurations = self._pop(data, "configurations", [])
@@ -40,20 +43,6 @@ class CMakeGenerator(object):
         self.target_architecture = self._pop(data, "target_architecture", "x86")
         self.visual_studio_versions = self._pop(data, "visual_studio_versions", [15, 14])
         self.window = window
-        # self.window = window
-        # self.cmake = cmake
-        # try:
-        #     self.cmake_platform = self.cmake[sublime.platform()]
-        # except Exception as e:
-        #     self.cmake_platform = None
-        # self.build_folder_pre_expansion = self.get_cmake_key('build_folder')
-        # assert self.build_folder_pre_expansion
-        # self.cmake = sublime.expand_variables(self.cmake, self.window.extract_variables())
-        # self.build_folder = self.get_cmake_key('build_folder')
-        # self.filter_targets = self.get_cmake_key('filter_targets')
-        # self.command_line_overrides = self.get_cmake_key('command_line_overrides')
-        # self.target_architecture = self.get_cmake_key('target_architecture')
-        # self.visual_studio_versions = self.get_cmake_key('visual_studio_versions')
         assert self.build_folder
 
     def _pop(self, data, key, default=None):
