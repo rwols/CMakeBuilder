@@ -1,5 +1,6 @@
 from CMakeBuilder.generators import CMakeGenerator
 from CMakeBuilder.generators.windows.support.vcvarsall import query_vcvarsall
+from CMakeBuilder.support.check_output import check_output
 import os
 import re
 import subprocess
@@ -12,9 +13,7 @@ class Visual_Studio(CMakeGenerator):
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        lines = subprocess.check_output(
-            'cmake --help', 
-            startupinfo=startupinfo).decode('utf-8').splitlines()
+        lines = check_output('cmake --help').splitlines()
         years = {}
         for line in lines:
             print(line)
