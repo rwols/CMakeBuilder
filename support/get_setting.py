@@ -1,5 +1,6 @@
 import sublime
 
+
 def get_setting(view, key, default=None):
     if view:
         settings = view.settings()

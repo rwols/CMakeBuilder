@@ -36,6 +36,8 @@ class ServerManager(sublime_plugin.EventListener):
             return
         except AttributeError as e:
             return
+        except TypeError as e:
+            return
         server = self.__class__._servers.get(window_id, None)
         if not server:
             try:

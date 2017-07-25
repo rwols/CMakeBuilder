@@ -3,6 +3,7 @@ import json
 
 _server_mode = None
 
+
 def has_server_mode():
     global _server_mode
     if _server_mode is None:

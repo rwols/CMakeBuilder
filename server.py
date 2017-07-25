@@ -20,12 +20,12 @@ class Target(object):
 
 class Server(Default.exec.ProcessListener):
 
-    def __init__(self, 
-            cmake_settings, 
-            experimental=True, 
-            debug=True, 
-            protocol=(1,0),
-            env={}):
+    def __init__(self,
+                 cmake_settings,
+                 experimental=True,
+                 debug=True,
+                 protocol=(1, 0),
+                 env={}):
         self.cmake = cmake_settings
         self.experimental = experimental
         self.protocol = protocol
@@ -41,8 +41,8 @@ class Server(Default.exec.ProcessListener):
         if debug:
             cmd.append("--debug")
         self.proc = Default.exec.AsyncProcess(
-            cmd=cmd, 
-            shell_cmd=None, 
+            cmd=cmd,
+            shell_cmd=None,
             listener=self,
             env=env)
 
@@ -84,16 +84,16 @@ class Server(Default.exec.ProcessListener):
     def send_handshake(self):
         best_protocol = self.protocols[0]
         for protocol in self.protocols:
-            if (protocol["major"] == self.protocol[0] and 
-                protocol["minor"] == self.protocol[1]):
+            if (protocol["major"] == self.protocol[0] and
+                    protocol["minor"] == self.protocol[1]):
                 best_protocol = protocol
                 break
             if protocol["isExperimental"] and not self.experimental:
                 continue
             if protocol["major"] > best_protocol["major"]:
                 best_protocol = protocol
-            elif (protocol["major"] == best_protocol["major"] and 
-                  protocol["minor"] > best_protocol["minor"]):
+            elif (protocol["major"] == best_protocol["major"] and
+                    protocol["minor"] > best_protocol["minor"]):
                 best_protocol = protocol
         self.protocol = best_protocol
         self.send_dict({
@@ -114,8 +114,9 @@ class Server(Default.exec.ProcessListener):
         window = self.cmake.window
         view = window.create_output_panel("cmake.configure", True)
         view.settings().set(
-            "result_file_regex", 
-            r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:')
+            "result_file_regex",
+            r'CMake\s(?:Error|Warning)'
+            r'(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:')
         view.settings().set("result_base_dir", self.cmake.source_folder)
         view.set_syntax_file(
             "Packages/CMakeBuilder/Syntax/Configure.sublime-syntax")
@@ -193,27 +194,29 @@ class Server(Default.exec.ProcessListener):
             thedict.pop("capabilities")
             self.items = []
             self.types = []
-            for k,v in thedict.items():
+            for k, v in thedict.items():
                 if type(v) in (dict, list):
                     continue
                 self.items.append([str(k), str(v)])
                 self.types.append(type(v))
             window = self.cmake.window
+
             def on_done(index):
                 if index == -1:
                     return
                 key = self.items[index][0]
                 old_value = self.items[index][1]
                 value_type = self.types[index]
+
                 def on_done_input(new_value):
                     if value_type is bool:
                         new_value = bool(new_value)
                     self.set_global_setting(key, new_value)
                 window.show_input_panel(
-                    'new value for "' + key + '": ', 
-                    old_value, 
-                    on_done_input, 
-                    None, 
+                    'new value for "' + key + '": ',
+                    old_value,
+                    on_done_input,
+                    None,
                     None)
             window.show_quick_panel(self.items, on_done)
         elif reply == "codemodel":
@@ -221,7 +224,7 @@ class Server(Default.exec.ProcessListener):
             self.include_paths = set()
             self.targets = set()
             for config in configurations:
-                name = config.pop("name")
+                # name = config.pop("name")
                 projects = config.pop("projects")
                 for project in projects:
                     targets = project.pop("targets")
@@ -233,9 +236,18 @@ class Server(Default.exec.ProcessListener):
                         except KeyError as e:
                             target_fullname = target_name
                         target_dir = target.pop("buildDirectory")
-                        self.targets.add(Target(target_name, target_fullname, target_type, target_dir))
+                        self.targets.add(
+                            Target(
+                                target_name,
+                                target_fullname,
+                                target_type,
+                                target_dir))
                         if target_type == "EXECUTABLE":
-                            self.targets.add(Target("Run: " + target_name, target_fullname, "RUN", target_dir))
+                            self.targets.add(
+                                Target(
+                                    "Run: " + target_name,
+                                    target_fullname,
+                                    "RUN", target_dir))
                         file_groups = target.pop("fileGroups", [])
                         for file_group in file_groups:
                             include_paths = file_group.pop("includePath", [])
@@ -243,11 +255,19 @@ class Server(Default.exec.ProcessListener):
                                 path = include_path.pop("path", None)
                                 if path:
                                     self.include_paths.add(path)
-            self.targets.add(Target("BUILD ALL", "BUILD ALL", "ALL", self.cmake.build_folder))
+            self.targets.add(
+                Target(
+                    "BUILD ALL",
+                    "BUILD ALL",
+                    "ALL",
+                    self.cmake.build_folder))
             data = self.cmake.window.project_data()
             self.targets = list(self.targets)
-            data["settings"]["compile_commands"] = self.cmake.build_folder_pre_expansion
-            data["settings"]["ecc_flags_sources"] = [{"file": "compile_commands.json", "search_in": self.cmake.build_folder_pre_expansion}]
+            data["settings"]["compile_commands"] = \
+                self.cmake.build_folder_pre_expansion
+            data["settings"]["ecc_flags_sources"] = [{
+                "file": "compile_commands.json",
+                "search_in": self.cmake.build_folder_pre_expansion}]
             self.cmake.window.set_project_data(data)
         elif reply == "cache":
             cache = thedict.pop("cache")
@@ -262,21 +282,26 @@ class Server(Default.exec.ProcessListener):
                     docstring = ""
                 key = item["key"]
                 value = item["value"]
-                self.items.append([key + " [" + t.lower() + "]", value, docstring])
+                self.items.append(
+                    [key + " [" + t.lower() + "]", value, docstring])
+
             def on_done(index):
                 if index == -1:
                     return
                 item = self.items[index]
                 key = item[0].split(" ")[0]
                 old_value = item[1]
+
                 def on_done_input(new_value):
                     self.configure({key: value})
+
                 self.cmake.window.show_input_panel(
                     'new value for "' + key + '": ',
                     old_value,
                     on_done_input,
                     None,
                     None)
+
             self.cmake.window.show_quick_panel(self.items, on_done)
         else:
             print("received unknown reply type:", reply)
@@ -302,7 +327,7 @@ class Server(Default.exec.ProcessListener):
                 self.compute()
         else:
             status = "{0} {1:.0f}%".format(
-                        thedict["progressMessage"], 
+                        thedict["progressMessage"],
                         100.0 * (float(current) / float(maximum - minimum)))
             view.set_status("cmake_" + thedict["inReplyTo"], status)
 
@@ -316,13 +341,15 @@ class Server(Default.exec.ProcessListener):
         assert view
         window.run_command("show_panel", {"panel": "output.{}".format(name)})
         view = window.find_output_panel(name)
-        view.run_command("append", 
-            {"characters": thedict["message"] + "\n", 
-             "force": True, 
-             "scroll_to_end": True})
-        
+        view.run_command("append", {
+            "characters": thedict["message"] + "\n",
+            "force": True,
+            "scroll_to_end": True})
+
     def receive_signal(self, thedict):
-        if thedict["name"] == "dirty" and not self.is_configuring and not self.is_building:
+        if (thedict["name"] == "dirty" and not
+                self.is_configuring and not
+                self.is_building):
             self.configure()
         else:
             print("received signal")
@@ -336,7 +363,7 @@ class Server(Default.exec.ProcessListener):
         thedict.pop("inReplyTo")
         thedict.pop("cookie")
         view.run_command(
-            "append", 
+            "append",
             {"characters": json.dumps(thedict, indent=2), "force": True})
         view.set_read_only(True)
         view.set_syntax_file("Packages/JavaScript/JSON.sublime-syntax")
