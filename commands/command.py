@@ -7,12 +7,8 @@ from ..support import has_server_mode
 class CmakeCommand(sublime_plugin.WindowCommand):
 
     def is_enabled(self):
-        try:
-            self.cmake = CMakeGenerator.create(self.window)
-        except Exception as e:
-            return False
         self.server = ServerManager.get(self.window)
-        return self.server is not None and super(sublime_plugin.WindowCommand, self).is_enabled()
+        return self.server and super(CmakeCommand, self).is_enabled()
 
 
 class ServerManager(sublime_plugin.EventListener):
