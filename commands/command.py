@@ -8,7 +8,8 @@ class CmakeCommand(sublime_plugin.WindowCommand):
 
     def is_enabled(self):
         self.server = ServerManager.get(self.window)
-        return self.server and super(CmakeCommand, self).is_enabled()
+        return (self.server is not None and
+                super(CmakeCommand, self).is_enabled())
 
 
 class ServerManager(sublime_plugin.EventListener):
