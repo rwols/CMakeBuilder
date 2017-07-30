@@ -31,7 +31,7 @@ class CmakeBuildCommand(CmakeCommand):
                             "active_target.txt")
         if os.path.exists(path):
             with open(path, "r") as f:
-                active_target = int(f.read())
+                active_target = f.read()
         else:
             active_target = None
         if select or active_target is None:
@@ -65,13 +65,21 @@ class CmakeBuildCommand(CmakeCommand):
                 prefix = "./"
             else:
                 prefix = ""
-            self.window.run_command(
-                "cmake_exec", {
-                    "window_id": self.window.id(),
-                    "shell_cmd": prefix + target.fullname,
-                    "working_dir": target.directory
-                    }
-                )
+            try:
+                import TerminalView  # will throw if not present
+                self.window.run_command(
+                    "terminal_view_exec", {
+                        "cmd": [prefix + target.fullname],
+                        "working_dir": target.directory
+                    })
+            except Exception as e:
+                self.window.run_command(
+                    "cmake_exec", {
+                        "window_id": self.window.id(),
+                        "shell_cmd": prefix + target.fullname,
+                        "working_dir": target.directory
+                        }
+                    )
         else:
             self.window.run_command(
                 "cmake_exec", {

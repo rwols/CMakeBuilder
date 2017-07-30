@@ -16,7 +16,7 @@ class CmakeCommand(sublime_plugin.WindowCommand):
 
 
 class ServerManager(sublime_plugin.EventListener):
-    """Manages the bijection between cmake-enabled projects and server 
+    """Manages the bijection between cmake-enabled projects and server
     objects."""
 
     _servers = {}
@@ -65,10 +65,10 @@ class ServerManager(sublime_plugin.EventListener):
 
     on_clone = on_load
 
-    def on_window_command(self, window, command_name, command_args):
-        if command_name != "build":
-            return None
-        server = ServerManager.get(window)
-        if not server:
-            return None
-        return ("cmake_build", command_args)
+    # def on_window_command(self, window, command_name, command_args):
+    #     if command_name != "build":
+    #         return None
+    #     server = ServerManager.get(window)
+    #     if not server:
+    #         return None
+    #     return ("cmake_build", command_args)
