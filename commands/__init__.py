@@ -16,3 +16,4 @@ from .set_target import CmakeSetTargetCommand
 from .write_build_targets import CmakeWriteBuildTargetsCommand
 from .show_configure_output import CmakeShowConfigureOutputCommand
 from .command import ServerManager
+from .command import CmakeRestartServerCommand

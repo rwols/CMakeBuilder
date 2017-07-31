@@ -19,7 +19,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             return True
         except Exception as e:
             return False
-    
+
     def description(self):
         return 'Configure'
 
@@ -111,12 +111,12 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         env = self.builder.get_env()
         user_env = get_cmake_value(cmake, 'env')
         if user_env: env.update(user_env)
-        super().run(shell_cmd=cmd, 
+        super().run(shell_cmd=cmd,
             working_dir=root_folder,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
             syntax='Packages/CMakeBuilder/Syntax/Configure.sublime-syntax',
             env=env)
-    
+
     def on_finished(self, proc):
         super().on_finished(proc)
         self.builder.on_post_configure(proc.exit_code())

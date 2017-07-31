@@ -54,5 +54,9 @@
   {
     "command": "cmake_show_configure_output",
     "caption": "CMakeBuilder: Show Configure Output"
+  },
+  {
+    "command": "cmake_restart_server",
+    "caption": "CMakeBuilder: Restart Server For This Project"
   }
 ]

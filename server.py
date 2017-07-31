@@ -73,6 +73,8 @@ class Server(Default.exec.ProcessListener):
             .format(self.proc.exit_code()))
 
     def send(self, data):
+        while not hasattr(self, "proc"):
+            time.sleep(0.01)  # terrible hack :(
         self.proc.proc.stdin.write(data)
         self.proc.proc.stdin.flush()
 
@@ -174,7 +176,7 @@ class Server(Default.exec.ProcessListener):
         reply = thedict["inReplyTo"]
         if reply == "handshake":
             self.cmake.window.status_message(
-                "CMake server {}.{} at your service!"
+                "CMake server protocol {}.{}, handshake is OK"
                 .format(self.protocol["major"], self.protocol["minor"]))
             self.configure()
         elif reply == "setGlobalSettings":

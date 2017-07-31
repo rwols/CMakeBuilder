@@ -20,7 +20,7 @@
 
     // Set this to true to always open an output panel when the server starts
     // to configure the project. If false, the output panel will only display
-    // when a warning or an error occurs.
+    // when an error occurs.
     "server_configure_verbose": false,
 
     // If the command "CMakeBuilder: Configure" exited with status 0, should we

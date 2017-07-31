@@ -1,13 +1,4 @@
 {
     "target": "cmake_build",
-    "selector": "source.cmake | source.c | source.c++",
-    "variants":
-    [
-        {
-            "name": "Build Single Target",
-            "target": "cmake_build",
-            "selector": "source.cmake | source.c | source.c++",
-            "select_target": true
-        }
-    ]
+    "selector": "source.cmake | source.c | source.c++"
 }

@@ -62,6 +62,9 @@
           },
           {
             "command": "cmake_show_configure_output"
+          },
+          {
+            "command": "cmake_restart_server"
           }
         ]
       }

@@ -1,7 +1,22 @@
 import sublime_plugin
+import sublime
+import os
 from ..generators import CMakeGenerator
 from ..server import Server
 from ..support import has_server_mode
+from ..support import get_setting
+
+
+def _configure(window):
+    try:
+        cmake = window.project_data()["settings"]["cmake"]
+        build_folder = cmake["build_folder"]
+        build_folder = sublime.expand_variables(
+            build_folder, window.extract_variables())
+        if os.path.exists(build_folder):
+            window.run_command("cmake_configure")
+    except Exception:
+        pass
 
 
 class CmakeCommand(sublime_plugin.WindowCommand):
@@ -10,6 +25,21 @@ class CmakeCommand(sublime_plugin.WindowCommand):
         self.server = ServerManager.get(self.window)
         return (self.server is not None and
                 super(CmakeCommand, self).is_enabled())
+
+
+class CmakeRestartServerCommand(CmakeCommand):
+
+    def run(self):
+        try:
+            window_id = self.window.id()
+            cmake = CMakeGenerator.create(self.window)
+            ServerManager._servers[window_id] = Server(cmake)
+        except Exception as e:
+            sublime.errror_message(str(e))
+
+    @classmethod
+    def description(cls):
+        return "Restart Server For This Project"
 
 
 class ServerManager(sublime_plugin.EventListener):
@@ -47,25 +77,34 @@ class ServerManager(sublime_plugin.EventListener):
 
     def on_activated(self, view):
         self.on_load(view)
-        index = view.settings().get("active_target", None)
-        if not index:
+        try:
+            server = self.__class__.get(view.window())
+            path = os.path.join(server.cmake.build_folder,
+                                "CMakeFiles",
+                                "CMakeBuilder",
+                                "active_target.txt")
+            with open(path, "r") as f:
+                active_target = f.read()
+            view.set_status("cmake_active_target", "TARGET: " + active_target)
+        except Exception as e:
             view.erase_status("cmake_active_target")
-            return
-        server = self.__class__.get(view.window())
-        if not server:
-            view.erase_status("cmake_active_target")
-            return
-        if not server.targets:
-            view.erase_status("cmake_active_target")
-            return
-        view.set_status("cmake_active_target", "TARGET: " + server.targets[int(index)].name)
 
-    on_clone = on_load
 
-    # def on_window_command(self, window, command_name, command_args):
-        # if command_name != "build":
-        #     return None
-        # server = ServerManager.get(window)
-        # if not server:
-        #     return None
-        # return ("cmake_build", command_args)
+    def on_post_save(self, view):
+        if not view:
+            return
+        if not get_setting(view, "configure_on_save", False):
+            return
+        name = view.file_name()
+        if not name:
+            return
+        if name.endswith(".sublime-project"):
+            server = self.__class__.get(view.window())
+            if not server:
+                _configure(view.window())
+            else:
+                view.window().run_command("cmake_clear_cache",
+                                          {"with_confirmation": False})
+                view.window().run_command("cmake_restart_server")
+        elif name.endswith("CMakeLists.txt") or name.endswith("CMakeCache.txt"):
+            _configure(view.window())
