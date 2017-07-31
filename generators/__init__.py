@@ -95,7 +95,7 @@ class CMakeGenerator(object):
         syntax = self.syntax()
         if syntax:
             build_system['syntax'] = syntax
-        env = self.env()
+        env = self.get_env()
         if env:
             build_system['env'] = env
         return build_system
