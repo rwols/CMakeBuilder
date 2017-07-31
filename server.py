@@ -3,7 +3,7 @@ import json
 import sublime
 import copy
 import time
-
+import threading
 
 class Target(object):
 
@@ -121,7 +121,9 @@ class Server(Default.exec.ProcessListener):
         view.settings().set("result_base_dir", self.cmake.source_folder)
         view.set_syntax_file(
             "Packages/CMakeBuilder/Syntax/Configure.sublime-syntax")
-        window.run_command("show_panel", {"panel": "output.cmake.configure"})
+        settings = sublime.load_settings("CMakeBuilder.sublime-settings")
+        if settings.get("server_configure_verbose", False):
+            window.run_command("show_panel", {"panel": "output.cmake.configure"})
         overrides = copy.deepcopy(self.cmake.command_line_overrides)
         overrides.update(cache_arguments)
         ovr = []
@@ -340,21 +342,26 @@ class Server(Default.exec.ProcessListener):
             name = "cmake." + thedict["inReplyTo"]
         view = window.find_output_panel(name)
         assert view
-        window.run_command("show_panel", {"panel": "output.{}".format(name)})
+        settings = sublime.load_settings("CMakeBuilder.sublime-settings")
+        if settings.get("server_configure_verbose", False):
+            window.run_command("show_panel", {"panel": "output.{}".format(name)})
         view = window.find_output_panel(name)
         view.run_command("append", {
             "characters": thedict["message"] + "\n",
             "force": True,
             "scroll_to_end": True})
 
+    _signal_lock = threading.Lock()
+
     def receive_signal(self, thedict):
-        if (thedict["name"] == "dirty" and not
-                self.is_configuring and not
-                self.is_building):
-            self.configure()
-        else:
-            print("received signal")
-            print(thedict)
+        with self.__class__._signal_lock:
+            if (thedict["name"] == "dirty" and not
+                    self.is_configuring and not
+                    self.is_building):
+                self.configure()
+            else:
+                print("received signal")
+                print(thedict)
 
     def dump_to_new_view(self, thedict, name):
         view = self.cmake.window.new_file()

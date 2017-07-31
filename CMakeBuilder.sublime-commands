@@ -1,6 +1,6 @@
 [
   {
-    "command": "cmake_open_build_folder",   
+    "command": "cmake_open_build_folder",
     "caption": "CMakeBuilder: Browse Build Folder…"
   },
   {
@@ -8,7 +8,7 @@
     "caption": "CMakeBuilder: Configure"
   },
   {
-    "command": "cmake_write_build_targets", 
+    "command": "cmake_write_build_targets",
     "caption": "CMakeBuilder: Write Build Targets to Sublime Project File"
   },
   {
@@ -50,5 +50,9 @@
   {
     "command": "cmake_set_global_setting",
     "caption": "CMakeBuilder: Set Global Setting"
+  },
+  {
+    "command": "cmake_show_configure_output",
+    "caption": "CMakeBuilder: Show Configure Output"
   }
 ]
