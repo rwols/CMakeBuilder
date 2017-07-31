@@ -114,6 +114,7 @@ class Server(Default.exec.ProcessListener):
         if self.is_configuring:
             return
         self.is_configuring = True
+        self.bad_configure = False
         window = self.cmake.window
         view = window.create_output_panel("cmake.configure", True)
         view.settings().set(
@@ -183,7 +184,11 @@ class Server(Default.exec.ProcessListener):
             self.cmake.window.status_message(
                 "Global CMake setting is modified")
         elif reply == "configure":
-            self.cmake.window.status_message("Project is configured")
+            if self.bad_configure:
+                self.is_configuring = False
+                self.cmake.window.status_message("Some errors occured during configure!")
+            else:
+                self.cmake.window.status_message("Project is configured")
         elif reply == "compute":
             self.cmake.window.status_message("Project is generated")
             self.is_configuring = False
@@ -328,7 +333,7 @@ class Server(Default.exec.ProcessListener):
         current = thedict["progressCurrent"]
         if maximum == current:
             view.erase_status("cmake_" + thedict["inReplyTo"])
-            if thedict["inReplyTo"] == "configure":
+            if thedict["inReplyTo"] == "configure" and not self.bad_configure:
                 self.compute()
         else:
             status = "{0} {1:.0f}%".format(
@@ -347,11 +352,11 @@ class Server(Default.exec.ProcessListener):
         settings = sublime.load_settings("CMakeBuilder.sublime-settings")
         if settings.get("server_configure_verbose", False):
             window.run_command("show_panel", {"panel": "output.{}".format(name)})
-        view = window.find_output_panel(name)
         view.run_command("append", {
             "characters": thedict["message"] + "\n",
             "force": True,
             "scroll_to_end": True})
+        self._check_for_errors_in_configure(view)
 
     _signal_lock = threading.Lock()
 
@@ -377,3 +382,11 @@ class Server(Default.exec.ProcessListener):
             {"characters": json.dumps(thedict, indent=2), "force": True})
         view.set_read_only(True)
         view.set_syntax_file("Packages/JavaScript/JSON.sublime-syntax")
+
+    def _check_for_errors_in_configure(self, view):
+        scopes = view.find_by_selector("invalid.illegal")
+        errorcount = len(scopes)
+        if errorcount > 0:
+            self.bad_configure = True
+            self.cmake.window.run_command("show_panel", {"panel": "output.cmake.configure"})
+
