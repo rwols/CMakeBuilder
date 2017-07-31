@@ -1,4 +1,0 @@
-{
-    "target": "cmake_build",
-    "selector": "source.cmake | source.c | source.c++"
-}
