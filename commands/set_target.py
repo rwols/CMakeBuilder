@@ -42,5 +42,6 @@ class CmakeSetTargetCommand(CmakeCommand):
         self.window.active_view() \
                    .set_status("cmake_active_target", "TARGET: " + name)
 
-    def description(self):
+    @classmethod
+    def description(cls):
         return "Set Target..."

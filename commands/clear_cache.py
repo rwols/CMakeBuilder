@@ -20,12 +20,13 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
             return False
         return True
 
-    def description(self):
+    @classmethod
+    def description(cls):
         return 'Clear Cache'
 
     def run(self, with_confirmation=True):
         build_folder = sublime.expand_variables(
-            self.window.project_data()["settings"]["cmake"]["build_folder"], 
+            self.window.project_data()["settings"]["cmake"]["build_folder"],
             self.window.extract_variables())
         files_to_remove = []
         dirs_to_remove = []
@@ -50,21 +51,21 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
 
         panel = self.window.create_output_panel('files_to_be_deleted')
 
-        self.window.run_command('show_panel', 
+        self.window.run_command('show_panel',
             {'panel': 'output.files_to_be_deleted'})
 
-        panel.run_command('insert', 
+        panel.run_command('insert',
             {'characters': 'Files to remove:\n' +
              '\n'.join(files_to_remove + dirs_to_remove)})
 
         def on_done(selected):
             if selected != 0: return
             self.remove(files_to_remove, dirs_to_remove)
-            panel.run_command('append', 
+            panel.run_command('append',
                 {'characters': '\nCleared CMake cache files!',
                  'scroll_to_end': True})
 
-        self.window.show_quick_panel(['Do it', 'Cancel'], on_done, 
+        self.window.show_quick_panel(['Do it', 'Cancel'], on_done,
             sublime.KEEP_OPEN_ON_FOCUS_LOST)
 
     def remove(self, files_to_remove, dirs_to_remove):
@@ -79,4 +80,4 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
             except Exception as e:
                 sublime.error_message('Cannot remove '+directory)
 
-        
+

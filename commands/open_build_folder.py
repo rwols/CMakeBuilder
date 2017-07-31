@@ -12,7 +12,8 @@ class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
         except Exception as e:
             return False
 
-    def description(self):
+    @classmethod
+    def description(cls):
         return 'Browse Build Folder…'
 
     def run(self):

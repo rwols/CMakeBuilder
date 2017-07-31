@@ -21,7 +21,7 @@ class CmakeExecCommand(Default.exec.ExecCommand):
 
 class CmakeBuildCommand(CmakeCommand):
 
-    def run(self, select=False):
+    def run(self, select_target=False):
         if not self.is_enabled():
             sublime.error_message("Cannot build a CMake target!")
             return
@@ -34,7 +34,7 @@ class CmakeBuildCommand(CmakeCommand):
                 active_target = f.read()
         else:
             active_target = None
-        if select or active_target is None:
+        if select_target or active_target is None:
             if not self.server.targets:
                 sublime.error_message(
                     "No targets found. Did you configure the project?")

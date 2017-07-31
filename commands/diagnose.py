@@ -10,12 +10,13 @@ class CmakeDiagnoseCommand(sublime_plugin.ApplicationCommand):
         view.settings().set("rulers", [])
         view.settings().set("gutter", False)
         view.settings().set("draw_centered", True)
-        view.settings().set("syntax", 
+        view.settings().set("syntax",
             "Packages/CMakeBuilder/Syntax/Diagnosis.sublime-syntax")
         view.set_name("CMakeBuilder Diagnosis")
         view.run_command("cmake_insert_diagnosis")
         view.set_read_only(True)
         sublime.active_window().focus_view(view)
 
-    def description(self):
+    @classmethod
+    def description(cls):
         return "Diagnose (Help! What should I do?)"

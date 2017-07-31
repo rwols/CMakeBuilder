@@ -12,7 +12,8 @@ class CmakeRunCtestCommand(Default.exec.ExecCommand):
         except Exception as e:
             return False
 
-    def description(self):
+    @classmethod
+    def description(cls):
         return 'Run CTest'
 
     def run(self, test_framework='boost'):
@@ -24,11 +25,11 @@ class CmakeRunCtestCommand(Default.exec.ExecCommand):
             cmd += ' ' + command_line_args
         #TODO: check out google test style errors, right now I just assume
         #      everybody uses boost unit test framework
-        super().run(shell_cmd=cmd, 
+        super().run(shell_cmd=cmd,
             # Guaranteed to exist at this point.
-            working_dir=cmake.get('build_folder'), 
+            working_dir=cmake.get('build_folder'),
             file_regex=r'(.+[^:]):(\d+):() (?:fatal )?((?:error|warning): .+)$',
             syntax='Packages/CMakeBuilder/Syntax/CTest.sublime-syntax')
-    
+
     def on_finished(self, proc):
         super().on_finished(proc)

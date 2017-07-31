@@ -63,9 +63,9 @@ class ServerManager(sublime_plugin.EventListener):
     on_clone = on_load
 
     # def on_window_command(self, window, command_name, command_args):
-    #     if command_name != "build":
-    #         return None
-    #     server = ServerManager.get(window)
-    #     if not server:
-    #         return None
-    #     return ("cmake_build", command_args)
+        # if command_name != "build":
+        #     return None
+        # server = ServerManager.get(window)
+        # if not server:
+        #     return None
+        # return ("cmake_build", command_args)

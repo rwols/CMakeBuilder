@@ -49,7 +49,8 @@ PROJECTFILE = """{
 class CmakeNewProjectCommand(sublime_plugin.WindowCommand):
     """Creates a new template project and opens the project for you."""
 
-    def description(self):
+    @classmethod
+    def description(cls):
         return "New Project..."
 
     def run(self):

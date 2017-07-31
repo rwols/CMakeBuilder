@@ -3,7 +3,7 @@ from .command import CmakeCommand
 
 class CmakeRevealIncludeDirectories(CmakeCommand):
     """Prints the include directories to a new view"""
-    
+
     def run(self):
         view = self.window.new_file()
         view.set_name("Project Include Directories")
@@ -11,5 +11,6 @@ class CmakeRevealIncludeDirectories(CmakeCommand):
         for path in self.server.include_paths:
             view.run_command("append", {"characters": path + "\n", "force": True})
 
-    def description(self):
+    @classmethod
+    def description(cls):
         return "Reveal Include Directories"

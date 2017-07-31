@@ -11,8 +11,9 @@ class CmakeEditCacheCommand(sublime_plugin.WindowCommand):
             return os.path.exists(os.path.join(build_folder, "CMakeCache.txt"))
         except Exception as e:
             return False
-    
-    def description(self):
+
+    @classmethod
+    def description(cls):
         return 'Edit Cache...'
 
     def run(self):
