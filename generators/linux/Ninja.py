@@ -1,6 +1,7 @@
 from CMakeBuilder.generators import CMakeGenerator
 import subprocess
 import sublime
+import os
 
 
 class Ninja(CMakeGenerator):
@@ -15,14 +16,10 @@ class Ninja(CMakeGenerator):
         return 'Packages/CMakeBuilder/Syntax/Ninja.sublime-syntax'
 
     def variants(self):
-        env = None
-        if self.window.active_view():
-            env = self.window.active_view().settings().get('build_env')
-
         shell_cmd = 'cmake --build . --target help'
         proc = subprocess.Popen(
             ['/bin/bash', '-c', shell_cmd],
-            env=env,
+            env=self.get_env(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=False,
@@ -30,8 +27,7 @@ class Ninja(CMakeGenerator):
         outs, errs = proc.communicate()
         errs = errs.decode('utf-8')
         if errs:
-            sublime.error_message(errs)
-            return
+            print(errs)  # terrible hack
         lines = outs.decode('utf-8').splitlines()
 
         EXCLUDES = [

@@ -19,14 +19,10 @@ class Unix_Makefiles(CMakeGenerator):
         return 'make -j{}'.format(str(multiprocessing.cpu_count()))
 
     def variants(self):
-        env = None
-        if self.window.active_view():
-            env = self.window.active_view().settings().get('build_env')
-
         shell_cmd = 'cmake --build . --target help'
         proc = subprocess.Popen(
             ['/bin/bash', '-l', '-c', shell_cmd],
-            env=env,
+            env=self.get_env(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=False,

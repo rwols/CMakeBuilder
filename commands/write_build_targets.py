@@ -40,7 +40,7 @@ class CmakeWriteBuildTargetsCommand(sublime_plugin.WindowCommand):
         GeneratorClass = class_from_generator_string(generator)
         try:
             assert cmake
-            builder = GeneratorClass(self.window, copy.deepcopy(cmake))
+            builder = GeneratorClass(self.window)
         except KeyError as e:
             sublime.error_message('Unknown variable in cmake dictionary: {}'
                 .format(str(e)))
@@ -70,4 +70,4 @@ class CmakeWriteBuildTargetsCommand(sublime_plugin.WindowCommand):
                 self.window.open_file(self.window.project_file_name())
         except Exception as e:
             sublime.error_message('An error occured during assigment of the sublime build system: %s' % str(e))
-
+            raise e
