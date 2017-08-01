@@ -3,7 +3,7 @@ import sublime
 import os
 from ..generators import CMakeGenerator
 from ..server import Server
-from ..support import has_server_mode
+from ..support import capabilities
 from ..support import get_setting
 
 
@@ -53,8 +53,8 @@ class ServerManager(sublime_plugin.EventListener):
         return cls._servers.get(window.id(), None)
 
     def on_load(self, view):
-        if not has_server_mode():
-            print("cmake is not capable of server mode")
+        if not capabilities("serverMode"):
+            print("CMakeBuilder: cmake is not capable of server mode")
             return
         try:
             window_id = view.window().id()

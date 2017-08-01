@@ -2,7 +2,7 @@ import sublime
 import Default.exec
 import os
 from .command import CmakeCommand, ServerManager
-from ..support import has_server_mode
+from ..support import capabilities
 
 
 class CmakeExecCommand(Default.exec.ExecCommand):
@@ -23,7 +23,7 @@ class CmakeExecCommand(Default.exec.ExecCommand):
 class CmakeBuildCommand(CmakeCommand):
 
     def run(self, select_target=False):
-        if not has_server_mode():
+        if not capabilities("serverMode"):
             sublime.error_message("You need CMake 3.7 or higher. It's "
                                   "possible that you selected the 'CMake' "
                                   "build system in the Tools menu. This build "
