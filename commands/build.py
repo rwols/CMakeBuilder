@@ -84,7 +84,7 @@ class CmakeBuildCommand(CmakeCommand):
                         "cmd": [prefix + target.fullname],
                         "working_dir": target.directory
                     })
-            except Exception as e:
+            except Exception:
                 self.window.run_command(
                     "cmake_exec", {
                         "window_id": self.window.id(),
@@ -96,10 +96,9 @@ class CmakeBuildCommand(CmakeCommand):
             self.window.run_command(
                 "cmake_exec", {
                     "window_id": self.window.id(),
-                    "cmd": self.server.cmake.cmd(
-                        None if target.type == "ALL" else target),
-                    "file_regex": self.server.cmake.file_regex(),
-                    "syntax": self.server.cmake.syntax(),
+                    "cmd": target.cmd(),
+                    "file_regex": self.server.cmake.file_regex,
+                    "syntax": self.server.cmake.syntax,
                     "working_dir": self.server.cmake.build_folder
                     }
                 )

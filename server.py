@@ -7,26 +7,38 @@ import threading
 
 class Target(object):
 
-    __slots__ = ("name", "fullname", "type", "directory")
+    __slots__ = ("name", "fullname", "type", "directory", "config")
 
-    def __init__(self, name, fullname, type, directory):
+    def __init__(self, name, fullname, type, directory, config):
         self.name = name
         self.fullname = fullname
         self.type = type
         self.directory = directory
+        self.config = config
 
     def __hash__(self):
         return hash(self.name)
+
+    def cmd(self):
+        result = ["cmake", "--build", "."]
+        if self.type == "ALL":
+            return result
+        result.extend(["--target", self.name])
+        if self.config:
+            result.extend["--config", self.config]
+        return result
 
 
 class Server(Default.exec.ProcessListener):
 
     def __init__(self,
+                 window,
                  cmake_settings,
                  experimental=True,
                  debug=True,
                  protocol=(1, 0),
                  env={}):
+        self.window = window
         self.cmake = cmake_settings
         self.experimental = experimental
         self.protocol = protocol
@@ -68,7 +80,7 @@ class Server(Default.exec.ProcessListener):
                 self.inside_json_object = True
 
     def on_finished(self, _):
-        self.cmake.window.status_message(
+        self.window.status_message(
             "CMake Server has quit (exit code {})"
             .format(self.proc.exit_code()))
 
@@ -104,7 +116,9 @@ class Server(Default.exec.ProcessListener):
             "protocolVersion": self.protocol,
             "sourceDirectory": self.cmake.source_folder,
             "buildDirectory": self.cmake.build_folder,
-            "generator": str(self.cmake)
+            "generator": self.cmake.generator,
+            "platform": self.cmake.platform,
+            "toolset": self.cmake.toolset
             })
 
     def set_global_setting(self, key, value):
@@ -115,7 +129,7 @@ class Server(Default.exec.ProcessListener):
             return
         self.is_configuring = True
         self.bad_configure = False
-        window = self.cmake.window
+        window = self.window
         view = window.create_output_panel("cmake.configure", True)
         view.settings().set(
             "result_file_regex",
@@ -176,21 +190,21 @@ class Server(Default.exec.ProcessListener):
     def receive_reply(self, thedict):
         reply = thedict["inReplyTo"]
         if reply == "handshake":
-            self.cmake.window.status_message(
+            self.window.status_message(
                 "CMake server protocol {}.{}, handshake is OK"
                 .format(self.protocol["major"], self.protocol["minor"]))
             self.configure()
         elif reply == "setGlobalSettings":
-            self.cmake.window.status_message(
+            self.window.status_message(
                 "Global CMake setting is modified")
         elif reply == "configure":
             if self.bad_configure:
                 self.is_configuring = False
-                self.cmake.window.status_message("Some errors occured during configure!")
+                self.window.status_message("Some errors occured during configure!")
             else:
-                self.cmake.window.status_message("Project is configured")
+                self.window.status_message("Project is configured")
         elif reply == "compute":
-            self.cmake.window.status_message("Project is generated")
+            self.window.status_message("Project is generated")
             self.is_configuring = False
             self.codemodel()
         elif reply == "fileSystemWatchers":
@@ -209,7 +223,7 @@ class Server(Default.exec.ProcessListener):
                     continue
                 self.items.append([str(k), str(v)])
                 self.types.append(type(v))
-            window = self.cmake.window
+            window = self.window
 
             def on_done(index):
                 if index == -1:
@@ -247,17 +261,12 @@ class Server(Default.exec.ProcessListener):
                             target_fullname = target_name
                         target_dir = target.pop("buildDirectory")
                         self.targets.add(
-                            Target(
-                                target_name,
-                                target_fullname,
-                                target_type,
-                                target_dir))
+                            Target(target_name, target_fullname,
+                                   target_type, target_dir, ""))
                         if target_type == "EXECUTABLE":
                             self.targets.add(
-                                Target(
-                                    "Run: " + target_name,
-                                    target_fullname,
-                                    "RUN", target_dir))
+                                Target("Run: " + target_name, target_fullname,
+                                       "RUN", target_dir, ""))
                         file_groups = target.pop("fileGroups", [])
                         for file_group in file_groups:
                             include_paths = file_group.pop("includePath", [])
@@ -266,19 +275,16 @@ class Server(Default.exec.ProcessListener):
                                 if path:
                                     self.include_paths.add(path)
             self.targets.add(
-                Target(
-                    "BUILD ALL",
-                    "BUILD ALL",
-                    "ALL",
-                    self.cmake.build_folder))
-            data = self.cmake.window.project_data()
+                Target("BUILD ALL", "BUILD ALL", "ALL",
+                       self.cmake.build_folder, ""))
+            data = self.window.project_data()
             self.targets = list(self.targets)
             data["settings"]["compile_commands"] = \
                 self.cmake.build_folder_pre_expansion
             data["settings"]["ecc_flags_sources"] = [{
                 "file": "compile_commands.json",
                 "search_in": self.cmake.build_folder_pre_expansion}]
-            self.cmake.window.set_project_data(data)
+            self.window.set_project_data(data)
         elif reply == "cache":
             cache = thedict.pop("cache")
             self.items = []
@@ -305,14 +311,14 @@ class Server(Default.exec.ProcessListener):
                 def on_done_input(new_value):
                     self.configure({key: value})
 
-                self.cmake.window.show_input_panel(
+                self.window.show_input_panel(
                     'new value for "' + key + '": ',
                     old_value,
                     on_done_input,
                     None,
                     None)
 
-            self.cmake.window.show_quick_panel(self.items, on_done)
+            self.window.show_quick_panel(self.items, on_done)
         else:
             print("received unknown reply type:", reply)
 
@@ -320,14 +326,14 @@ class Server(Default.exec.ProcessListener):
         reply = thedict["inReplyTo"]
         msg = thedict["errorMessage"]
         if reply in ("configure", "compute"):
-            self.cmake.window.status_message(msg)
+            self.window.status_message(msg)
             if self.is_configuring:
                 self.is_configuring = False
         else:
             sublime.error_message("{} (in reply to {})".format(msg, reply))
 
     def receive_progress(self, thedict):
-        view = self.cmake.window.active_view()
+        view = self.window.active_view()
         minimum = thedict["progressMinimum"]
         maximum = thedict["progressMaximum"]
         current = thedict["progressCurrent"]
@@ -342,7 +348,7 @@ class Server(Default.exec.ProcessListener):
             view.set_status("cmake_" + thedict["inReplyTo"], status)
 
     def receive_message(self, thedict):
-        window = self.cmake.window
+        window = self.window
         if thedict["inReplyTo"] in ("configure", "compute"):
             name = "cmake.configure"
         else:
@@ -371,7 +377,7 @@ class Server(Default.exec.ProcessListener):
                 print(thedict)
 
     def dump_to_new_view(self, thedict, name):
-        view = self.cmake.window.new_file()
+        view = self.window.new_file()
         view.set_scratch(True)
         view.set_name(name)
         thedict.pop("type")
@@ -388,5 +394,5 @@ class Server(Default.exec.ProcessListener):
         errorcount = len(scopes)
         if errorcount > 0:
             self.bad_configure = True
-            self.cmake.window.run_command("show_panel", {"panel": "output.cmake.configure"})
+            self.window.run_command("show_panel", {"panel": "output.cmake.configure"})
 
