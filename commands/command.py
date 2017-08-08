@@ -134,19 +134,22 @@ class ServerManager(sublime_plugin.EventListener):
             return
         # We found a CMakeLists.txt file, but we might be embedded into a
         # larger project. Find the true root file.
-        old_cmake_file = cmake_file
-        cmake_file = cmake_file = os.path.dirname(os.path.dirname(cmake_file))
-        cmake_file = os.path.join(cmake_file, "CMakeLists.txt")
-        while not os.path.isfile(cmake_file):
-            cmake_file = os.path.dirname(os.path.dirname(cmake_file))
-            if os.path.dirname(cmake_file) == cmake_file:
-                # We're at the root of the filesystem.
-                cmake_file = None
-                break
+        while True:
+            old_cmake_file = cmake_file
+            cmake_file = cmake_file = os.path.dirname(
+                os.path.dirname(cmake_file))
             cmake_file = os.path.join(cmake_file, "CMakeLists.txt")
-        if not cmake_file:
-            # We found the actual root of the project earlier.
-            cmake_file = old_cmake_file
+            while not os.path.isfile(cmake_file):
+                cmake_file = os.path.dirname(os.path.dirname(cmake_file))
+                if os.path.dirname(cmake_file) == cmake_file:
+                    # We're at the root of the filesystem.
+                    cmake_file = None
+                    break
+                cmake_file = os.path.join(cmake_file, "CMakeLists.txt")
+            if not cmake_file:
+                # We found the actual root of the project earlier.
+                cmake_file = old_cmake_file
+                break
         self.source_folder = os.path.dirname(cmake_file)
         print("found source folder:", self.source_folder)
 
