@@ -72,8 +72,15 @@ class Server(Default.exec.ProcessListener):
         for piece in data:
             if piece == ']== "CMake Server" ==]':
                 self.inside_json_object = False
-                self.receive_dict(json.loads(self.data_parts))
-                self.data_parts = ''
+                try:
+                    d = json.loads(self.data_parts)
+                except ValueError as e:
+                    print(str(e))
+                    sublime.error_message("Could not JSON-decode: " + self.data_parts)
+                else:
+                    self.receive_dict(d)
+                finally:
+                    self.data_parts = ''
             if self.inside_json_object:
                 self.data_parts += piece
             if piece == '[== "CMake Server" ==[':
