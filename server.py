@@ -234,8 +234,7 @@ class Server(Default.exec.ProcessListener):
         elif reply == "cmakeInputs":
             self.dump_to_new_view(thedict, "CMake Inputs")
         elif reply == "globalSettings":
-            thedict.pop("type")
-            thedict.pop("inReplyTo")
+            # thedict.pop("inReplyTo")
             thedict.pop("cookie")
             thedict.pop("capabilities")
             self.items = []
@@ -402,7 +401,6 @@ class Server(Default.exec.ProcessListener):
         view = self.window.new_file()
         view.set_scratch(True)
         view.set_name(name)
-        thedict.pop("type")
         thedict.pop("inReplyTo")
         thedict.pop("cookie")
         view.run_command(

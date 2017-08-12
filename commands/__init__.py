@@ -15,5 +15,6 @@ from .set_global_setting import CmakeSetGlobalSettingCommand
 from .set_target import CmakeSetTargetCommand
 from .write_build_targets import CmakeWriteBuildTargetsCommand
 from .show_configure_output import CmakeShowConfigureOutputCommand
+from .switch_scheme import CmakeSwitchSchemeCommand
 from .command import ServerManager
 from .command import CmakeRestartServerCommand

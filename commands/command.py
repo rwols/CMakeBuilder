@@ -32,6 +32,7 @@ class CmakeRestartServerCommand(CmakeCommand):
         try:
             window_id = self.window.id()
             ServerManager._servers.pop(window_id, None)
+            self.window.focus_view(self.window.active_view())
         except Exception as e:
             sublime.errror_message(str(e))
 

@@ -5,17 +5,13 @@ from .command import CmakeCommand
 from ..support import capabilities
 
 
-class EditCacheMixin(object):
-
-    @classmethod
-    def description(cls):
-        return "Edit Cache..."
-
-
 if capabilities("serverMode"):
 
 
-    class CmakeEditCacheCommand(CmakeCommand, EditCacheMixin):
+    class CmakeEditCacheCommand(CmakeCommand):
+
+        def description(self):
+            return "Edit Cache..."
 
         def run(self):
             self.server.cache()
@@ -23,7 +19,7 @@ if capabilities("serverMode"):
 else:
 
 
-    class CmakeEditCacheCommand(sublime_plugin.WindowCommand, EditCacheMixin):
+    class CmakeEditCacheCommand(sublime_plugin.WindowCommand):
 
         """Edit an entry from the CMake cache."""
         def is_enabled(self):
@@ -33,6 +29,9 @@ else:
                 return os.path.exists(os.path.join(build_folder, "CMakeCache.txt"))
             except Exception as e:
                 return False
+
+        def description(self):
+            return "Edit Cache..."
 
         def run(self):
             build_folder = self.window.project_data()["settings"]["cmake"]["build_folder"]
