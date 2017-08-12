@@ -10,4 +10,4 @@ or
 
     UnitTesting: Test Current File
 
-To add a new test, inherit from ProjectFixtureTestCase.
+To add a new test, inherit from TestCase defined in fixtures.py.

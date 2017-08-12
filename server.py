@@ -5,6 +5,7 @@ import copy
 import time
 import threading
 
+
 class Target(object):
 
     __slots__ = ("name", "fullname", "type", "directory", "config")
@@ -42,6 +43,7 @@ class Server(Default.exec.ProcessListener):
         self.cmake = cmake_settings
         self.experimental = experimental
         self.protocol = protocol
+        self.supported_protocols = None
         self.is_configuring = False
         self.is_building = False  # maintained by CmakeBuildCommand
         self.data_parts = ''
@@ -63,28 +65,53 @@ class Server(Default.exec.ProcessListener):
         if self.proc:
             self.proc.kill()
 
+    _BEGIN_TOKEN = '[== "CMake Server" ==['
+    _END_TOKEN = ']== "CMake Server" ==]'
+
     def on_data(self, _, data):
         data = data.decode("utf-8").strip()
         if data.startswith("CMake Error:"):
             sublime.error_message(data)
             return
-        data = data.splitlines()
-        for piece in data:
-            if piece == ']== "CMake Server" ==]':
-                self.inside_json_object = False
-                try:
-                    d = json.loads(self.data_parts)
-                except ValueError as e:
-                    print(str(e))
-                    sublime.error_message("Could not JSON-decode: " + self.data_parts)
-                else:
-                    self.receive_dict(d)
-                finally:
-                    self.data_parts = ''
+
+        while data:
             if self.inside_json_object:
-                self.data_parts += piece
-            if piece == '[== "CMake Server" ==[':
-                self.inside_json_object = True
+                end_index = data.find(self.__class__._END_TOKEN)
+                if end_index == -1:
+                    # This is okay, wait for more data.
+                    self.data_parts += data
+                else:
+                    self.data_parts += data[0:end_index]
+                    data = data[end_index + len(self.__class__._END_TOKEN):]
+                    self.__flush_the_data()
+            else:  # not inside json object
+                begin_index = data.find(self.__class__._BEGIN_TOKEN)
+                if begin_index == -1:
+                    sublime.error_message(
+                        "Received unknown data part: " + data)
+                    data = None
+                else:
+                    begin_token_end = begin_index + len(
+                        self.__class__._BEGIN_TOKEN)
+                    end_index = data.find(
+                        self.__class__._END_TOKEN,
+                        begin_token_end)
+                    if end_index == -1:
+                        # This is okay, wait for more data.
+                        self.data_parts += data[begin_token_end:]
+                        data = None
+                        self.inside_json_object = True
+                    else:
+                        self.data_parts += data[begin_token_end:end_index]
+                        data = data[end_index + len(
+                            self.__class__._END_TOKEN):]
+                        self.__flush_the_data()
+
+    def __flush_the_data(self):
+        d = json.loads(self.data_parts)
+        self.data_parts = ""
+        self.inside_json_object = False
+        self.receive_dict(d)
 
     def on_finished(self, _):
         self.window.status_message(
@@ -104,20 +131,8 @@ class Server(Default.exec.ProcessListener):
         self.send(data)
 
     def send_handshake(self):
-        best_protocol = self.protocols[0]
-        for protocol in self.protocols:
-            if (protocol["major"] == self.protocol[0] and
-                    protocol["minor"] == self.protocol[1]):
-                best_protocol = protocol
-                break
-            if protocol["isExperimental"] and not self.experimental:
-                continue
-            if protocol["major"] > best_protocol["major"]:
-                best_protocol = protocol
-            elif (protocol["major"] == best_protocol["major"] and
-                    protocol["minor"] > best_protocol["minor"]):
-                best_protocol = protocol
-        self.protocol = best_protocol
+        self.protocol = {"major": 1, "minor": 0,
+                         "isExperimental": True}
         self.send_dict({
             "type": "handshake",
             "protocolVersion": self.protocol,
@@ -176,9 +191,9 @@ class Server(Default.exec.ProcessListener):
         self.send_dict({"type": "globalSettings"})
 
     def receive_dict(self, thedict):
-        t = thedict["type"]
+        t = thedict.pop("type")
         if t == "hello":
-            self.protocols = thedict["supportedProtocolVersions"]
+            self.supported_protocols = thedict.pop("supportedProtocolVersions")
             self.send_handshake()
         elif t == "reply":
             self.receive_reply(thedict)
