@@ -3,9 +3,7 @@
     "selector": "source.cmake | source.c | source.c++",
     "variants":
     {
-        "target": "cmake_build",
         "name": "Select & Build Target",
-        "selector": "source.cmake | source.c | source.c++",
         "select_target": true
     }
 }
