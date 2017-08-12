@@ -5,7 +5,7 @@ class CmakeSwitchSchemeCommand(CmakeCommand):
 
     def run(self):
         ServerManager._servers.pop(self.window.id(), None)
-        self.window.focus_view(self.window.active_view())
+        ServerManager.on_activated(self.window.active_view())
 
     @classmethod
     def description(cls):

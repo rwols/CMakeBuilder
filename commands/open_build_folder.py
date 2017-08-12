@@ -5,20 +5,15 @@ from .command import CmakeCommand
 from ..support import capabilities
 
 
-class OpenBuildFolderMixin(object):
-
-    @classmethod
-    def description(cls):
-        return "Browse Build Folder..."
+if capabilities("serverMode"):
 
 
-if capabilities("cmakeServer"):
+    class CmakeOpenBuildFolderCommand(CmakeCommand):
+        """Opens the build folder."""
 
-
-    class CmakeOpenBuildFolderCommand(CmakeCommand, OpenBuildFolderMixin):
-
-        def is_enabled(self):
-            return True
+        @classmethod
+        def description(cls):
+            return "Browse Build Folder..."
 
         def run(self):
             build_folder = self.server.cmake.build_folder
@@ -27,8 +22,12 @@ if capabilities("cmakeServer"):
 else:
 
 
-    class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand, OpenBuildFolderMixin):
+    class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
         """Opens the build folder."""
+
+        @classmethod
+        def description(cls):
+            return "Browse Build Folder..."
 
         def is_enabled(self):
             try:

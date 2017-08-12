@@ -75,33 +75,34 @@ class ServerManager(sublime_plugin.EventListener):
         return cls._servers.get(window.id(), None)
 
     def __init__(self):
-        self._is_selecting = False
-        self.generator = ""
-        self.source_folder = ""
-        self.build_folder = ""
-        self.toolset = ""
-        self.platform = ""
+        self.__class__._is_selecting = False
+        self.__class__.generator = ""
+        self.__class__.source_folder = ""
+        self.__class__.build_folder = ""
+        self.__class__.toolset = ""
+        self.__class__.platform = ""
 
-    def on_load(self, view):
+    @classmethod
+    def on_load(cls, view):
         if not capabilities("serverMode"):
             print("CMakeBuilder: cmake is not capable of server mode")
             return
-        if self._is_selecting:
+        if cls._is_selecting:
             # User is busy entering stuff
             return
         if not capabilities("serverMode"):
             print("CMakeBuilder: cmake is not capable of server mode")
             return
         # Check if there's a server running for this window.
-        self.window = view.window()
-        if not self.window:
+        cls.window = view.window()
+        if not cls.window:
             return
-        server = self.get(self.window)
+        server = cls.get(cls.window)
         if server:
             return
 
         # No server running. Check if there are build settings.
-        data = self.window.project_data()
+        data = cls.window.project_data()
         settings = data.get("settings", None)
         if not settings or not isinstance(settings, dict):
             print("no settings")
@@ -110,10 +111,10 @@ class ServerManager(sublime_plugin.EventListener):
         if not cmake or not isinstance(cmake, dict):
             print("no cmake dict")
             return
-        self.schemes = cmake.get("schemes", None)
-        if (not self.schemes or
-                not isinstance(self.schemes, list) or
-                len(self.schemes) == 0):
+        cls.schemes = cmake.get("schemes", None)
+        if (not cls.schemes or
+                not isinstance(cls.schemes, list) or
+                len(cls.schemes) == 0):
             print("no schemes")
             return
 
@@ -151,169 +152,177 @@ class ServerManager(sublime_plugin.EventListener):
                 # We found the actual root of the project earlier.
                 cmake_file = old_cmake_file
                 break
-        self.source_folder = os.path.dirname(cmake_file)
-        print("found source folder:", self.source_folder)
+        cls.source_folder = os.path.dirname(cmake_file)
+        print("found source folder:", cls.source_folder)
 
         # At this point we have a bunch of schemes and we have a source folder.
-        self.items = []
-        for scheme in self.schemes:
+        cls.items = []
+        for scheme in cls.schemes:
             if not isinstance(scheme, dict):
                 sublime.error_message("Please make sure all of your schemes "
                                       "are JSON dictionaries.")
-                self.items.append(["INVALID SCHEME", ""])
+                cls.items.append(["INVALID SCHEME", ""])
                 continue
             name = scheme.get("name", "Untitled Scheme")
             build_folder = scheme.get("build_folder", "${project_path}/build")
-            variables = self.window.extract_variables()
+            variables = cls.window.extract_variables()
             build_folder = sublime.expand_variables(build_folder, variables)
-            self.items.append([name, build_folder])
-        if len(self.schemes) == 0:
+            cls.items.append([name, build_folder])
+        if len(cls.schemes) == 0:
             print("found schemes dict, but it is empty")
             return
-        self._is_selecting = True
-        if len(self.schemes) == 1:
+        cls._is_selecting = True
+        if len(cls.schemes) == 1:
             # Select the only scheme possible.
-            self._on_done_select_scheme(0)
+            cls._on_done_select_scheme(0)
         else:
             # Ask the user what he/she wants.
-            self.window.show_quick_panel(self.items,
-                                         self._on_done_select_scheme)
+            cls.window.show_quick_panel(cls.items,
+                                         cls._on_done_select_scheme)
 
-    def _on_done_select_scheme(self, index):
+    @classmethod
+    def _on_done_select_scheme(cls, index):
         if index == -1:
-            self._is_selecting = False
+            cls._is_selecting = False
             return
-        self.name = self.items[index][0]
-        if self.name == "INVALID SCHEME":
-            self._is_selecting = False
+        cls.name = cls.items[index][0]
+        if cls.name == "INVALID SCHEME":
+            cls._is_selecting = False
             return
-        self.build_folder_pre_expansion = self.schemes[index]["build_folder"]
-        self.build_folder = sublime.expand_variables(
-            self.build_folder_pre_expansion, self.window.extract_variables())
-        self.command_line_overrides = self.schemes[index].get(
+        cls.build_folder_pre_expansion = cls.schemes[index]["build_folder"]
+        cls.build_folder = sublime.expand_variables(
+            cls.build_folder_pre_expansion, cls.window.extract_variables())
+        cls.command_line_overrides = cls.schemes[index].get(
             "command_line_overrides", {})
-        self._select_generator()
+        cls._select_generator()
 
-    def _select_generator(self):
-        if self.generator:
-            self._select_toolset()
+    @classmethod
+    def _select_generator(cls):
+        if cls.generator:
+            cls._select_toolset()
             return
-        self.items = []
+        cls.items = []
         for g in capabilities("generators"):
             platform_support = bool(g["platformSupport"])
             toolset_support = bool(g["toolsetSupport"])
             platform_support = "Platform support: {}".format(platform_support)
             toolset_support = "Toolset support: {}".format(toolset_support)
-            self.items.append([g["name"], platform_support, toolset_support])
-        if len(self.items) == 1:
-            self._on_done_select_generator(0)
+            cls.items.append([g["name"], platform_support, toolset_support])
+        if len(cls.items) == 1:
+            cls._on_done_select_generator(0)
         else:
-            self.window.show_quick_panel(self.items,
-                                         self._on_done_select_generator)
+            cls.window.show_quick_panel(cls.items,
+                                         cls._on_done_select_generator)
 
-    def _on_done_select_generator(self, index):
+    @classmethod
+    def _on_done_select_generator(cls, index):
         if index == 1:
-            self._is_selecting = False
+            cls._is_selecting = False
             return
-        self.generator = self.items[index][0]
-        platform_support = self.items[index][1]
-        toolset_support = self.items[index][2]
-        self.platform_support = True if "True" in platform_support else False
-        self.toolset_support = True if "True" in toolset_support else False
-        if self.platform_support:
+        cls.generator = cls.items[index][0]
+        platform_support = cls.items[index][1]
+        toolset_support = cls.items[index][2]
+        cls.platform_support = True if "True" in platform_support else False
+        cls.toolset_support = True if "True" in toolset_support else False
+        if cls.platform_support:
             text = "Platform for {} (Press Enter for default): ".format(
-                self.generator)
-            self.window.show_input_panel(text, "",
-                                         self._on_done_select_platform,
+                cls.generator)
+            cls.window.show_input_panel(text, "",
+                                         cls._on_done_select_platform,
                                          None, None)
-        elif self.toolset_support:
-            self._select_toolset()
+        elif cls.toolset_support:
+            cls._select_toolset()
         else:
-            self._run_configure_with_new_settings()
+            cls._run_configure_with_new_settings()
 
-    def _select_toolset(self):
-        if self.toolset:
+    @classmethod
+    def _select_toolset(cls):
+        if cls.toolset:
             return
         text = "Toolset for {}: (Press Enter for default): ".format(
-            self.generator)
-        self.window.show_input_panel(text, "", self._on_done_select_toolset,
+            cls.generator)
+        cls.window.show_input_panel(text, "", cls._on_done_select_toolset,
                                      None, None)
 
-    def _on_done_select_platform(self, platform):
-        self.platform = platform
-        if self.toolset_support:
-            self._select_toolset()
+    @classmethod
+    def _on_done_select_platform(cls, platform):
+        cls.platform = platform
+        if cls.toolset_support:
+            cls._select_toolset()
         else:
-            self._run_configure_with_new_settings()
+            cls._run_configure_with_new_settings()
 
-    def _on_done_select_toolset(self, toolset):
-        self.toolset = toolset
-        self._run_configure_with_new_settings()
+    @classmethod
+    def _on_done_select_toolset(cls, toolset):
+        cls.toolset = toolset
+        cls._run_configure_with_new_settings()
 
-    def _run_configure_with_new_settings(self):
-        self._is_selecting = False
+    @classmethod
+    def _run_configure_with_new_settings(cls):
+        cls._is_selecting = False
         cmake_settings = CMakeSettings()
-        cmake_settings.source_folder = self.source_folder
-        cmake_settings.build_folder = self.build_folder
+        cmake_settings.source_folder = cls.source_folder
+        cmake_settings.build_folder = cls.build_folder
 
         cmake_settings.build_folder_pre_expansion = \
-            self.build_folder_pre_expansion
+            cls.build_folder_pre_expansion
 
-        cmake_settings.generator = self.generator
-        cmake_settings.platform = self.platform
-        cmake_settings.toolset = self.toolset
-        cmake_settings.command_line_overrides = self.command_line_overrides
+        cmake_settings.generator = cls.generator
+        cmake_settings.platform = cls.platform
+        cmake_settings.toolset = cls.toolset
+        cmake_settings.command_line_overrides = cls.command_line_overrides
 
         if sublime.platform() in ("osx", "linux"):
             cmake_settings.file_regex = \
                 r'(.+[^:]):(\d+):(\d+): (?:fatal )?((?:error|warning): .+)$'
-            if "Makefile" in self.generator:
+            if "Makefile" in cls.generator:
                 cmake_settings.syntax = \
                     "Packages/CMakeBuilder/Syntax/Make.sublime-syntax"
-            elif "Ninja" in self.generator:
+            elif "Ninja" in cls.generator:
                 cmake_settings.syntax = \
                     "Packages/CMakeBuilder/Syntax/Ninja.sublime-syntax"
             else:
-                print("CMakeBuilder: Warning: Generator", self.generator,
+                print("CMakeBuilder: Warning: Generator", cls.generator,
                       "will not have syntax highlighting in the output panel.")
         elif sublime.platform() == "windows":
-            if "Ninja" in self.generator:
+            if "Ninja" in cls.generator:
                 cmake_settings.file_regex = r'^(.+)\((\d+)\):() (.+)$'
                 cmake_settings.syntax = \
                     "Packages/CMakeBuilder/Syntax/Ninja+CL.sublime-syntax"
-            elif "Visual Studio" in self.generator:
+            elif "Visual Studio" in cls.generator:
                 cmake_settings.file_regex = \
                     (r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) ',
                      r'\w+\d\d\d\d: .*) \[.*$')
                 cmake_settings.syntax = \
                     "Packages/CMakeBuilder/Syntax/Visual_Studio.sublime-syntax"
-            elif "NMake" in self.generator:
+            elif "NMake" in cls.generator:
                 cmake_settings.file_regex = r'^(.+)\((\d+)\):() (.+)$'
                 cmake_settings.syntax = \
                     "Packages/CMakeBuilder/Syntax/Make.sublime-syntax"
             else:
-                print("CMakeBuilder: Warning: Generator", self.generator,
+                print("CMakeBuilder: Warning: Generator", cls.generator,
                       "will not have syntax highlighting in the output panel.")
         else:
             sublime.error_message("Unknown platform: " + sublime.platform())
             return
 
-        server = Server(self.window, cmake_settings)
-        self.source_folder = ""
-        self.build_folder = ""
-        self.build_folder_pre_expansion = ""
-        self.generator = ""
-        self.platform = ""
-        self.toolset = ""
-        self.items = []
-        self.schemes = []
-        self.command_line_overrides = {}
-        self.__class__._servers[self.window.id()] = server
+        server = Server(cls.window, cmake_settings)
+        cls.source_folder = ""
+        cls.build_folder = ""
+        cls.build_folder_pre_expansion = ""
+        cls.generator = ""
+        cls.platform = ""
+        cls.toolset = ""
+        cls.items = []
+        cls.schemes = []
+        cls.command_line_overrides = {}
+        cls._servers[cls.window.id()] = server
 
-    def on_activated(self, view):
-        self.on_load(view)
+    @classmethod
+    def on_activated(cls, view):
+        cls.on_load(view)
         try:
-            server = self.__class__.get(view.window())
+            server = cls.get(view.window())
             path = os.path.join(server.cmake.build_folder,
                                 "CMakeFiles",
                                 "CMakeBuilder",
@@ -324,8 +333,8 @@ class ServerManager(sublime_plugin.EventListener):
         except Exception as e:
             view.erase_status("cmake_active_target")
 
-
-    def on_post_save(self, view):
+    @classmethod
+    def on_post_save(cls, view):
         if not view:
             return
         if not get_setting(view, "configure_on_save", False):
@@ -334,7 +343,7 @@ class ServerManager(sublime_plugin.EventListener):
         if not name:
             return
         if name.endswith(".sublime-project"):
-            server = self.__class__.get(view.window())
+            server = cls.get(view.window())
             if not server:
                 _configure(view.window())
             else:
