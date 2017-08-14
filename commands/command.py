@@ -1,6 +1,7 @@
 import sublime_plugin
 import sublime
 import os
+import pickle
 from ..server import Server
 from ..support import capabilities
 from ..support import get_setting
@@ -212,11 +213,11 @@ class ServerManager(sublime_plugin.EventListener):
             cls._on_done_select_generator(0)
         else:
             cls.window.show_quick_panel(cls.items,
-                                         cls._on_done_select_generator)
+                                        cls._on_done_select_generator)
 
     @classmethod
     def _on_done_select_generator(cls, index):
-        if index == 1:
+        if index == -1:
             cls._is_selecting = False
             return
         cls.generator = cls.items[index][0]
@@ -224,12 +225,14 @@ class ServerManager(sublime_plugin.EventListener):
         toolset_support = cls.items[index][2]
         cls.platform_support = True if "True" in platform_support else False
         cls.toolset_support = True if "True" in toolset_support else False
+        print("CMakeBuilder: Selected generator is", cls.generator)
         if cls.platform_support:
             text = "Platform for {} (Press Enter for default): ".format(
                 cls.generator)
+            print("CMakeBuilder: Presenting input panel for platform.")
             cls.window.show_input_panel(text, "",
-                                         cls._on_done_select_platform,
-                                         None, None)
+                                        cls._on_done_select_platform,
+                                        None, None)
         elif cls.toolset_support:
             cls._select_toolset()
         else:
@@ -238,15 +241,18 @@ class ServerManager(sublime_plugin.EventListener):
     @classmethod
     def _select_toolset(cls):
         if cls.toolset:
+            print("CMakeBuilder: toolset already present:", cls.toolset)
             return
+        print("CMakeBuilder: Presenting input panel for toolset.")
         text = "Toolset for {}: (Press Enter for default): ".format(
             cls.generator)
         cls.window.show_input_panel(text, "", cls._on_done_select_toolset,
-                                     None, None)
+                                    None, None)
 
     @classmethod
     def _on_done_select_platform(cls, platform):
         cls.platform = platform
+        print("CMakeBuilder: Selected platform is", cls.platform)
         if cls.toolset_support:
             cls._select_toolset()
         else:
@@ -255,6 +261,7 @@ class ServerManager(sublime_plugin.EventListener):
     @classmethod
     def _on_done_select_toolset(cls, toolset):
         cls.toolset = toolset
+        print("CMakeBuilder: Selected toolset is", cls.toolset)
         cls._run_configure_with_new_settings()
 
     @classmethod
@@ -305,7 +312,24 @@ class ServerManager(sublime_plugin.EventListener):
         else:
             sublime.error_message("Unknown platform: " + sublime.platform())
             return
+        path = os.path.join(cls.build_folder, "CMakeFiles", "CMakeBuilder")
+        os.makedirs(path, exist_ok=True)
+        path = os.path.join(path, "settings.pickle")
 
+        # Unpickle the settings first, if there are any.
+        if os.path.isfile(path):
+            old_settings = pickle.load(open(path, "rb"))
+            if (old_settings.generator != cmake_settings.generator or
+                    old_settings.platform != cmake_settings.platform or
+                    old_settings.toolset != cmake_settings.toolset):
+                print("CMakeBuilder: clearing cache for mismatching generator")
+                try:
+                    os.remove(os.path.join(cmake_settings.build_folder,
+                                           "CMakeCache.txt"))
+                except Exception as e:
+                    sublime.error_message(str(e))
+                    return
+        pickle.dump(cmake_settings, open(path, "wb"))
         server = Server(cls.window, cmake_settings)
         cls.source_folder = ""
         cls.build_folder = ""
