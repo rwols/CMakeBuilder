@@ -73,25 +73,7 @@ class CmakeBuildCommand(CmakeCommand):
             sublime.error_message("Unknown type: " + type(index))
             return
         if target.type == "RUN":
-            if sublime.platform() in ("linux", "osx"):
-                prefix = "./"
-            else:
-                prefix = ""
-            try:
-                import TerminalView  # will throw if not present
-                self.window.run_command(
-                    "terminal_view_exec", {
-                        "cmd": [prefix + target.fullname],
-                        "working_dir": target.directory
-                    })
-            except Exception:
-                self.window.run_command(
-                    "cmake_exec", {
-                        "window_id": self.window.id(),
-                        "shell_cmd": prefix + target.fullname,
-                        "working_dir": target.directory
-                        }
-                    )
+            self._handle_run_target(target)
         else:
             self.window.run_command(
                 "cmake_exec", {
@@ -102,3 +84,49 @@ class CmakeBuildCommand(CmakeCommand):
                     "working_dir": self.server.cmake.build_folder
                     }
                 )
+
+    def _handle_run_target(self, target):
+        if sublime.platform() in ("linux", "osx"):
+            prefix = "./"
+        else:
+            prefix = ""
+        cmd = None
+        for t in self.server.targets:
+            if t.name == target.name[len("Run: "):]:
+                cmd = t.cmd()
+                break
+        if not cmd:
+            sublime.error_message("Failed to find corresponding build "
+                                  'target for "run" target ' +
+                                  target.name)
+            return
+        # cmd.extend(["&&", target.directory + "/" + prefix + target.fullname])
+        try:
+            if sublime.platform() == "osx":
+                cmd = ["/bin/bash", "-l", "-c", " ".join(cmd)]
+            elif sublime.platform() == "linux":
+                cmd = ["/bin/bash", "-c", " ".join(cmd)]
+            elif sublime.platform() == "windows":
+                raise ImportError
+            else:
+                raise ImportError
+            self._handle_run_target_terminal_view_route(cmd)
+        except ImportError:
+            self.window.run_command(
+                "cmake_exec", {
+                    "window_id": self.window.id(),
+                    "shell_cmd": " ".join(cmd),
+                    "working_dir": target.directory
+                    }
+                )
+        except Exception as e:
+            sublime.error_message("Unknown exception: " + str(e))
+            raise e
+
+    def _handle_run_target_terminal_view_route(self, cmd):
+        import TerminalView  # NOQA will throw if not present
+        self.window.run_command(
+            "terminal_view_exec", {
+                "cmd": cmd,
+                "working_dir": self.server.cmake.build_folder
+            })
