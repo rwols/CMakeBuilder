@@ -100,12 +100,21 @@ class CmakeBuildCommand(CmakeCommand):
                                   'target for "run" target ' +
                                   target.name)
             return
-        # cmd.extend(["&&", target.directory + "/" + prefix + target.fullname])
+        path = os.path.join(self.server.cmake.build_folder, "CMakeFiles",
+                            "CMakeBuilder", "runtargets")
+        if not os.path.isdir(path):
+            os.makedirs(path, exist_ok=True)
+        path = os.path.join(path, t.name + ".sh")
+        if not os.path.isfile(path):
+            with open(path, "w") as f:
+                f.write(" ".join(cmd) + "\n")
+                f.write("cd " + t.directory + "\n")
+                f.write(prefix + t.fullname + "\n")
         try:
             if sublime.platform() == "osx":
-                cmd = ["/bin/bash", "-l", "-c", " ".join(cmd)]
+                cmd = ["/bin/bash", "-l", path]
             elif sublime.platform() == "linux":
-                cmd = ["/bin/bash", "-c", " ".join(cmd)]
+                cmd = ["/bin/bash", path]
             elif sublime.platform() == "windows":
                 raise ImportError
             else:
