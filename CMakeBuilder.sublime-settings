@@ -18,6 +18,22 @@
 
     //==========================================================================
 
+    // If there's a compile_commands.json file generated with
+    // CMAKE_EXPORT_COMPILE_COMMANDS, do we want to copy it over to the source
+    // directory? This is useful for, for instance, clangd.
+    // See: https://clang.llvm.org/extra/clangd.html
+    // See: https://clang.llvm.org/docs/JSONCompilationDatabase.html
+    // See: https://cmake.org/cmake/help/v3.5/variable/CMAKE_EXPORT_COMPILE_COMMANDS.html
+    "copy_compile_commands_to_project_path": false,
+
+    // Wether to auto-update "ecc_flags_sources" upon a succesful configure
+    // to point to the compilation database.
+    "auto_update_EasyClangComplete_compile_commands_location": false,
+
+    // Wether to auto-update the "compile_commands" key upon a succesful
+    // configure to point to the compilation database.
+    "auto_update_compile_commands_project_setting": false,
+
     // Set this to true to always open an output panel when the server starts
     // to configure the project. If false, the output panel will only display
     // when an error occurs.
