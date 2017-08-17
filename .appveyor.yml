@@ -1,6 +1,6 @@
 environment:
     # The package name
-    PACKAGE: "UnitTesting-example"
+    PACKAGE: CMakeBuilder
     SUBLIME_TEXT_VERSION : "3"
 
 install:
