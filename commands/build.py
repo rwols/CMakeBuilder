@@ -76,14 +76,15 @@ class CmakeBuildCommand(CmakeCommand):
             self._handle_run_target(target)
         else:
             self.window.run_command(
-                "cmake_exec", {
+                "cmake_exec",
+                {
                     "window_id": self.window.id(),
                     "cmd": target.cmd(),
                     "file_regex": self.server.cmake.file_regex,
                     "syntax": self.server.cmake.syntax,
                     "working_dir": self.server.cmake.build_folder
-                    }
-                )
+                }
+            )
 
     def _handle_run_target(self, target):
         if sublime.platform() in ("linux", "osx"):
@@ -100,21 +101,14 @@ class CmakeBuildCommand(CmakeCommand):
                                   'target for "run" target ' +
                                   target.name)
             return
-        path = os.path.join(self.server.cmake.build_folder, "CMakeFiles",
-                            "CMakeBuilder", "runtargets")
-        if not os.path.isdir(path):
-            os.makedirs(path, exist_ok=True)
-        path = os.path.join(path, t.name + ".sh")
-        if not os.path.isfile(path):
-            with open(path, "w") as f:
-                f.write(" ".join(cmd) + "\n")
-                f.write("cd " + t.directory + "\n")
-                f.write(prefix + t.fullname + "\n")
         try:
-            if sublime.platform() == "osx":
-                cmd = ["/bin/bash", "-l", path]
-            elif sublime.platform() == "linux":
-                cmd = ["/bin/bash", path]
+            if sublime.platform() in ("linux", "osx"):
+                cmd = ["/bin/bash",
+                       "-l",
+                       "-c",
+                       "{} && cd {} && {}".format(" ".join(cmd),
+                                                  t.directory,
+                                                  prefix + t.fullname)]
             elif sublime.platform() == "windows":
                 raise ImportError
             else:
@@ -122,18 +116,20 @@ class CmakeBuildCommand(CmakeCommand):
             self._handle_run_target_terminal_view_route(cmd)
         except ImportError:
             self.window.run_command(
-                "cmake_exec", {
+                "cmake_exec",
+                {
                     "window_id": self.window.id(),
-                    "shell_cmd": " ".join(cmd),
+                    "cmd": cmd,
                     "working_dir": target.directory
-                    }
-                )
+                }
+            )
         except Exception as e:
             sublime.error_message("Unknown exception: " + str(e))
             raise e
 
     def _handle_run_target_terminal_view_route(self, cmd):
-        import TerminalView  # NOQA will throw if not present
+        import TerminalView  # will throw if not present
+        assert TerminalView
         self.window.run_command(
             "terminal_view_exec", {
                 "cmd": cmd,
