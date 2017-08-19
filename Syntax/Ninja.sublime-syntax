@@ -5,89 +5,93 @@ scope: output.build.ninja
 
 contexts:
   main:
-    - match: ^\[(?=\d)
+    - match: ^(\[)(\d+)(/)(\d+)(\])
+      captures:
+        0: meta.block.progress.ninja
+        1: punctuation.section.brackets.begin.ninja
+        2: constant.numeric.integer.decimal.ninja
+        3: punctuation.separator.ninja
+        4: constant.numeric.integer.decimal.ninja
+        5: punctuation.section.brackets.end.ninja
       push: expect-cmake-info-line
     - match: (FAILED)(\:)((?:[^\\/]*\\|/)*)(.*)
       captures:
-        1: invalid.illegal.compilation.failed
+        1: invalid.illegal.compilation.failed.ninja
         2: punctuation.separator.ninja
-        3: string.unquoted.filepath
-        4: string.unquoted.filepath
-    - match: "In file included from .*"
-      scope: markup.quote
+        3: string.unquoted.filepath.ninja
+        4: string.unquoted.filepath.ninja
+    - match: 'In file included from (.*)'
+      captures:
+        0: comment.line.ninja
+        1: markup.italic.ninja
     - match: ((?:[^\\/]*\\|/)*)(.*)(:)(\d+)(:)(\d+)
       captures:
-        2: string.unquoted.filepath
-        3: punctuation.separator.compiler
-        4: constant.numeric.integer
-        5: punctuation.separator.compiler
-        6: constant.numeric.integer
-      push: expect-compiler-message
+        2: string.unquoted.filepath.ninja
+        3: punctuation.separator.compiler.ninja
+        4: constant.numeric.integer.ninja
+        5: punctuation.separator.compiler.ninja
+        6: constant.numeric.integer.ninja
+      push: expect-compiler-message.ninja
     - match: \^
-      scope: punctuation.indicator.clang
+      scope: punctuation.definition.arrow.clang.ninja
       push:
         - match: $
           pop: true
         - match: '~+'
-          scope: punctuation.indicator.clang
+          scope: punctuation.definition.tilde.clang.ninja
 
   expect-cmake-info-line:
-    - meta_scope: meta.block.progress.cmake
-    - match: \]
-      set:
-        - meta_content_scope: meta.block.info.cmake
-        - match: $
-          pop: true # back to main context
-        - match: (Building CX?X? object) (.*)
-          captures:
-            1: keyword.operator.cmake
-            2: string.unquoted.filepath
-        - match: "(Linking CX?X?(?: shared| static)? (?:library|executable)) (.*)"
-          captures:
-            1: keyword.control.cmake
-            2: string.unquoted.filepath
-    - match: \d+
-      scope: constant.numeric.integer
+    - meta_content_scope: meta.block.info.cmake.ninja
+    - match: $
+      pop: true # back to main context
+    - match: (Building CX?X? object) (.*)
+      captures:
+        1: keyword.operator.cmake.ninja
+        2: string.unquoted.filepath.cmake.ninja
+    - match: "(Linking CX?X?(?: shared| static)? (?:library|executable)) (.*)"
+      captures:
+        1: keyword.control.cmake.ninja
+        2: string.unquoted.filepath.cmake.ninja
 
   expect-compiler-message:
     - meta_scope: meta.block.compiler.diagnostic
     - match: ':'
-      scope: punctuation.separator
+      scope: punctuation.separator.ninja
       set:
-        - meta_content_scope: meta.block.compiler.diagnostic
+        - meta_content_scope: meta.block.compiler.diagnostic.ninja
         - match: \s*(warning)
           captures:
-            1: markup.changed
+            1: markup.changed.ninja
           set:
-            - meta_content_scope: meta.block.compiler.diagnostic
+            - meta_content_scope: meta.block.compiler.diagnostic.ninja
             - match: ':'
-              scope: punctuation.separator
+              scope: punctuation.separator.ninja
               set:
-                - meta_content_scope: meta.block.compiler.diagnostic
+                - meta_content_scope: meta.block.compiler.diagnostic.ninja
                 - match: (.+)
-                  scope: meta.block.compiler.diagnostic markup.changed
+                  scope: meta.block.compiler.diagnostic.ninja markup.changed.ninja
                   pop: true
         - match: \s*(error)
           captures:
-            1: markup.deleted
+            1: markup.deleted.ninja
           set:
-            - meta_content_scope: meta.block.compiler.diagnostic
+            - meta_content_scope: meta.block.compiler.diagnostic.ninja
             - match: ':'
-              scope: punctuation.separator
+              scope: punctuation.separator.ninja
               set:
                 - match: (.+)
-                  scope: markup.deleted
+                  scope: markup.deleted.ninja
                   pop: true
         - match: \s*(note)
           captures:
-            1: markup.quote
+            1: markup.quote.ninja
           set:
-            - meta_content_scope: meta.block.compiler.diagnostic
+            - meta_content_scope: meta.block.compiler.diagnostic.ninja
             - match: ':'
-              scope: punctuation.separator
+              scope: punctuation.separator.ninja
               set:
                 - match: (.+)
-                  scope: markup.quote
+                  scope: markup.quote.ninja
                   pop: true
         - match: .
           pop: true
