@@ -2,6 +2,7 @@
 import unittesting
 import os
 import sublime
+from CMakeBuilder import ServerManager
 
 
 class TestCase(unittesting.helpers.TempDirectoryTestCase):
@@ -25,6 +26,7 @@ class TestCase(unittesting.helpers.TempDirectoryTestCase):
         assert isinstance(cls.files, list)
         assert isinstance(cls.window, sublime.Window)
         data = cls.window.project_data()
+        assert data["folders"][0]["path"] is not None
         data["settings"] = {}
         data["settings"]["cmake"] = cls.cmake_settings
         cls.window.set_project_data(data)
@@ -37,3 +39,35 @@ class TestCase(unittesting.helpers.TempDirectoryTestCase):
             content = pair[1]
             with open(path, "w") as f:
                 f.write(content)
+
+
+class ServerTestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        yield from super(ServerTestCase, cls).setUpClass()
+        ServerManager.build_folder_pre_expansion = cls.cmake_settings["schemes"][0]["build_folder"]
+        ServerManager.build_folder = sublime.expand_variables(ServerManager.build_folder_pre_expansion, cls.window.extract_variables())
+        ServerManager.source_folder = cls.window.extract_variables()["folder"]
+        ServerManager.command_line_overrides = {
+            "CMAKE_EXPORT_COMPILE_COMMANDS": True
+        }
+        print(cls.window.extract_variables(),
+              ServerManager.build_folder_pre_expansion,
+              ServerManager.build_folder, ServerManager.source_folder)
+        if sublime.platform() in ("osx", "linux"):
+            ServerManager.generator = "Unix Makefiles"
+        else:
+            ServerManager.generator = "NMake Makefiles"
+        # ServerManager._run_configure_with_new_settings()
+        # assert ServerManager.get(cls.window) is not None
+
+    @classmethod
+    def tearDownClass(cls):
+        server = ServerManager._servers.pop(cls.window.id(), None)
+        assert server is not None
+        super(ServerTestCase, cls).tearDownClass()
+
+    @classmethod
+    def get_server(cls):
+        return ServerManager.get(cls.window)

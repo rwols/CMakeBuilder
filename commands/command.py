@@ -104,19 +104,18 @@ class ServerManager(sublime_plugin.EventListener):
 
         # No server running. Check if there are build settings.
         data = cls.window.project_data()
+        if not data:
+            return
         settings = data.get("settings", None)
         if not settings or not isinstance(settings, dict):
-            print("no settings")
             return
         cmake = settings.get("cmake", None)
         if not cmake or not isinstance(cmake, dict):
-            print("no cmake dict")
             return
         cls.schemes = cmake.get("schemes", None)
         if (not cls.schemes or
                 not isinstance(cls.schemes, list) or
                 len(cls.schemes) == 0):
-            print("no schemes")
             return
 
         # At this point we found schemes. Let's check if there's a
