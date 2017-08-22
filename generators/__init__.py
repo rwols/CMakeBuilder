@@ -34,7 +34,11 @@ class CMakeGenerator(object):
             raise KeyError('missing required key "build_folder"')
         self.build_folder = os.path.abspath(self.build_folder)\
                                    .replace("\\", "/")
-        self.source_folder = os.path.dirname(window.project_file_name())
+        pfn = window.project_file_name()
+        if not pfn:
+            self.source_folder = window.extract_variables()["folder"]
+        else:
+            self.source_folder = os.path.dirname(pfn)
         while os.path.isfile(
                 os.path.join(self.source_folder, "..", "CMakeLists.txt")):
             self.source_folder = os.path.join(self.source_folder, "..")
@@ -148,7 +152,7 @@ def get_valid_generators():
 
 def class_from_generator_string(generator_string):
     if not generator_string:
-        if sublime.platform() == 'linux': 
+        if sublime.platform() == 'linux':
             generator_string = 'Unix Makefiles'
         elif sublime.platform() == 'osx':
             generator_string = 'Unix Makefiles'

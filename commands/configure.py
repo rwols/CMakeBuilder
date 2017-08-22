@@ -32,6 +32,9 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             self.window.run_command('cmake_clear_cache', args={'with_confirmation': False})
         project = self.window.project_data()
         project_file_name = self.window.project_file_name()
+        if not project_file_name:
+            # A little more flexible
+            project_file_name = os.path.abspath(self.window.extract_variables()["folder"])
         project_name = os.path.splitext(project_file_name)[0]
         project_path = os.path.dirname(project_file_name)
         if not os.path.isfile(os.path.join(project_path, 'CMakeLists.txt')):
