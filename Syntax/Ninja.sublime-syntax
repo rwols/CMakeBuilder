@@ -31,7 +31,7 @@ contexts:
         4: constant.numeric.integer.ninja
         5: punctuation.separator.compiler.ninja
         6: constant.numeric.integer.ninja
-      push: expect-compiler-message.ninja
+      push: expect-compiler-message
     - match: \^
       scope: punctuation.definition.arrow.clang.ninja
       push:
