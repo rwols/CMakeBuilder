@@ -297,7 +297,8 @@ class Server(Default.exec.ProcessListener):
             if os.path.isfile(path):
                 settings = sublime.load_settings(
                     "CMakeBuilder.sublime-settings")
-                setting = "auto_update_EasyClangComplete_compile_commands_location"
+                s = "auto_update_EasyClangComplete_compile_commands_location"
+                setting = s
                 if settings.get(setting, False):
                     data["settings"]["ecc_flags_sources"] = [{
                         "file":
