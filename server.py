@@ -34,7 +34,6 @@ class Target(object):
 
 
 class Server(Default.exec.ProcessListener):
-
     def __init__(self,
                  window,
                  cmake_settings,
@@ -59,10 +58,7 @@ class Server(Default.exec.ProcessListener):
         if debug:
             cmd.append("--debug")
         self.proc = Default.exec.AsyncProcess(
-            cmd=cmd,
-            shell_cmd=None,
-            listener=self,
-            env=env)
+            cmd=cmd, shell_cmd=None, listener=self, env=env)
 
     def __del__(self):
         if self.proc:
@@ -90,15 +86,14 @@ class Server(Default.exec.ProcessListener):
             else:  # not inside json object
                 begin_index = data.find(self.__class__._BEGIN_TOKEN)
                 if begin_index == -1:
-                    sublime.error_message(
-                        "Received unknown data part: " + data)
+                    sublime.error_message("Received unknown data part: " +
+                                          data)
                     data = None
                 else:
                     begin_token_end = begin_index + len(
                         self.__class__._BEGIN_TOKEN)
-                    end_index = data.find(
-                        self.__class__._END_TOKEN,
-                        begin_token_end)
+                    end_index = data.find(self.__class__._END_TOKEN,
+                                          begin_token_end)
                     if end_index == -1:
                         # This is okay, wait for more data.
                         self.data_parts += data[begin_token_end:]
@@ -106,8 +101,8 @@ class Server(Default.exec.ProcessListener):
                         self.inside_json_object = True
                     else:
                         self.data_parts += data[begin_token_end:end_index]
-                        data = data[end_index + len(
-                            self.__class__._END_TOKEN):]
+                        data = data[
+                            end_index + len(self.__class__._END_TOKEN):]
                         self.__flush_the_data()
 
     def __flush_the_data(self):
@@ -117,9 +112,8 @@ class Server(Default.exec.ProcessListener):
         self.receive_dict(d)
 
     def on_finished(self, _):
-        self.window.status_message(
-            "CMake Server has quit (exit code {})"
-            .format(self.proc.exit_code()))
+        self.window.status_message("CMake Server has quit (exit code {})"
+                                   .format(self.proc.exit_code()))
 
     def send(self, data):
         while not hasattr(self, "proc"):
@@ -134,8 +128,7 @@ class Server(Default.exec.ProcessListener):
         self.send(data)
 
     def send_handshake(self):
-        self.protocol = {"major": 1, "minor": 0,
-                         "isExperimental": True}
+        self.protocol = {"major": 1, "minor": 0, "isExperimental": True}
         self.send_dict({
             "type": "handshake",
             "protocolVersion": self.protocol,
@@ -144,7 +137,7 @@ class Server(Default.exec.ProcessListener):
             "generator": self.cmake.generator,
             "platform": self.cmake.platform,
             "toolset": self.cmake.toolset
-            })
+        })
 
     def set_global_setting(self, key, value):
         self.send_dict({"type": "setGlobalSettings", key: value})
@@ -156,16 +149,15 @@ class Server(Default.exec.ProcessListener):
         self.bad_configure = False
         window = self.window
         view = window.create_output_panel("cmake.configure", True)
-        view.settings().set(
-            "result_file_regex",
-            r'CMake\s(?:Error|Warning)'
-            r'(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:')
+        view.settings().set("result_file_regex", r'CMake\s(?:Error|Warning)'
+                            r'(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:')
         view.settings().set("result_base_dir", self.cmake.source_folder)
         view.set_syntax_file(
             "Packages/CMakeBuilder/Syntax/Configure.sublime-syntax")
         settings = sublime.load_settings("CMakeBuilder.sublime-settings")
         if settings.get("server_configure_verbose", False):
-            window.run_command("show_panel", {"panel": "output.cmake.configure"})
+            window.run_command("show_panel",
+                               {"panel": "output.cmake.configure"})
         overrides = copy.deepcopy(self.cmake.command_line_overrides)
         overrides.update(cache_arguments)
         ovr = []
@@ -220,12 +212,12 @@ class Server(Default.exec.ProcessListener):
                 .format(self.protocol["major"], self.protocol["minor"]))
             self.configure()
         elif reply == "setGlobalSettings":
-            self.window.status_message(
-                "Global CMake setting is modified")
+            self.window.status_message("Global CMake setting is modified")
         elif reply == "configure":
             if self.bad_configure:
                 self.is_configuring = False
-                self.window.status_message("Some errors occured during configure!")
+                self.window.status_message(
+                    "Some errors occured during configure!")
             else:
                 self.window.status_message("Project is configured")
         elif reply == "compute":
@@ -260,12 +252,10 @@ class Server(Default.exec.ProcessListener):
                     if value_type is bool:
                         new_value = bool(new_value)
                     self.set_global_setting(key, new_value)
-                window.show_input_panel(
-                    'new value for "' + key + '": ',
-                    old_value,
-                    on_done_input,
-                    None,
-                    None)
+
+                window.show_input_panel('new value for "' + key + '": ',
+                                        old_value, on_done_input, None, None)
+
             window.show_quick_panel(self.items, on_done)
         elif reply == "codemodel":
             configurations = thedict.pop("configurations")
@@ -285,8 +275,8 @@ class Server(Default.exec.ProcessListener):
                             target_fullname = target_name
                         target_dir = target.pop("buildDirectory")
                         self.targets.add(
-                            Target(target_name, target_fullname,
-                                   target_type, target_dir, ""))
+                            Target(target_name, target_fullname, target_type,
+                                   target_dir, ""))
                         if target_type == "EXECUTABLE":
                             self.targets.add(
                                 Target("Run: " + target_name, target_fullname,
@@ -306,12 +296,16 @@ class Server(Default.exec.ProcessListener):
             path = os.path.join(self.cmake.build_folder,
                                 "compile_commands.json")
             if os.path.isfile(path):
-                settings = sublime.load_settings("CMakeBuilder.sublime-settings")
+                settings = sublime.load_settings(
+                    "CMakeBuilder.sublime-settings")
                 setting = "auto_update_EasyClangComplete_compile_commands_location"
                 if settings.get(setting, False):
                     data["settings"]["ecc_flags_sources"] = [{
-                        "file": "compile_commands.json",
-                        "search_in": self.cmake.build_folder_pre_expansion}]
+                        "file":
+                        "compile_commands.json",
+                        "search_in":
+                        self.cmake.build_folder_pre_expansion
+                    }]
                 setting = "auto_update_compile_commands_project_setting"
                 if settings.get(setting, False):
                     data["settings"]["compile_commands"] = \
@@ -348,12 +342,9 @@ class Server(Default.exec.ProcessListener):
                 def on_done_input(new_value):
                     self.configure({key: value})
 
-                self.window.show_input_panel(
-                    'new value for "' + key + '": ',
-                    old_value,
-                    on_done_input,
-                    None,
-                    None)
+                self.window.show_input_panel('new value for "' + key + '": ',
+                                             old_value, on_done_input, None,
+                                             None)
 
             self.window.show_quick_panel(self.items, on_done)
         else:
@@ -380,8 +371,8 @@ class Server(Default.exec.ProcessListener):
                 self.compute()
         else:
             status = "{0} {1:.0f}%".format(
-                        thedict["progressMessage"],
-                        100.0 * (float(current) / float(maximum - minimum)))
+                thedict["progressMessage"],
+                100.0 * (float(current) / float(maximum - minimum)))
             view.set_status("cmake_" + thedict["inReplyTo"], status)
 
     def receive_message(self, thedict):
@@ -394,20 +385,21 @@ class Server(Default.exec.ProcessListener):
         assert view
         settings = sublime.load_settings("CMakeBuilder.sublime-settings")
         if settings.get("server_configure_verbose", False):
-            window.run_command("show_panel", {"panel": "output.{}".format(name)})
+            window.run_command("show_panel",
+                               {"panel": "output.{}".format(name)})
         view.run_command("append", {
             "characters": thedict["message"] + "\n",
             "force": True,
-            "scroll_to_end": True})
+            "scroll_to_end": True
+        })
         self._check_for_errors_in_configure(view)
 
     _signal_lock = threading.Lock()
 
     def receive_signal(self, thedict):
         with self.__class__._signal_lock:
-            if (thedict["name"] == "dirty" and not
-                    self.is_configuring and not
-                    self.is_building):
+            if (thedict["name"] == "dirty" and not self.is_configuring
+                    and not self.is_building):
                 self.configure()
             else:
                 print("received signal")
@@ -419,9 +411,10 @@ class Server(Default.exec.ProcessListener):
         view.set_name(name)
         thedict.pop("inReplyTo")
         thedict.pop("cookie")
-        view.run_command(
-            "append",
-            {"characters": json.dumps(thedict, indent=2), "force": True})
+        view.run_command("append", {
+            "characters": json.dumps(thedict, indent=2),
+            "force": True
+        })
         view.set_read_only(True)
         view.set_syntax_file("Packages/JavaScript/JSON.sublime-syntax")
 
@@ -430,5 +423,5 @@ class Server(Default.exec.ProcessListener):
         errorcount = len(scopes)
         if errorcount > 0:
             self.bad_configure = True
-            self.window.run_command("show_panel", {"panel": "output.cmake.configure"})
-
+            self.window.run_command("show_panel",
+                                    {"panel": "output.cmake.configure"})
