@@ -20,7 +20,7 @@ adding the following JSON list at the top-level JSON dictionary:
 ```javascript
   "install_prereleases":
   [
-    "CMakeBuilder
+    "CMakeBuilder"
   ],
 ```
 
