@@ -1,9 +1,9 @@
 {
-  "install": "messages/install.txt", 
-  
+  "install": "messages/install.txt",
+
   "0.2.0":   "messages/0.2.0.txt",
-  "0.3.0":   "messages/0.3.0.txt", 
-  "0.4.0":   "messages/0.4.0.txt", 
+  "0.3.0":   "messages/0.3.0.txt",
+  "0.4.0":   "messages/0.4.0.txt",
   "0.5.0":   "messages/0.5.0.txt",
   "0.6.0":   "messages/0.6.0.txt",
   "0.6.1":   "messages/0.6.1.txt",
@@ -18,5 +18,7 @@
   "0.11.0":  "messages/0.11.0.txt",
   "0.11.1":  "messages/0.11.1.txt",
   "1.0.0":   "messages/1.0.0.txt",
-  "1.0.1":   "messages/1.0.1.txt"
+  "1.0.1":   "messages/1.0.1.txt",
+
+  "2.0.0-alpha": "messages/2.0.0-alpha.txt"
 }
