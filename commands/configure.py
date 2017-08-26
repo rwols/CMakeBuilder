@@ -7,6 +7,7 @@ import Default.exec
 import copy
 from CMakeBuilder.support import *
 from CMakeBuilder.generators import *
+from .command import ServerManager
 
 class CmakeConfigureCommand(Default.exec.ExecCommand):
     """Configures a CMake project with options set in the sublime project
@@ -18,15 +19,22 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
             return True
         except Exception as e:
             return False
-    
+
     def description(self):
         return 'Configure'
 
     def run(self, write_build_targets=False, silence_dev_warnings=False):
+        self.server = ServerManager.get(self.window)
+        if self.server:
+            self.window.run_command("cmake_configure2")
+            return
         if get_setting(self.window.active_view(), 'always_clear_cache_before_configure', False):
             self.window.run_command('cmake_clear_cache', args={'with_confirmation': False})
         project = self.window.project_data()
         project_file_name = self.window.project_file_name()
+        if not project_file_name:
+            # A little more flexible
+            project_file_name = os.path.abspath(self.window.extract_variables()["folder"])
         project_name = os.path.splitext(project_file_name)[0]
         project_path = os.path.dirname(project_file_name)
         if not os.path.isfile(os.path.join(project_path, 'CMakeLists.txt')):
@@ -81,7 +89,7 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
         GeneratorClass = class_from_generator_string(generator)
         builder = None
         try:
-            builder = GeneratorClass(self.window, copy.deepcopy(cmake))
+            builder = GeneratorClass(self.window)
         except KeyError as e:
             sublime.error_message('Unknown variable in cmake dictionary: {}'
                 .format(str(e)))
@@ -103,15 +111,15 @@ class CmakeConfigureCommand(Default.exec.ExecCommand):
                 except ValueError as e:
                     pass
         self.builder.on_pre_configure()
-        env = self.builder.env()
+        env = self.builder.get_env()
         user_env = get_cmake_value(cmake, 'env')
         if user_env: env.update(user_env)
-        super().run(shell_cmd=cmd, 
+        super().run(shell_cmd=cmd,
             working_dir=root_folder,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
             syntax='Packages/CMakeBuilder/Syntax/Configure.sublime-syntax',
             env=env)
-    
+
     def on_finished(self, proc):
         super().on_finished(proc)
         self.builder.on_post_configure(proc.exit_code())

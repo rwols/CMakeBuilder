@@ -1,5 +1,6 @@
 import sublime
 
+
 def get_cmake_value(the_dict, key):
     if not the_dict:
         return None

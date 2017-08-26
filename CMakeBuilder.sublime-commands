@@ -1,6 +1,6 @@
 [
   {
-    "command": "cmake_open_build_folder",   
+    "command": "cmake_open_build_folder",
     "caption": "CMakeBuilder: Browse Build Folder…"
   },
   {
@@ -8,7 +8,7 @@
     "caption": "CMakeBuilder: Configure"
   },
   {
-    "command": "cmake_write_build_targets", 
+    "command": "cmake_write_build_targets",
     "caption": "CMakeBuilder: Write Build Targets to Sublime Project File"
   },
   {
@@ -30,5 +30,37 @@
   {
     "command": "cmake_diagnose",
     "caption": "CMakeBuilder: Diagnose (What Should I Do?)"
+  },
+  {
+    "command": "cmake_set_target",
+    "caption": "CMakeBuilder: Set Target"
+  },
+  {
+    "command": "cmake_reveal_include_directories",
+    "caption": "CMakeBuilder: Reveal Include Directories"
+  },
+  {
+    "command": "cmake_dump_file_system_watchers",
+    "caption": "CMakeBuilder: Dump File System Watchers"
+  },
+  {
+    "command": "cmake_dump_inputs",
+    "caption": "CMakeBuilder: Dump CMake Inputs"
+  },
+  {
+    "command": "cmake_set_global_setting",
+    "caption": "CMakeBuilder: Set Global Setting"
+  },
+  {
+    "command": "cmake_show_configure_output",
+    "caption": "CMakeBuilder: Show Configure Output"
+  },
+  {
+    "command": "cmake_switch_scheme",
+    "caption": "CMakeBuilder: Switch Scheme"
+  },
+  {
+    "command": "cmake_restart_server",
+    "caption": "CMakeBuilder: Restart Server For This Project"
   }
 ]

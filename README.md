@@ -10,13 +10,149 @@ Run the command
 
 and look for CMakeBuilder.
 
+# WANTED: Testers for Version 2.0
+
+Version 2.0 has major differences, because we'll utilize the cmake server for
+version 2. It is currently in an alpha state. You can make Package Control
+download the alpha version by opening the User settings of Package Control and
+adding the following JSON list at the top-level JSON dictionary:
+
+```javascript
+  "install_prereleases":
+  [
+    "CMakeBuilder
+  ],
+```
+
+The alpha version should work out-of-the-box for OSX and Linux, but is not
+recommended for Windows users at this point. I would appreciate it if you report
+any issues that you may find.
+
+# Major Changes Between V1 and V2
+
+Version 2 of CMakeBuilder has cmake-server functionality. There are some major
+changes in how you specify your cmake dict in your project settings. **Please
+read the documentation for version 2.0**.
+
+## Version 2.0
+
+Version 2.0 has server functionality. You need at least CMake 3.7 for this.
+What follows is the documentation for version 2.0.0 and higher.
+
 ## TL;DR
 
 1. Open a `.sublime-project`.
 
 2. Add this to the project file in your `"settings"`:
 
-    ```json
+    ```javascript
+    "cmake":
+    {
+      "schemes":
+      [
+        {
+          "name": "Debug",
+          // this assumes your project file is at the root of your project
+          // folder. If it's not, try using ${folder} instead of ${project_path}
+          "build_folder": "${project_path}/build"
+        }
+      ]
+    }
+    ```
+
+3. Save your project, and *open it if you haven't already*. So, from the
+   command-line you would do `subl path/to/projectfile.sublime-project` to open
+   your project.
+
+4. You will be presented with a quick-panel that asks you to select the CMake
+   generator. Choose one.
+
+5. CMakeBuilder will start configuring your CMake project. Look at Sublime's
+   status bar to see its progress going from 0% to 100%.
+
+6. Once the project is configured, select the CMakeBuilder build system in
+   Tools -> Build Systems -> CMakeBuilder.
+
+7. Press CTRL+B to build.
+
+### The CMake Dictionary Version 2.0.0 and Higher
+
+By "CMake dictionary" we mean the JSON dictionary that you define in your
+`"settings"` of your sublime project file with key `"cmake"`. The CMake
+dictionary accepts the following keys:
+
+* `schemes` [required]
+
+  A JSON-list of JSON-dictionaries that define your possible *schemes*.
+  A *scheme* is our way to organize Debug/Release/MinSizeRel builds etc.
+
+Each *scheme* is required to be a JSON-dictionary. It's possible keys are:
+
+* `name` [required]
+
+  A string that represents this scheme. For instance, "Debug" or "Release".
+
+* `build_folder` [required]
+
+  A string pointing to the directory where you want to build the project. A
+  good first choice is `${project_path}/build`.
+
+* `command_line_overrides` [optional]
+
+  A dictionary where each value is either a string or a boolean. The key-value
+  pairs are passed to the CMake invocation when you run `cmake_configure` as
+  `-D` options. For example, if you have the key-value pair `"MY_VAR": "BLOB"`
+  in the dictionary, the CMake invocation will contain `-DMY_VAR=BLOB`. Boolean
+  values are converted to `ON` or `OFF`. For instance, if you have the key-value
+  pair `"BUILD_SHARED_LIBS": true`in the dictionary, the CMake invocation will
+  contain `-DBUILD_SHARED_LIBS=ON`.
+
+## Example Project File for Version 2.0.0 and Higher
+
+Here is an example Sublime project to get you started.
+
+```javascript
+{
+    "folders":
+    [
+        {
+            "path": "."
+        }
+    ],
+    "settings":
+    {
+        "cmake":
+        {
+            "schemes":
+            [
+                {
+                    "build_folder": "${project_path}/build/debug",
+                    "command_line_overrides":
+                    {
+                        "BUILD_SHARED_LIBS": true,
+                        "CMAKE_BUILD_TYPE": "Debug",
+                        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+                    }
+                }
+            ]
+        }
+    }
+}
+
+```
+
+## Version 1.0.1 and Lower
+
+Version 1.0.1 and lower do not have server functionality. What follows is the
+documentation for version 1.0.1 and lower.
+
+## TL;DR
+
+1. Open a `.sublime-project`.
+
+2. Add this to the project file in your `"settings"`:
+
+    ```javascript
     "cmake":
     {
        "build_folder": "${project_path}/build"
@@ -28,7 +164,7 @@ and look for CMakeBuilder.
    from the command palette.
 
 4. Check out your new build system in your `.sublime-project`. If no new build
-   system was created, you can also run the command "CMakeBuilder: Write Build 
+   system was created, you can also run the command "CMakeBuilder: Write Build
    Targets to Sublime Project File" from the command palette.
 
 5. Press <kbd>CTRL</kbd> + <kbd>B</kbd> or <kbd>⌘</kbd> + <kbd>B</kbd>.
@@ -38,10 +174,10 @@ and look for CMakeBuilder.
 
 ## Reference
 
-### The CMake Dictionary
+### The CMake Dictionary Version 1.0.1 and Lower
 
-By "CMake dictionary" we mean the JSON dictionary that you define in your 
-`"settings"` of your sublime project file with key `"cmake"`. The CMake 
+By "CMake dictionary" we mean the JSON dictionary that you define in your
+`"settings"` of your sublime project file with key `"cmake"`. The CMake
 dictionary accepts the following keys:
 
 * `build_folder` [required]
@@ -68,7 +204,7 @@ dictionary accepts the following keys:
 
 * `generator` [optional]
 
-  A JSON string specifying the CMake generator. 
+  A JSON string specifying the CMake generator.
 
   * Available generators for osx: "Ninja" and "Unix Makefiles".
 
@@ -80,7 +216,7 @@ dictionary accepts the following keys:
     If no generator is specified on osx, "Unix Makefiles" is the default
     generator. For "Ninja", you must have ninja installed. Install it with apt.
 
-  * Available generators for windows: "Ninja", "NMake Makefiles" and 
+  * Available generators for windows: "Ninja", "NMake Makefiles" and
     "Visual Studio".
 
     If no generator is specified on windows, "Visual Studio" is the default
@@ -89,7 +225,7 @@ dictionary accepts the following keys:
     for.
 
     **Note**: If you find that the output of the NMake generator is garbled with
-    color escape codes, you can try to use `"CMAKE_COLOR_MAKEFILE": false` in 
+    color escape codes, you can try to use `"CMAKE_COLOR_MAKEFILE": false` in
     your `command_line_overrides` dictionary.
 
 * `root_folder` [optional]
@@ -100,8 +236,8 @@ dictionary accepts the following keys:
 
 * `env` [optional]
 
-  This is a dict of key-value pairs of strings. Place your environment 
-  variables at configure time in here. For example, to select clang as 
+  This is a dict of key-value pairs of strings. Place your environment
+  variables at configure time in here. For example, to select clang as
   your compiler if you have gcc set as default, you can use
 
       "env": { "CC": "clang", "CXX": "clang++" }
@@ -138,11 +274,11 @@ Any key may be overridden by a platform-specific override. The platform keys
 are one of `"linux"`, `"osx"` or `"windows"`. For an example on how this works,
 see below.
 
-## Example Project File
+## Example Project File for Version 1.0.1 and Lower
 
 Here is an example Sublime project to get you started.
 
-```json
+```javascript
 {
     "folders":
     [
@@ -204,7 +340,7 @@ menu at the top of the window.
 
 * `configure_on_save` : JSON bool
 
-  If true, will run the `cmake_configure` command whenever you save a 
+  If true, will run the `cmake_configure` command whenever you save a
   CMakeLists.txt file or CMakeCache.txt file.
 
 * `write_build_targets_after_successful_configure` : JSON bool
@@ -215,7 +351,7 @@ menu at the top of the window.
 
 * `silence_developer_warnings` : JSON bool
 
-  If true, will add the option `-Wno-dev` to the CMake invocation of the 
+  If true, will add the option `-Wno-dev` to the CMake invocation of the
   `cmake_configure` command.
 
 * `always_clear_cache_before_configure` : JSON bool
@@ -225,7 +361,7 @@ menu at the top of the window.
 
 * `ctest_command_line_args` : JSON string
 
-  Command line arguments passed to the CTest invocation when you run 
+  Command line arguments passed to the CTest invocation when you run
   `cmake_run_ctest`.
 
 * `generated_name_for_build_system` : JSON string

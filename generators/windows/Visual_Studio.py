@@ -1,9 +1,11 @@
 from CMakeBuilder.generators import CMakeGenerator
 from CMakeBuilder.generators.windows.support.vcvarsall import query_vcvarsall
+from CMakeBuilder.support.check_output import check_output
 import os
 import re
 import subprocess
 import sublime
+
 
 class Visual_Studio(CMakeGenerator):
 
@@ -12,9 +14,7 @@ class Visual_Studio(CMakeGenerator):
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        lines = subprocess.check_output(
-            'cmake --help', 
-            startupinfo=startupinfo).decode('utf-8').splitlines()
+        lines = check_output('cmake --help').splitlines()
         years = {}
         for line in lines:
             print(line)
@@ -71,13 +71,15 @@ class Visual_Studio(CMakeGenerator):
                     target = file
                 else:
                     target = relative + '/' + file
-                if (self.filter_targets and 
-                    not any(f in target for f in self.filter_targets)):
+                if (self.filter_targets and
+                   not any(f in target for f in self.filter_targets)):
                     continue
                 if configs:
                     for config in configs:
-                        shell_cmd = 'cmake --build . --target {} --config {}'.format(target, config)
-                        variants.append({'name': target + ' [' + config + ']', 
+                        shell_cmd = 'cmake --build . --target {} --config {}'\
+                                    .format(target, config)
+                        variants.append({
+                            'name': target + ' [' + config + ']',
                             'shell_cmd': shell_cmd})
                 else:
                     shell_cmd = 'cmake --build . --target {}'.format(target)
@@ -88,13 +90,14 @@ class Visual_Studio(CMakeGenerator):
         return 'Packages/CMakeBuilder/Syntax/Visual_Studio.sublime-syntax'
 
     def file_regex(self):
-        return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
+        return (r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) ',
+                r'\w+\d\d\d\d: .*) \[.*$')
 
-    def env(self):
+    def get_env(self):
         if self.visual_studio_versions:
             vs_versions = self.visual_studio_versions
         else:
-            vs_versions = [ 15, 14.1, 14, 13, 12, 11, 10, 9, 8 ]
+            vs_versions = [15, 14.1, 14, 13, 12, 11, 10, 9, 8]
         if self.target_architecture:
             arch = self.target_architecture
         else:
@@ -104,7 +107,8 @@ class Visual_Studio(CMakeGenerator):
         elif sublime.arch() == 'x64':
             host = 'amd64'
         else:
-            sublime.error_message('Unknown Sublime architecture: %s' % sublime.arch())
+            sublime.error_message(
+                'Unknown Sublime architecture: %s' % sublime.arch())
             return
         if arch != host:
             arch = host + '_' + arch

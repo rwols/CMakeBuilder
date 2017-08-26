@@ -5,7 +5,7 @@
     "id": "tools",
     "children":
     [
-      { 
+      {
         "caption": "CMakeBuilder",
         "id": "build",
         "mnemonic": "C",
@@ -18,8 +18,8 @@
             "mnemonic": "D"
           },
           {
-            "command": "cmake_configure", 
-            "mnemonic": "C" 
+            "command": "cmake_configure",
+            "mnemonic": "C"
           },
           {
             "command": "cmake_write_build_targets",
@@ -33,7 +33,7 @@
             "command": "cmake_edit_cache"
           },
           {
-            "command": "cmake_clear_cache" 
+            "command": "cmake_clear_cache"
           },
           {
             "command": "cmake_run_ctest",
@@ -42,6 +42,32 @@
           {
             "command": "cmake_new_project",
             "mnemonic": "N"
+          },
+          {
+            "command": "cmake_set_target",
+            "mnemonic": "T"
+          },
+          {
+            "command": "cmake_reveal_include_directories",
+            "mnemonic": "I"
+          },
+          {
+            "command": "cmake_dump_file_system_watchers",
+          },
+          {
+            "command": "cmake_dump_inputs"
+          },
+          {
+            "command": "cmake_set_global_setting"
+          },
+          {
+            "command": "cmake_show_configure_output"
+          },
+          {
+            "command": "cmake_switch_scheme"
+          },
+          {
+            "command": "cmake_restart_server"
           }
         ]
       }
@@ -50,17 +76,17 @@
   {
     "caption": "Preferences",
     "id": "preferences",
-    "children": 
+    "children":
     [
       {
         "caption": "Package Settings",
         "id": "package-settings",
-        "children": 
+        "children":
         [
           {
             "caption": "CMakeBuilder",
             "id": "cmakebuilder",
-            "children": 
+            "children":
             [
               {
                 "command": "open_url",

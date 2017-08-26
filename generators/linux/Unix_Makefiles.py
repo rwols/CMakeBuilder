@@ -3,6 +3,7 @@ import subprocess
 import sublime
 import multiprocessing
 
+
 class Unix_Makefiles(CMakeGenerator):
 
     def __repr__(self):
@@ -18,14 +19,10 @@ class Unix_Makefiles(CMakeGenerator):
         return 'make -j{}'.format(str(multiprocessing.cpu_count()))
 
     def variants(self):
-        env = None
-        if self.window.active_view():
-            env = self.window.active_view().settings().get('build_env')
-            
         shell_cmd = 'cmake --build . --target help'
         proc = subprocess.Popen(
             ['/bin/bash', '-l', '-c', shell_cmd],
-            env=env,
+            env=self.get_env(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=False,
@@ -40,25 +37,25 @@ class Unix_Makefiles(CMakeGenerator):
         variants = []
         EXCLUDES = [
             'are some of the valid targets for this Makefile:',
-            'All primary targets available:', 
+            'All primary targets available:',
             'depend',
             'all (the default if no target is provided)',
-            'help', 
-            'edit_cache', 
+            'help',
+            'edit_cache',
             '.ninja']
-            
+
         for target in lines:
             try:
-                if any(exclude in target for exclude in EXCLUDES): 
+                if any(exclude in target for exclude in EXCLUDES):
                     continue
                 target = target[4:]
-                if (self.filter_targets and 
-                    not any(f in target for f in self.filter_targets)):
+                if (self.filter_targets and
+                   not any(f in target for f in self.filter_targets)):
                     continue
-                shell_cmd = 'make -j{} {}'.format(str(multiprocessing.cpu_count()), target)
+                shell_cmd = 'make -j{} {}'.format(
+                    str(multiprocessing.cpu_count()), target)
                 variants.append({'name': target, 'shell_cmd': shell_cmd})
             except Exception as e:
                 sublime.error_message(str(e))
                 # Continue anyway; we're in a for-loop
         return variants
-        

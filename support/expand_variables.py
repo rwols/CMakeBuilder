@@ -1,5 +1,6 @@
 import string
 
+
 def expand_variables(the_dict, the_vars):
     if not the_dict:
         return

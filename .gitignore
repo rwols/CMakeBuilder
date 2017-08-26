@@ -1,0 +1,4 @@
+.coverage
+.vagrant
+*.pyc
+tests/*build*

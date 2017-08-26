@@ -1,10 +1,14 @@
-import sublime, subprocess, os
+import sublime
+import subprocess
+import os
+
 
 class CheckOutputException(Exception):
     """Gets raised when there's a non-empty error stream."""
     def __init__(self, errs):
         super(CheckOutputException, self).__init__()
         self.errs = errs
+
 
 def check_output(shell_cmd, env=None, cwd=None):
     if sublime.platform() == "linux":
@@ -15,7 +19,7 @@ def check_output(shell_cmd, env=None, cwd=None):
         cmd = ["/bin/bash", "-l", "-c", shell_cmd]
         startupinfo = None
         shell = False
-    else: # sublime.platform() == "windows"
+    else:  # sublime.platform() == "windows"
         cmd = shell_cmd
         if os.name == "nt":
             startupinfo = subprocess.STARTUPINFO()
