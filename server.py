@@ -6,6 +6,9 @@ import time
 import os
 import threading
 import shutil
+from .support.headerdb import make_headerdb
+from .support.db.json import JSONCompilationDatabase
+from .support.models import CompileCommand
 
 
 class Target(object):
@@ -330,6 +333,19 @@ class Server(Default.exec.ProcessListener):
             print("received unknown reply type:", reply)
 
     def handle_compdb(self):
+        db = JSONCompilationDatabase.probe_directory(self.cmake.build_folder)
+        headerdb = make_headerdb([[db]])[0]
+        db = list(db._data)
+        db.extend(headerdb.get_all_compile_commands())
+        print(db)
+        path = os.path.join(self.cmake.build_folder, "compile_commands.json")
+        with open(path, "w") as f:
+            json.dump(
+                db,
+                f,
+                check_circular=False,
+                indent=2,
+                cls=CompileCommand.JSONEncoder)
         data = self.window.project_data()
         settings = sublime.load_settings("CMakeBuilder.sublime-settings")
         setting = "auto_update_EasyClangComplete_compile_commands_location"
@@ -348,8 +364,6 @@ class Server(Default.exec.ProcessListener):
         if settings.get(setting, False):
             destination = os.path.join(self.cmake.source_folder,
                                        "compile_commands.json")
-            path = os.path.join(self.cmake.build_folder,
-                                "compile_commands.json")
             shutil.copyfile(path, destination)
         self.window.set_project_data(data)
 

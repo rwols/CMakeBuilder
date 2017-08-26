@@ -1,11 +1,8 @@
-from __future__ import print_function, unicode_literals, absolute_import
-
 import os
 import re
 
-from compdb.db.memory import InMemoryCompilationDatabase
-from compdb.complementer import ComplementerInterface
-from compdb.models import CompileCommand
+from .db.memory import InMemoryCompilationDatabase
+from .db.json import JSONCompilationDatabase
 
 
 def sanitize_compile_options(compile_command):
@@ -54,11 +51,15 @@ def mimic_path_relativity(path, other, default_dir):
 
 
 def derive_compile_command(header_file, reference):
-    return CompileCommand(
-        directory=reference.directory,
-        file=mimic_path_relativity(header_file, reference.file,
-                                   reference.directory),
-        command=sanitize_compile_options(reference))
+    return {
+        "directory":
+        reference.directory,
+        "file":
+        mimic_path_relativity(header_file, reference.file,
+                              reference.directory),
+        "command":
+        sanitize_compile_options(reference)
+    }
 
 
 def get_file_includes(path):
@@ -96,7 +97,8 @@ def extract_include_dirs(compile_command):
                 header_search_path.append(command[i][2:])
         i += 1
     return [
-        os.path.join(compile_command.directory, p) for p in header_search_path
+        os.path.join(compile_command.directory, p)
+        for p in header_search_path
     ]
 
 
@@ -148,14 +150,14 @@ def lcsubstring_length(a, b):
 
     """
     table = {}
-    l = 0
+    k = 0
     for i, ca in enumerate(a, 1):
         for j, cb in enumerate(b, 1):
             if ca == cb:
                 table[i, j] = table.get((i - 1, j - 1), 0) + 1
-                if table[i, j] > l:
-                    l = table[i, j]
-    return l
+                if table[i, j] > k:
+                    k = table[i, j]
+    return k
 
 
 def score_other_file(a, b):
@@ -206,6 +208,9 @@ class _Data(object):
 
 def _make_headerdb1(compile_commands_iter, db_files, db_idx, header_mapping):
     for compile_command in compile_commands_iter:
+        print(compile_command.__class__.__name__, compile_command)
+        if isinstance(compile_command, dict):
+            compile_command = JSONCompilationDatabase._dict_to_compile_command(compile_command)
         implicit_search_path = get_implicit_header_search_path(compile_command)
         header_search_paths = extract_include_dirs(compile_command)
         src_file = compile_command.normfile
@@ -238,8 +243,8 @@ def _make_headerdb1(compile_commands_iter, db_files, db_idx, header_mapping):
                 header_mapping[norm_abspath] = data
             if score > data.score:
                 data.score = score
-                data.compile_command = derive_compile_command(norm_abspath,
-                                                              compile_command)
+                data.compile_command = derive_compile_command(
+                    norm_abspath, compile_command)
                 data.db_idx = db_idx
 
 
@@ -274,8 +279,3 @@ def make_headerdb(layers):
             for db_list in (layers[0], complementary_databases):
                 db_list[v.db_idx].compile_commands.append(v.compile_command)
     return complementary_databases
-
-
-class Complementer(ComplementerInterface):
-    def complement(self, layers):
-        return make_headerdb(layers)

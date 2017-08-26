@@ -33,19 +33,23 @@ class JSONCompilationDatabase(CompilationDatabaseInterface):
     def get_all_compile_commands(self):
         # PERFORMANCE: I think shlex is inherently slow,
         # something performing better may be necessary
-        return self._data
+        return map(self._dict_to_compile_command, self._data)
 
     @staticmethod
     def _dict_to_compile_command(d):
-        return CompileCommand(d['directory'], d['file'],
-                              shlex.split(d['command']))
+        command = d['command']
+        if isinstance(command, str):
+            return CompileCommand(d['directory'], d['file'], shlex.split(command))
+        elif isinstance(command, list):
+            return CompileCommand(d['directory'], d['file'], command)
+        else:
+            raise Exception("Unknown type: {}".format(command.__class__))
 
     @property
     def _data(self):
         if not hasattr(self, '__data'):
             with open(self.json_db_path) as f:
-                self.__data = list(
-                    map(self._dict_to_compile_command, json.load(f)))
+                self.__data = json.load(f)
         return self.__data
 
 
