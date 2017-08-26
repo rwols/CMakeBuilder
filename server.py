@@ -337,7 +337,6 @@ class Server(Default.exec.ProcessListener):
         headerdb = make_headerdb([[db]])[0]
         db = list(db._data)
         db.extend(headerdb.get_all_compile_commands())
-        print(db)
         path = os.path.join(self.cmake.build_folder, "compile_commands.json")
         with open(path, "w") as f:
             json.dump(

@@ -97,8 +97,7 @@ def extract_include_dirs(compile_command):
                 header_search_path.append(command[i][2:])
         i += 1
     return [
-        os.path.join(compile_command.directory, p)
-        for p in header_search_path
+        os.path.join(compile_command.directory, p) for p in header_search_path
     ]
 
 
@@ -208,9 +207,9 @@ class _Data(object):
 
 def _make_headerdb1(compile_commands_iter, db_files, db_idx, header_mapping):
     for compile_command in compile_commands_iter:
-        print(compile_command.__class__.__name__, compile_command)
         if isinstance(compile_command, dict):
-            compile_command = JSONCompilationDatabase._dict_to_compile_command(compile_command)
+            compile_command = JSONCompilationDatabase._dict_to_compile_command(
+                compile_command)
         implicit_search_path = get_implicit_header_search_path(compile_command)
         header_search_paths = extract_include_dirs(compile_command)
         src_file = compile_command.normfile
