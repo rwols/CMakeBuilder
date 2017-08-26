@@ -6,9 +6,9 @@ import time
 import os
 import threading
 import shutil
-from .support.headerdb import make_headerdb
-from .support.db.json import JSONCompilationDatabase
-from .support.models import CompileCommand
+from .headerdb import make_headerdb
+from .db.json import JSONCompilationDatabase
+from .models import CompileCommand
 
 
 class Target(object):

@@ -2,7 +2,7 @@ import sublime_plugin
 import sublime
 import os
 import pickle
-from ..server import Server
+from ..support.server import Server
 from ..support import capabilities
 from ..support import get_setting
 
