@@ -290,32 +290,11 @@ class Server(Default.exec.ProcessListener):
             self.targets.add(
                 Target("BUILD ALL", "BUILD ALL", "ALL",
                        self.cmake.build_folder, ""))
-            data = self.window.project_data()
             self.targets = list(self.targets)
             path = os.path.join(self.cmake.build_folder,
                                 "compile_commands.json")
             if os.path.isfile(path):
-                settings = sublime.load_settings(
-                    "CMakeBuilder.sublime-settings")
-                s = "auto_update_EasyClangComplete_compile_commands_location"
-                setting = s
-                if settings.get(setting, False):
-                    data["settings"]["ecc_flags_sources"] = [{
-                        "file":
-                        "compile_commands.json",
-                        "search_in":
-                        self.cmake.build_folder_pre_expansion
-                    }]
-                setting = "auto_update_compile_commands_project_setting"
-                if settings.get(setting, False):
-                    data["settings"]["compile_commands"] = \
-                        self.cmake.build_folder_pre_expansion
-                setting = "copy_compile_commands_to_project_path"
-                if settings.get(setting, False):
-                    destination = os.path.join(self.cmake.source_folder,
-                                               "compile_commands.json")
-                    shutil.copyfile(path, destination)
-                self.window.set_project_data(data)
+                self.handle_compdb()
         elif reply == "cache":
             cache = thedict.pop("cache")
             self.items = []
@@ -349,6 +328,30 @@ class Server(Default.exec.ProcessListener):
             self.window.show_quick_panel(self.items, on_done)
         else:
             print("received unknown reply type:", reply)
+
+    def handle_compdb(self):
+        data = self.window.project_data()
+        settings = sublime.load_settings("CMakeBuilder.sublime-settings")
+        setting = "auto_update_EasyClangComplete_compile_commands_location"
+        if settings.get(setting, False):
+            data["settings"]["ecc_flags_sources"] = [{
+                "file":
+                "compile_commands.json",
+                "search_in":
+                self.cmake.build_folder_pre_expansion
+            }]
+        setting = "auto_update_compile_commands_project_setting"
+        if settings.get(setting, False):
+            data["settings"]["compile_commands"] = \
+                self.cmake.build_folder_pre_expansion
+        setting = "copy_compile_commands_to_project_path"
+        if settings.get(setting, False):
+            destination = os.path.join(self.cmake.source_folder,
+                                       "compile_commands.json")
+            path = os.path.join(self.cmake.build_folder,
+                                "compile_commands.json")
+            shutil.copyfile(path, destination)
+        self.window.set_project_data(data)
 
     def receive_error(self, thedict):
         reply = thedict["inReplyTo"]
