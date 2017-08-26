@@ -1,0 +1,30 @@
+Hi there!
+
+It's probably been a while since you heard from me. I have been working on
+getting the server functionality to work for this plugin. It is currently in an
+alpha state, and should work for OSX and Linux. Windows users should not yet
+try this out.
+
+If you have CMake >= 3.7, and you want to test out the server functionality,
+then I have news for you. I have prepared an alpha version of CMakeBuilder 2.0
+on Package Control that you can test.
+
+Please read the updated README at github.com/rwols/CMakeBuilder to learn how
+to make Package Control download 2.0.0-alpha. I would be forever grateful if
+you could try it out and report any issues.
+
+Version 2 will have awesome new features, including:
+- Clever target handling,
+- No more custom build systems in your sublime-project, everything is
+  transparent now,
+- CMakeBuilder knows all of your include directories and can report it,
+- CMakeBuilder enhances your compile_commands.json with header info,
+- Can copy compile_commands.json to your project root folder if you want,
+- CMakeBuilder will fill in the details of EasyClangComplete for you,
+- You can "Build & Run" targets with help of the TerminalView plugin,
+- Our hand-made generator handling will be obsolete, the server handles that,
+- Multiple "schemes": Release builds, Debug builds, MinSizeRel builds, the
+  sky is the limit.
+- Maybe more!
+
+Thanks, and have a nice day!
