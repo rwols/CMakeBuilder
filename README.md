@@ -126,6 +126,7 @@ Here is an example Sublime project to get you started.
             "schemes":
             [
                 {
+                    "name": "Debug",
                     "build_folder": "${project_path}/build/debug",
                     "command_line_overrides":
                     {
