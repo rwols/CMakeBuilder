@@ -60,7 +60,6 @@ class Server(Default.exec.ProcessListener):
             cmd.append("--experimental")
         if debug:
             cmd.append("--debug")
-        print("starting proc")
         self.proc = Default.exec.AsyncProcess(
             cmd=cmd, shell_cmd=None, listener=self, env=env)
 
@@ -82,6 +81,7 @@ class Server(Default.exec.ProcessListener):
                 if end_index == -1:
                     # This is okay, wait for more data.
                     self.data_parts += data
+                    data = None
                 else:
                     self.data_parts += data[0:end_index]
                     data = data[end_index + len(self.__class__._END_TOKEN):]
@@ -129,10 +129,14 @@ class Server(Default.exec.ProcessListener):
         self.send(data)
 
     def send_handshake(self):
-        self.protocol = {"major": 1, "minor": 0, "isExperimental": True}
+        self.protocoldict = {
+            "major": self.protocol[0],
+            "minor": self.protocol[1],
+            "isExperimental": True
+        }
         self.send_dict({
             "type": "handshake",
-            "protocolVersion": self.protocol,
+            "protocolVersion": self.protocoldict,
             "sourceDirectory": self.cmake.source_folder,
             "buildDirectory": self.cmake.build_folder,
             "generator": self.cmake.generator,
@@ -209,8 +213,8 @@ class Server(Default.exec.ProcessListener):
         reply = thedict["inReplyTo"]
         if reply == "handshake":
             self.window.status_message(
-                "CMake server protocol {}.{}, handshake is OK"
-                .format(self.protocol["major"], self.protocol["minor"]))
+                "CMake server protocol {}.{}, handshake is OK".format(
+                    self.protocoldict["major"], self.protocoldict["minor"]))
             self.configure()
         elif reply == "setGlobalSettings":
             self.window.status_message("Global CMake setting is modified")

@@ -329,7 +329,13 @@ class ServerManager(sublime_plugin.EventListener):
                     sublime.error_message(str(e))
                     return
         pickle.dump(cmake_settings, open(path, "wb"))
-        server = Server(cls.window, cmake_settings)
+        version = capabilities("version")
+        if version["major"] >= 3 and version["minor"] >= 10:
+            protocol = (1, 1)
+        else:
+            protocol = (1, 0)
+        print("Chosen protocol is", protocol)
+        server = Server(cls.window, cmake_settings, protocol=protocol)
         cls.source_folder = ""
         cls.build_folder = ""
         cls.build_folder_pre_expansion = ""
