@@ -54,11 +54,13 @@ class Server(Default.exec.ProcessListener):
         self.inside_json_object = False
         self.include_paths = set()
         self.targets = None
+        self.encoding = "utf-8"  # Implement listener protocol
         cmd = ["cmake", "-E", "server"]
         if experimental:
             cmd.append("--experimental")
         if debug:
             cmd.append("--debug")
+        print("starting proc")
         self.proc = Default.exec.AsyncProcess(
             cmd=cmd, shell_cmd=None, listener=self, env=env)
 
@@ -70,7 +72,6 @@ class Server(Default.exec.ProcessListener):
     _END_TOKEN = ']== "CMake Server" ==]'
 
     def on_data(self, _, data):
-        data = data.decode("utf-8").strip()
         if data.startswith("CMake Error:"):
             sublime.error_message(data)
             return
@@ -88,8 +89,6 @@ class Server(Default.exec.ProcessListener):
             else:  # not inside json object
                 begin_index = data.find(self.__class__._BEGIN_TOKEN)
                 if begin_index == -1:
-                    sublime.error_message("Received unknown data part: " +
-                                          data)
                     data = None
                 else:
                     begin_token_end = begin_index + len(
@@ -333,18 +332,22 @@ class Server(Default.exec.ProcessListener):
             print("received unknown reply type:", reply)
 
     def handle_compdb(self):
-        db = JSONCompilationDatabase.probe_directory(self.cmake.build_folder)
-        headerdb = make_headerdb([[db]])[0]
-        db = list(db._data)
-        db.extend(headerdb.get_all_compile_commands())
-        path = os.path.join(self.cmake.build_folder, "compile_commands.json")
-        with open(path, "w") as f:
-            json.dump(
-                db,
-                f,
-                check_circular=False,
-                indent=2,
-                cls=CompileCommand.JSONEncoder)
+        settings = sublime.load_settings("CMakeBuilder.sublime-settings")
+        if settings.get("enhance_compile_commands_with_header_info", False):
+            db = JSONCompilationDatabase.probe_directory(
+                self.cmake.build_folder)
+            headerdb = make_headerdb([[db]])[0]
+            db = list(db._data)
+            db.extend(headerdb.get_all_compile_commands())
+            path = os.path.join(self.cmake.build_folder,
+                                "compile_commands.json")
+            with open(path, "w") as f:
+                json.dump(
+                    db,
+                    f,
+                    check_circular=False,
+                    indent=2,
+                    cls=CompileCommand.JSONEncoder)
         data = self.window.project_data()
         settings = sublime.load_settings("CMakeBuilder.sublime-settings")
         setting = "auto_update_EasyClangComplete_compile_commands_location"
