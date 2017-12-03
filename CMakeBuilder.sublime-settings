@@ -26,6 +26,11 @@
     // See: https://cmake.org/cmake/help/v3.5/variable/CMAKE_EXPORT_COMPILE_COMMANDS.html
     "copy_compile_commands_to_project_path": false,
 
+    // If CMAKE_EXPORT_COMPILE_COMMANDS is ON, enhance the compilation database
+    // JSON file for header files, too. This is a heuristic and may not work in
+    // all cases.
+    "enhance_compile_commands_with_header_info": false,
+
     // Wether to auto-update "ecc_flags_sources" upon a succesful configure
     // to point to the compilation database.
     "auto_update_EasyClangComplete_compile_commands_location": false,
