@@ -213,129 +213,149 @@ class Server(Default.exec.ProcessListener):
     def receive_reply(self, thedict):
         reply = thedict["inReplyTo"]
         if reply == "handshake":
-            self.window.status_message(
-                "CMake server protocol {}.{}, handshake is OK".format(
-                    self.protocoldict["major"], self.protocoldict["minor"]))
-            self.configure()
+            self._handle_reply_handshake(thedict)
         elif reply == "setGlobalSettings":
-            self.window.status_message("Global CMake setting is modified")
+            self._handle_reply_setGlobalSettings(thedict)
         elif reply == "configure":
-            if self.bad_configure:
-                self.is_configuring = False
-                self.window.status_message(
-                    "Some errors occured during configure!")
-            else:
-                self.window.status_message("Project is configured")
+            self._handle_reply_configure(thedict)
         elif reply == "compute":
-            self.window.status_message("Project is generated")
-            self.is_configuring = False
-            self.codemodel()
+            self._handle_reply_compute(thedict)
         elif reply == "fileSystemWatchers":
             self.dump_to_new_view(thedict, "File System Watchers")
         elif reply == "cmakeInputs":
             self.dump_to_new_view(thedict, "CMake Inputs")
         elif reply == "globalSettings":
-            thedict.pop("cookie")
-            thedict.pop("capabilities")
-            self.items = []
-            self.types = []
-            for k, v in thedict.items():
-                if type(v) in (dict, list):
-                    continue
-                self.items.append([str(k), str(v)])
-                self.types.append(type(v))
-            window = self.window
-
-            def on_done(index):
-                if index == -1:
-                    return
-                key = self.items[index][0]
-                old_value = self.items[index][1]
-                value_type = self.types[index]
-
-                def on_done_input(new_value):
-                    if value_type is bool:
-                        new_value = bool(new_value)
-                    self.set_global_setting(key, new_value)
-
-                window.show_input_panel('new value for "' + key + '": ',
-                                        old_value, on_done_input, None, None)
-
-            window.show_quick_panel(self.items, on_done)
+            self._handle_reply_globalSettings(thedict)
         elif reply == "codemodel":
-            configurations = thedict.pop("configurations")
-            self.include_paths = set()
-            self.targets = set()
-            for config in configurations:
-                projects = config.pop("projects")
-                for project in projects:
-                    targets = project.pop("targets")
-                    for target in targets:
-                        target_type = target.pop("type")
-                        target_name = target.pop("name")
-                        try:
-                            target_fullname = target.pop("fullName")
-                        except KeyError as e:
-                            target_fullname = target_name
-                        target_dir = target.pop("buildDirectory")
-                        self.targets.add(
-                            Target(target_name, target_fullname, target_type,
-                                   target_dir, ""))
-                        if target_type == "EXECUTABLE":
-                            self.targets.add(
-                                Target("Run: " + target_name, target_fullname,
-                                       "RUN", target_dir, ""))
-                        file_groups = target.pop("fileGroups", [])
-                        for file_group in file_groups:
-                            include_paths = file_group.pop("includePath", [])
-                            for include_path in include_paths:
-                                path = include_path.pop("path", None)
-                                if path:
-                                    self.include_paths.add(path)
-            self.targets.add(
-                Target("BUILD ALL", "BUILD ALL", "ALL",
-                       self.cmake.build_folder, ""))
-            self.targets = list(self.targets)
-            path = os.path.join(self.cmake.build_folder,
-                                "compile_commands.json")
-            if os.path.isfile(path):
-                self.handle_compdb()
-            view = self.window.active_view()
-            if view:
-                ServerManager.on_activated(view)
+            self._handle_reply_codemodel(thedict)
         elif reply == "cache":
-            cache = thedict.pop("cache")
-            self.items = []
-            for item in cache:
-                t = item["type"]
-                if t in ("INTERNAL", "STATIC"):
-                    continue
-                try:
-                    docstring = item["properties"]["HELPSTRING"]
-                except Exception as e:
-                    docstring = ""
-                key = item["key"]
-                value = item["value"]
-                self.items.append(
-                    [key + " [" + t.lower() + "]", value, docstring])
-
-            def on_done(index):
-                if index == -1:
-                    return
-                item = self.items[index]
-                key = item[0].split(" ")[0]
-                old_value = item[1]
-
-                def on_done_input(new_value):
-                    self.configure({key: value})
-
-                self.window.show_input_panel('new value for "' + key + '": ',
-                                             old_value, on_done_input, None,
-                                             None)
-
-            self.window.show_quick_panel(self.items, on_done)
+            self._handle_reply_cache(thedict)
         else:
-            print("received unknown reply type:", reply)
+            print("CMakeBuilder: received unknown reply type:", reply)
+
+    def _handle_reply_handshake(self, thedict) -> None:
+        self.window.status_message(
+            "CMake server protocol {}.{}, handshake is OK".format(
+                self.protocoldict["major"], self.protocoldict["minor"]))
+        self.configure()
+
+    def _handle_reply_setGlobalSettings(self, thedict) -> None:
+        self.window.status_message("Global CMake setting is modified")
+
+    def _handle_reply_compute(self, thedict) -> None:
+        self.window.status_message("Project is generated")
+        self.is_configuring = False
+        self.codemodel()
+
+    def _handle_reply_configure(self, thedict) -> None:
+        if self.bad_configure:
+            self.is_configuring = False
+            self.window.status_message(
+                "Some errors occured during configure!")
+        else:
+            self.window.status_message("Project is configured")
+
+    def _handle_reply_globalSettings(self, thedict) -> None:
+        thedict.pop("cookie")
+        thedict.pop("capabilities")
+        self.items = []
+        self.types = []
+        for k, v in thedict.items():
+            if type(v) in (dict, list):
+                continue
+            self.items.append([str(k), str(v)])
+            self.types.append(type(v))
+        window = self.window
+
+        def on_done(index):
+            if index == -1:
+                return
+            key = self.items[index][0]
+            old_value = self.items[index][1]
+            value_type = self.types[index]
+
+            def on_done_input(new_value):
+                if value_type is bool:
+                    new_value = bool(new_value)
+                self.set_global_setting(key, new_value)
+
+            window.show_input_panel('new value for "' + key + '": ',
+                                    old_value, on_done_input, None, None)
+
+        window.show_quick_panel(self.items, on_done)
+
+    def _handle_reply_codemodel(self, thedict) -> None:
+        configurations = thedict.pop("configurations")
+        self.include_paths = set()
+        self.targets = set()
+        for config in configurations:
+            projects = config.pop("projects")
+            for project in projects:
+                targets = project.pop("targets")
+                for target in targets:
+                    target_type = target.pop("type")
+                    target_name = target.pop("name")
+                    try:
+                        target_fullname = target.pop("fullName")
+                    except KeyError as e:
+                        target_fullname = target_name
+                    target_dir = target.pop("buildDirectory")
+                    self.targets.add(
+                        Target(target_name, target_fullname, target_type,
+                               target_dir, ""))
+                    if target_type == "EXECUTABLE":
+                        self.targets.add(Target("Run: " + target_name,
+                                                target_fullname, "RUN",
+                                                target_dir, ""))
+                    file_groups = target.pop("fileGroups", [])
+                    for file_group in file_groups:
+                        include_paths = file_group.pop("includePath", [])
+                        for include_path in include_paths:
+                            path = include_path.pop("path", None)
+                            if path:
+                                self.include_paths.add(path)
+        self.targets.add(
+            Target("BUILD ALL", "BUILD ALL", "ALL",
+                   self.cmake.build_folder, ""))
+        self.targets = list(self.targets)
+        path = os.path.join(self.cmake.build_folder,
+                            "compile_commands.json")
+        if os.path.isfile(path):
+            self.handle_compdb()
+        view = self.window.active_view()
+        if view:
+            ServerManager.on_activated(view)
+
+    def _handle_reply_cache(self, thedict) -> None:
+        cache = thedict.pop("cache")
+        self.items = []
+        for item in cache:
+            t = item["type"]
+            if t in ("INTERNAL", "STATIC"):
+                continue
+            try:
+                docstring = item["properties"]["HELPSTRING"]
+            except Exception as e:
+                docstring = ""
+            key = item["key"]
+            value = item["value"]
+            self.items.append(
+                [key + " [" + t.lower() + "]", value, docstring])
+
+        def on_done(index):
+            if index == -1:
+                return
+            item = self.items[index]
+            key = item[0].split(" ")[0]
+            old_value = item[1]
+
+            def on_done_input(new_value):
+                self.configure({key: value})
+
+            self.window.show_input_panel('new value for "' + key + '": ',
+                                         old_value, on_done_input, None, None)
+
+        self.window.show_quick_panel(self.items, on_done)
 
     def handle_compdb(self):
         settings = sublime.load_settings("CMakeBuilder.sublime-settings")
