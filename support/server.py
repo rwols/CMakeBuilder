@@ -9,6 +9,7 @@ import shutil
 from .headerdb import make_headerdb
 from .db.json import JSONCompilationDatabase
 from .models import CompileCommand
+from ..commands.command import ServerManager
 
 
 class Target(object):
@@ -234,7 +235,6 @@ class Server(Default.exec.ProcessListener):
         elif reply == "cmakeInputs":
             self.dump_to_new_view(thedict, "CMake Inputs")
         elif reply == "globalSettings":
-            # thedict.pop("inReplyTo")
             thedict.pop("cookie")
             thedict.pop("capabilities")
             self.items = []
@@ -267,7 +267,6 @@ class Server(Default.exec.ProcessListener):
             self.include_paths = set()
             self.targets = set()
             for config in configurations:
-                # name = config.pop("name")
                 projects = config.pop("projects")
                 for project in projects:
                     targets = project.pop("targets")
@@ -301,6 +300,9 @@ class Server(Default.exec.ProcessListener):
                                 "compile_commands.json")
             if os.path.isfile(path):
                 self.handle_compdb()
+            view = self.window.active_view()
+            if view:
+                ServerManager.on_activated(view)
         elif reply == "cache":
             cache = thedict.pop("cache")
             self.items = []
