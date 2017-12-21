@@ -353,6 +353,13 @@ class ServerManager(sublime_plugin.EventListener):
         view = server.window.active_view()
         if view:
             cls.on_activated(view)
+            status = view.get_status("cmake_active_target")
+            if not status:
+                server.window.run_command(
+                    "set_build_system",
+                    {"file":
+                        "$packages/CMakeBuilder/CMakeBuilder.sublime-build"})
+                server.window.run_command("cmake_set_target")
 
     @classmethod
     def on_activated(cls, view):
