@@ -350,7 +350,9 @@ class ServerManager(sublime_plugin.EventListener):
 
     @classmethod
     def _codemodel_handler(cls, server):
-        cls.on_activated(server.view)
+        view = server.window.active_view()
+        if view:
+            cls.on_activated(view)
 
     @classmethod
     def on_activated(cls, view):
