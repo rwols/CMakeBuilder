@@ -9,7 +9,12 @@ import shutil
 from .headerdb import make_headerdb
 from .db.json import JSONCompilationDatabase
 from .models import CompileCommand
-from ..commands.command import ServerManager
+
+try:
+    from typing import Optional, Callable
+    assert Optional and Callable
+except ImportError:
+    pass
 
 
 class Target(object):
@@ -43,7 +48,8 @@ class Server(Default.exec.ProcessListener):
                  experimental=True,
                  debug=True,
                  protocol=(1, 0),
-                 env={}):
+                 env={},
+                 on_codemodel_done_handler=None):
         self.window = window
         self.cmake = cmake_settings
         self.experimental = experimental
@@ -54,8 +60,12 @@ class Server(Default.exec.ProcessListener):
         self.data_parts = ''
         self.inside_json_object = False
         self.include_paths = set()
-        self.targets = None
+        self.targets = None  # type: list
         self.encoding = "utf-8"  # Implement listener protocol
+
+        # type: Optional[Callable]
+        self.on_codemodel_done_handler = on_codemodel_done_handler
+
         cmd = ["cmake", "-E", "server"]
         if experimental:
             cmd.append("--experimental")
@@ -322,9 +332,8 @@ class Server(Default.exec.ProcessListener):
                             "compile_commands.json")
         if os.path.isfile(path):
             self.handle_compdb()
-        view = self.window.active_view()
-        if view:
-            ServerManager.on_activated(view)
+        if self.on_codemodel_done_handler:
+            self.on_codemodel_done_handler(self)
 
     def _handle_reply_cache(self, thedict) -> None:
         cache = thedict.pop("cache")

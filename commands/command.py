@@ -335,7 +335,8 @@ class ServerManager(sublime_plugin.EventListener):
         else:
             protocol = (1, 0)
         print("Chosen protocol is", protocol)
-        server = Server(cls.window, cmake_settings, protocol=protocol)
+        server = Server(cls.window, cmake_settings, protocol=protocol,
+                        on_codemodel_done_handler=cls._codemodel_handler)
         cls.source_folder = ""
         cls.build_folder = ""
         cls.build_folder_pre_expansion = ""
@@ -346,6 +347,10 @@ class ServerManager(sublime_plugin.EventListener):
         cls.schemes = []
         cls.command_line_overrides = {}
         cls._servers[cls.window.id()] = server
+
+    @classmethod
+    def _codemodel_handler(cls, server):
+        cls.on_activated(server.view)
 
     @classmethod
     def on_activated(cls, view):
