@@ -35,7 +35,9 @@ class CmakeBuildCommand(CmakeCommand):
                                   "file instead.")
             return
         if not self.is_enabled():
-            sublime.error_message("Cannot build a CMake target!")
+            sublime.error_message("Cannot build a CMake target! Don't forget "
+                                  'to set the "Build System" to '
+                                  '"CMakeBuilder", too.')
             return
         path = os.path.join(self.server.cmake.build_folder,
                             "CMakeFiles",
