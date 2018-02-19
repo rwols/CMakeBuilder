@@ -1,0 +1,9 @@
+- Fix missing encoding attribute for Sublime Text builds 3153 and higher.
+- The "TARGET" notification in the status bar now displays once you configured.
+- Present a list of targets once configured succesfully.
+- Better diagnostic message when trying to build a cmake target that fails.
+- Account for protocol version 1.1.
+- The lowest ST build that I'm willing to support is probably going to be 3153,
+  due to how Default.exec.ProcessListener was changed a bit in that version.
+  Most people will have a sufficiently high version once I release this on
+  Package Control I believe.
