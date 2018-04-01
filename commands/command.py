@@ -178,7 +178,7 @@ class ServerManager(sublime_plugin.EventListener):
         else:
             # Ask the user what he/she wants.
             cls.window.show_quick_panel(cls.items,
-                                         cls._on_done_select_scheme)
+                                        cls._on_done_select_scheme)
 
     @classmethod
     def _on_done_select_scheme(cls, index):
@@ -308,6 +308,10 @@ class ServerManager(sublime_plugin.EventListener):
             else:
                 print("CMakeBuilder: Warning: Generator", cls.generator,
                       "will not have syntax highlighting in the output panel.")
+            # Replace backslashes with forward slashes in paths.
+            cmake_settings.source_folder = cmake_settings.source_folder.replace("\\", "/")
+            cmake_settings.build_folder = cmake_settings.build_folder.replace("\\", "/")
+            cmake_settings.build_folder_pre_expansion = cmake_settings.build_folder_pre_expansion.replace("\\", "/")
         else:
             sublime.error_message("Unknown platform: " + sublime.platform())
             return
