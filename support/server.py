@@ -359,7 +359,7 @@ class Server(Default.exec.ProcessListener):
             old_value = item[1]
 
             def on_done_input(new_value):
-                self.configure({key: value})
+                self.configure({key: new_value})
 
             self.window.show_input_panel('new value for "' + key + '": ',
                                          old_value, on_done_input, None, None)
