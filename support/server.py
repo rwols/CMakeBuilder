@@ -66,7 +66,9 @@ class Server(Default.exec.ProcessListener):
         # type: Optional[Callable]
         self.on_codemodel_done_handler = on_codemodel_done_handler
 
-        cmd = ["cmake", "-E", "server"]
+        settings = sublime.load_settings("CMakeBuilder.sublime-settings")
+        cmake_binary = settings.get("cmake_binary", "cmake")
+        cmd = [cmake_binary, "-E", "server"]
         if experimental:
             cmd.append("--experimental")
         if debug:
@@ -205,6 +207,7 @@ class Server(Default.exec.ProcessListener):
         t = thedict.pop("type")
         if t == "hello":
             self.supported_protocols = thedict.pop("supportedProtocolVersions")
+            print(self.supported_protocols)
             self.send_handshake()
         elif t == "reply":
             self.receive_reply(thedict)

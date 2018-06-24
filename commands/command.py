@@ -334,7 +334,9 @@ class ServerManager(sublime_plugin.EventListener):
                     return
         pickle.dump(cmake_settings, open(path, "wb"))
         version = capabilities("version")
-        if version["major"] >= 3 and version["minor"] >= 10:
+        if version["major"] >= 3 and version["minor"] >= 11:
+            protocol = (1, 2)
+        elif version["major"] >= 3 and version["minor"] >= 10:
             protocol = (1, 1)
         else:
             protocol = (1, 0)

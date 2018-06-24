@@ -18,6 +18,11 @@
 
     //==========================================================================
 
+    // The path to the CMake binary. If CMake is in your PATH, then you don't
+    // have to change this. Otherwise, specify the full path to the CMake
+    // executable.
+    "cmake_binary": "cmake",
+
     // If there's a compile_commands.json file generated with
     // CMAKE_EXPORT_COMPILE_COMMANDS, do we want to copy it over to the source
     // directory? This is useful for, for instance, clangd.
