@@ -10,20 +10,27 @@ from distutils.ccompiler import CCompiler, gen_lib_options
 from distutils import log
 from distutils.util import get_platform
 
-import winreg
+try:
+
+    import winreg
+
+    RegOpenKeyEx = winreg.OpenKeyEx
+    RegEnumKey = winreg.EnumKey
+    RegEnumValue = winreg.EnumValue
+    RegError = winreg.error
+
+    HKEYS = (winreg.HKEY_USERS,
+             winreg.HKEY_CURRENT_USER,
+             winreg.HKEY_LOCAL_MACHINE,
+             winreg.HKEY_CLASSES_ROOT)
+
+except ImportError:
+    pass
+
 import subprocess
 import sys
 import os
 
-RegOpenKeyEx = winreg.OpenKeyEx
-RegEnumKey = winreg.EnumKey
-RegEnumValue = winreg.EnumValue
-RegError = winreg.error
-
-HKEYS = (winreg.HKEY_USERS,
-         winreg.HKEY_CURRENT_USER,
-         winreg.HKEY_LOCAL_MACHINE,
-         winreg.HKEY_CLASSES_ROOT)
 
 NATIVE_WIN64 = (sys.platform == 'win32' and sys.maxsize > 2**32)
 if NATIVE_WIN64:
@@ -157,8 +164,7 @@ def find_vcvarsall(version):
     return None
 
 def query_vcvarsall(version, arch="x86"):
-    """Launch vcvarsall.bat and read the settings from its environment
-    """
+    """Launch vcvarsall.bat and read the settings from its environment"""
     vcvarsall = find_vcvarsall(version)
     interesting = set(("include", "lib", "libpath", "path"))
     result = {}

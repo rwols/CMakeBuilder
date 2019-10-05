@@ -1,5 +1,0 @@
-{
-    "tests_dir" : "tests",
-    "pattern" : "test_*",
-    "deferred": true
-}

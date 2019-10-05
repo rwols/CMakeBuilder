@@ -22,53 +22,12 @@
             "mnemonic": "C"
           },
           {
-            "command": "cmake_write_build_targets",
-            "mnemonic": "W"
-          },
-          {
             "command": "cmake_open_build_folder",
             "mnemonic": "B"
           },
           {
-            "command": "cmake_edit_cache"
-          },
-          {
             "command": "cmake_clear_cache"
           },
-          {
-            "command": "cmake_run_ctest",
-            "mnemonic": "C"
-          },
-          {
-            "command": "cmake_new_project",
-            "mnemonic": "N"
-          },
-          {
-            "command": "cmake_set_target",
-            "mnemonic": "T"
-          },
-          {
-            "command": "cmake_reveal_include_directories",
-            "mnemonic": "I"
-          },
-          {
-            "command": "cmake_dump_file_system_watchers",
-          },
-          {
-            "command": "cmake_dump_inputs"
-          },
-          {
-            "command": "cmake_set_global_setting"
-          },
-          {
-            "command": "cmake_show_configure_output"
-          },
-          {
-            "command": "cmake_switch_scheme"
-          },
-          {
-            "command": "cmake_restart_server"
-          }
         ]
       }
     ]
