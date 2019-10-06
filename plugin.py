@@ -726,7 +726,7 @@ class CmakeConfigureCommand(ExecCommand):
                     "debug": True})
             elif sublime.platform() == "osx":
                 variants.append({
-                    "name": "Run uner LLDB: " + name,
+                    "name": "Run under LLDB: " + name,
                     "build_target": name,
                     "target": "cmake_run",
                     "artifact": artifacts[0],
