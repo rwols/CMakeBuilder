@@ -109,6 +109,12 @@ dictionary accepts the following keys:
   argument passed to CMake. As in the case of `command_line_overrides`, the
   dictionary is converted into a string as in `key1=value1;key2=value2`.
 
+* `vs_major_version` [optional integer]
+
+  When using the Ninja generator on Windows, by default it will use the most
+  recent Visual Studio SDK on the system. If you need another SDK, define
+  the `vs_major_version` number to be 15 or 16.
+
 Any key may be overridden by a platform-specific override. The platform keys
 are one of `"linux"`, `"osx"` or `"windows"`. For an example on how this works,
 see below.

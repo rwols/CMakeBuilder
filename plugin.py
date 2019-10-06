@@ -163,7 +163,7 @@ def get_vs_major_version_from_generator_str(generator_str: str) -> int:
 def cmake_arch_to_vs_arch(arch: str) -> str:
     if arch == "x64":
         return "amd64"
- 
+
     elif arch == "x86":
         return "x86"
     elif arch == "arm":
@@ -331,8 +331,8 @@ def write_query(window: sublime.Window, build_folder: str) -> None:
 def get_index_file(build_folder: str) -> str:
     path = join(file_api_reply(build_folder), "index-")
     # Whenever a new index file is generated it is given a new name and any old
-    # one is deleted. During the short time between these steps there may be 
-    # multiple index files present; the one with the largest name in 
+    # one is deleted. During the short time between these steps there may be
+    # multiple index files present; the one with the largest name in
     # lexicographic order is the current index file.
     return sorted(iglob(path + "*.json"), reverse=True)[0]
 
