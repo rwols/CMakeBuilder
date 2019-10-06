@@ -233,8 +233,6 @@ This is a reference list for the valid variable substitutions for your
 * project\_base\_name
 * project\_extension
 
-## Contributing
-
 [2]: https://cmake.org/cmake/help/latest/command/add_test.html
 [9]: https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/9.png
 [10]: https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/10.png
