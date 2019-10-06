@@ -216,8 +216,7 @@ def __reload_capabilities():
         cmake = settings.get("cmake_binary", "cmake")
         command = "{} -E capabilities".format(cmake)
         log("running", command)
-        output = check_output(command)
-        __capabilities = json.loads(output)
+        __capabilities = json.loads(check_output(command))
     except Exception as e:
         sublime.error_message("There was an error loading cmake's "
                               "capabilities. Your \"cmake_binary\" setting is "
@@ -343,7 +342,7 @@ def load_reply(build_folder: str) -> dict:
 
 
 def get_cmake_generator(cmake: dict) -> 'Optional[str]':
-    return str(get_cmake_value(cmake, 'generator'))
+    return get_cmake_value(cmake, 'generator')
 
 
 def get_setting(view: sublime.View, key, default=None) -> 'Union[bool, str]':
@@ -585,6 +584,12 @@ class CmakeConfigureCommand(ExecCommand):
             else:
                 host_arch = "x64"
             target_arch = self.__arch if self.__arch else "x64"
+            old_target_arch = self.__get_cmake_value("target_architecture")
+            if old_target_arch:
+                if old_target_arch == "amd64":
+                    target_arch = "x64"
+                else:
+                    target_arch = old_target_arch
             host_arch = cmake_arch_to_vs_arch(host_arch)
             target_arch = cmake_arch_to_vs_arch(target_arch)
             try:
@@ -594,9 +599,15 @@ class CmakeConfigureCommand(ExecCommand):
                     env = get_vs_env(vs_major_version, host_arch,
                                      target_arch)
                 else:
-                    assert self.__generator
-                    env = get_vs_env_from_generator_str(
-                        self.__generator, host_arch, target_arch)
+                    vs_versions = self.__get_cmake_value(
+                        "visual_studio_versions", [])
+                    if vs_versions:
+                        env = get_vs_env(vs_versions[0], host_arch,
+                                         target_arch)
+                    else:
+                        assert self.__generator
+                        env = get_vs_env_from_generator_str(
+                            self.__generator, host_arch, target_arch)
             except Exception as ex:
                 sublime.error_message("Error while fetching Visual Studio "
                                       "environment: {}".format(ex))
@@ -614,7 +625,6 @@ class CmakeConfigureCommand(ExecCommand):
             return ""
         items = ["{}={}".format(*kv) for kv in toolset.items()]
         return "-T{}".format(",".join(items))
-
 
     def __get_cmake_value(
         self,
@@ -648,7 +658,7 @@ class CmakeConfigureCommand(ExecCommand):
             try:
                 self.__handle_response(response)
             except Exception as e:
-                print(e)
+                log(e)
 
     def __load_reply_json_file(self, json_file: str) -> dict:
         assert self.__build_folder
@@ -661,7 +671,7 @@ class CmakeConfigureCommand(ExecCommand):
         kind = response["kind"]
         handler = self.__response_handlers.get(kind)
         if not handler:
-            print('no response handler installed for "{}"'.format(kind))
+            log('no response handler installed for "{}"'.format(kind))
             return
         handler(data)
 
