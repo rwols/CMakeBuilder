@@ -1,4 +1,2 @@
-*.pyc
-.coverage
-.vagrant
-tests/*build*
+CMakeBuilder.sublime-workspace
+.mypy_cache/

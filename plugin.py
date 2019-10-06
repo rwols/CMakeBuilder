@@ -1,4 +1,4 @@
-from Default.exec import ExecCommand
+from Default.exec import ExecCommand  # type: ignore
 from glob import iglob
 from os import makedirs
 from os.path import dirname
@@ -9,22 +9,28 @@ from tabulate import tabulate  # dependencies.json
 import itertools
 import json
 import os
-import sublime
-import sublime_plugin
+import sublime  # type: ignore
+import sublime_plugin  # type: ignore
 import subprocess
 import collections
 
 try:
-    import Terminus
+    from typing import Dict, List, Union, Optional, Any, Callable
+    assert Dict and List and Union and Optional and Any and Callable
+except ImportError:
+    pass
+
+try:
+    import Terminus  # type: ignore
 except ImportError:
     Terminus = None
 
 
-QUERY = {  # type: Dict[str, Any]
+QUERY = {
     "requests": [
         {"kind": "codemodel",  "version": 2},
     ]
-}
+}  # type: Dict[str, Any]
 
 
 CLIENT_STR = "client-sublimetext"
@@ -151,6 +157,7 @@ def get_vs_major_version_from_generator_str(generator_str: str) -> int:
     words = generator_str.split()
     if len(words) > 2:
         return int(words[2])
+    raise RuntimeError("unexpected generator string: {}".format(generator_str))
 
 
 def cmake_arch_to_vs_arch(arch: str) -> str:
@@ -278,8 +285,7 @@ class VisualStudioGenerator(Generator):
         return syntax("Visual_Studio")
 
     def regex(self) -> str:
-        return (r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) ',
-                r'\w+\d\d\d\d: .*) \[.*$')
+        return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
 
 
 def make_generator(build_folder: str, generator: 'Optional[str]') -> Generator:
@@ -337,7 +343,7 @@ def load_reply(build_folder: str) -> dict:
 
 
 def get_cmake_generator(cmake: dict) -> 'Optional[str]':
-    return get_cmake_value(cmake, 'generator')
+    return str(get_cmake_value(cmake, 'generator'))
 
 
 def get_setting(view: sublime.View, key, default=None) -> 'Union[bool, str]':
@@ -350,11 +356,11 @@ def get_setting(view: sublime.View, key, default=None) -> 'Union[bool, str]':
 
 
 def get_cmake_binary() -> str:
-    return get_setting(None, "cmake_binary", "cmake")
+    return str(get_setting(None, "cmake_binary", "cmake"))
 
 
 def get_ctest_binary() -> str:
-    return get_setting(None, "ctest_binary", "ctest")
+    return str(get_setting(None, "ctest_binary", "ctest"))
 
 
 def log(*args) -> None:
@@ -370,7 +376,7 @@ def get_cmake_value(
     the_dict: 'Dict[str, Any]',
     key: str,
     default=None
-) -> 'Union[None, bool, str, list, dict]':
+) -> 'Any':
     try:
         return the_dict[sublime.platform()][key]
     except KeyError:
@@ -435,7 +441,7 @@ class CmakeRunCommand(sublime_plugin.WindowCommand):
             shell = ["cmd.exe", "/C"]
             executable = ".\\{}".format(artifact.replace("/", "\\"))
             conjunction = "&"
-            debugger = []
+            debugger = []  # type: List[str]
             if debug:
                 sublime.error_message(
                     "There is no support for WinDbg.exe, because I have not "
@@ -476,9 +482,9 @@ class CtestRunCommand(ExecCommand):
         generator: 'Optional[str]' = None,
     ) -> None:
         extra_args = get_setting(self.window.active_view(),
-                                 "ctest_command_line_args", [])
+                                 "ctest_command_line_args", "")
         super().run(
-            cmd=[get_ctest_binary(), "-C", config] + [extra_args],
+            cmd=[get_ctest_binary(), "-C", config] + [str(extra_args)],
             working_dir=working_dir,
             env=env,
             syntax=syntax("CTest"))
@@ -493,9 +499,9 @@ class CmakeConfigureCommand(ExecCommand):
         self.__build_folder = None  # type: Optional[str]
         self.__overrides = {}  # type: Dict[str, Any]
         self.__generator = None  # type: Optional[str]
-        self.__response_handlers = {  # type: Dict[str, Callable]
+        self.__response_handlers = {
             "codemodel": self.__handle_response_codemodel,
-        }
+        }  # type: Dict[str, Callable]
         self.__build_systems = []  # type: List[Dict[str, Any]]
 
     def is_enabled(self) -> bool:
@@ -505,21 +511,19 @@ class CmakeConfigureCommand(ExecCommand):
                 "build_folder", None)
             if not self.__unexpanded_build_folder:
                 raise KeyError("build_folder key not present")
-            self.__cmake = expand(self.window, self.__cmake)
+            self.__cmake = expand(self.window, self.__cmake or {})
             self.__build_folder = self.__get_cmake_value("build_folder", None)
             self.__overrides = self.__get_cmake_value("command_line_overrides",
                                                       {})
             self.__generator = get_cmake_generator(self.__cmake)
             return True
-        except Exception as e:
+        except Exception as ex:
             self.__cmake = None
             self.__unexpanded_build_folder = None
             self.__build_folder = None
             self.__overrides = {}
             self.__generator = None
-            e = str(e)
-            if e != "'settings'":
-                log(str(e))
+            log("Configure command not enabled:", ex)
             return False
 
     def description(self) -> str:
@@ -544,6 +548,7 @@ class CmakeConfigureCommand(ExecCommand):
         return result
 
     def run(self) -> None:
+        assert self.__build_folder
         if capabilities("fileApi") is None:
             sublime.error_message("No support for the file API. "
                 "This was introduced in cmake version 3.15. You have "
@@ -589,6 +594,7 @@ class CmakeConfigureCommand(ExecCommand):
                     env = get_vs_env(vs_major_version, host_arch,
                                      target_arch)
                 else:
+                    assert self.__generator
                     env = get_vs_env_from_generator_str(
                         self.__generator, host_arch, target_arch)
             except Exception as ex:
@@ -605,7 +611,7 @@ class CmakeConfigureCommand(ExecCommand):
 
     def __convert_toolset_to_str(self, toolset: 'Dict[str, str]') -> str:
         if not toolset:
-            return []
+            return ""
         items = ["{}={}".format(*kv) for kv in toolset.items()]
         return "-T{}".format(",".join(items))
 
@@ -614,7 +620,8 @@ class CmakeConfigureCommand(ExecCommand):
         self,
         key: str,
         default=None
-    ) -> 'Union[None, bool, list, dict]':
+    ) -> 'Any':
+        assert self.__cmake is not None
         return get_cmake_value(self.__cmake, key, default)
 
     def __get_working_dir(self):
@@ -644,6 +651,7 @@ class CmakeConfigureCommand(ExecCommand):
                 print(e)
 
     def __load_reply_json_file(self, json_file: str) -> dict:
+        assert self.__build_folder
         path = join(file_api_reply(self.__build_folder), json_file)
         with open(path, "r") as fp:
             return json.load(fp)
@@ -678,7 +686,7 @@ class CmakeConfigureCommand(ExecCommand):
                 if self.__generator:
                     build_system["generator"] = self.__generator
                 targets = configuration["targets"]
-                variants = []
+                variants = []  # type: List[Dict[str, Any]]
                 for target in targets:
                     data = self.__load_reply_json_file(target["jsonFile"])
                     self.__handle_target(variants, name, data)
@@ -688,7 +696,7 @@ class CmakeConfigureCommand(ExecCommand):
         except Exception as ex:
             self.__error = ex
 
-    def __handle_target(self, variants: 'List[Dict[str, Any]', config: str,
+    def __handle_target(self, variants: 'List[Dict[str, Any]]', config: str,
                         data: dict) -> None:
         name = data["name"]
         log("parsing target", name, "for config", config)
@@ -835,7 +843,8 @@ class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
             settings = self.window.project_data()["settings"]
             self.__build_folder = settings["cmake"]["build_folder"]
             self.__build_folder = expand(self.window, self.__build_folder)
-            return isfile(join(self.__build_folder, "CMakeCache.txt"))
+            assert self.__build_folder is not None
+            return isfile(join(str(self.__build_folder), "CMakeCache.txt"))
         except Exception as e:
             pass
         return False
