@@ -1,2 +1,31 @@
-- Remove deprecated server functionality.
-- Use the new "file API", requires cmake 3.15 or newer.
+* Remove deprecated server functionality.
+  It was an interesting ride but at the end of the day I don't think it was
+  the right kind of API for cmake.
+
+* Use the new "file API", requires cmake 3.15 or newer.
+  OSX users can use `brew upgrade cmake`. Windows users can point-and-click
+  to a new cmake binary, Linux users can use their package manager to update
+  cmake. Ubuntu 19 users are unfortunately stuck with cmake 3.14 so you'll
+  have to upgrade manually.
+
+* Remove "NMake Makefiles" support. I don't think many people used this.
+  If you really need this, consider contributing code at
+  github.com/rwols/cmakebuilder.
+
+* You can now provide an exact visual studio generator on windows. So for
+  instance, "Visual Studio 16 2019" or "Visual Studio 15 2017". These are also
+  the only supported ones at the moment. But that is because of the next
+  bullet point.
+
+* Fix up handling of vcvarsall.bat. Because the location of vcvarsall.bat,
+  as well as the method of finding the file has changed significantly since
+  VS2017, I only provide support for VS2017 and up. If you really need support
+  for VS2015 and older, consider contributing code.
+
+* We now generate a SublimeText build system in a much more compact way,
+  using custom target commands.
+
+* Terminus integration. The "Terminus" plugin is a plugin that allows you to
+  reliably run a terminal from within SublimeText. CMakeBuilder uses the
+  `terminus_open` command to run/debug executables from within SublimeText.
+  This is exposed as just another build variant with a "Run:" prefix.
