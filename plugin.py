@@ -1,4 +1,3 @@
-from .vcvarsall import query_vcvarsall
 from Default.exec import ExecCommand
 from glob import iglob
 from os import makedirs
@@ -7,12 +6,13 @@ from os.path import isfile
 from os.path import join
 from os.path import realpath
 from tabulate import tabulate  # dependencies.json
+import itertools
 import json
 import os
-import shutil
 import sublime
 import sublime_plugin
 import subprocess
+import collections
 
 try:
     import Terminus
@@ -30,14 +30,14 @@ QUERY = {  # type: Dict[str, Any]
 CLIENT_STR = "client-sublimetext"
 
 
-VISUAL_STUDIO_VERSIONS = [18, 17, 16, 15, 14.1, 14, 13, 12, 11, 10, 9, 8]
-
-
 class CheckOutputException(Exception):
     """Gets raised when there's a non-empty error stream."""
     def __init__(self, errs):
         super(CheckOutputException, self).__init__()
         self.errs = errs
+
+    def __str__(self) -> str:
+        return self.errs
 
 
 def check_output(shell_cmd, env=None, cwd=None):
@@ -68,6 +68,129 @@ def check_output(shell_cmd, env=None, cwd=None):
     if errs:
         raise CheckOutputException(errs)
     return outs.decode("utf-8")
+
+
+def get_environment_from_batch_command(env_cmd) -> 'Dict[str, str]':
+    shell = os.environ["COMSPEC"]
+    result = {}
+    cmd = '{shell} /s /c "{env_cmd}" & set'.format(**vars())
+    out = check_output(cmd)
+    for line in out.split("\n"):
+        if '=' not in line:
+            continue
+        line = line.strip()
+        key, value = line.split('=', 1)
+        key = key.lower()
+        if key in ("include", "lib", "libpath", "path"):
+            if value.endswith(os.pathsep):
+                value = value[:-1]
+            result[key] = value
+    return result
+
+
+def get_vcvarsall_path(desired_vs_major_version: int) -> str:
+    if desired_vs_major_version < 15:
+        raise ValueError("major versions less than 15 (2017) are not supported")
+    for vs in get_all_vs_installed_versions():
+        path = vs["path"]
+        version = vs["version"]
+        major_version = int(version.split(".")[0])
+        if major_version == desired_vs_major_version:
+            return join(path, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+    raise RuntimeError("cannot find a visual studio SDK for major version"
+                       " {}".format(desired_vs_major_version))
+
+
+def parse_vcvarsall(vcvarsall_path: str,
+                    target_architecture: str,
+                    host_architecture: str) -> 'Dict[str, str]':
+    if host_architecture == target_architecture:
+        arg = host_architecture
+    else:
+        arg = "{}_{}".format(host_architecture, target_architecture)
+    env_cmd = '"{}" {}'.format(vcvarsall_path, arg)
+    shell = os.environ["COMSPEC"]
+    out = check_output('{} /s /c "{}" & set'.format(shell, env_cmd))
+    result = {}
+    for line in out.split("\n"):
+        if '=' not in line:
+            continue
+        line = line.strip()
+        key, value = line.split('=', 1)
+        key = key.lower()
+        if key in ("include", "lib", "libpath", "path"):
+            if value.endswith(os.pathsep):
+                value = value[:-1]
+            result[key] = value
+    return result
+
+
+def get_vs_env(desired_vs_major_version: int,
+               host_architecture: str,
+               target_architecture: str) -> 'Dict[str, str]':
+    return parse_vcvarsall(
+        get_vcvarsall_path(desired_vs_major_version),
+        host_architecture,
+        target_architecture)
+
+
+def get_vs_env_from_generator_str(
+    generator_str: str,
+    host_architecture: str,
+    target_architecture: str
+) -> 'Dict[str, str]':
+    return get_vs_env(
+        get_vs_major_version_from_generator_str(generator_str),
+        host_architecture,
+        target_architecture)
+
+
+def get_vs_major_version_from_generator_str(generator_str: str) -> int:
+    if generator_str == "Ninja":
+        generator_str = get_default_vs_generator_name()
+    words = generator_str.split()
+    if len(words) > 2:
+        return int(words[2])
+
+
+def cmake_arch_to_vs_arch(arch: str) -> str:
+    if arch == "x64":
+        return "amd64"
+ 
+    elif arch == "x86":
+        return "x86"
+    elif arch == "arm":
+        return "arm"
+    raise ValueError("unknown platform/toolset architecture: {}".format(arch))
+
+
+def get_all_vs_generator_names():
+    result = []
+    for gen in capabilities("generators"):
+        name = gen["name"]
+        if name.startswith("Visual Studio"):
+            if not name.endswith("Win64") and not name.endswith("ARM"):
+                result.append(name)
+    return result
+
+def get_all_vs_installed_versions():
+    cwd = join(os.environ["PROGRAMFILES(X86)"], "Microsoft Visual Studio",
+               "Installer")
+    cmd = "vswhere.exe -prerelease -legacy -format json -utf8"
+    data = json.loads(check_output(cmd, cwd=cwd))
+    return [{"path": vs["installationPath"],
+             "version": vs["installationVersion"]} for vs in data]
+
+
+def get_default_vs_generator_name():
+    names = get_all_vs_generator_names()
+    f = get_vs_major_version_from_generator_str
+    versions = [f(n) for n in names]
+    installed = get_all_vs_installed_versions()
+    for ver, name in sorted(zip(versions, names), reverse=True):
+        for installation in installed:
+            if installation["version"].startswith(str(ver)):
+                return name
 
 
 __capabilities = None
@@ -109,24 +232,6 @@ def capabilities(key):
 
 
 class Generator:
-
-    def env(self) -> dict:
-        if sublime.platform() == "windows":
-            arch = "amd64"
-            host = "x86" if sublime.arch() == "x32" else "amd64"
-            if arch != host:
-                arch = host + '_' + arch
-            for version in VISUAL_STUDIO_VERSIONS:
-                try:
-                    vcvars = query_vcvarsall(version, arch)
-                    if vcvars:
-                        log('found vcvarsall for version', version)
-                        return vcvars
-                except Exception:
-                    log('could not find vsvcarsall for version', version)
-                    continue
-            log('warning: did not find vcvarsall.bat')
-        return {}
 
     def syntax(self) -> str:
         raise NotImplementedError()
@@ -177,14 +282,16 @@ class VisualStudioGenerator(Generator):
                 r'\w+\d\d\d\d: .*) \[.*$')
 
 
-def make_generator(generator_str: str) -> Generator:
-    if generator_str == "Ninja":
+def make_generator(build_folder: str, generator: 'Optional[str]') -> Generator:
+    if generator is None:
+        generator = load_reply(build_folder)["cmake"]["generator"]["name"]
+    if generator == "Ninja":
         return NinjaGenerator()
-    elif generator_str == "NMake Makefiles":
+    elif generator == "NMake Makefiles":
         return NMakeMakefilesGenerator()
-    elif generator_str == "Visual Studio":
+    elif generator.startswith("Visual Studio"):
         return VisualStudioGenerator()
-    elif generator_str == "Unix Makefiles":
+    elif generator == "Unix Makefiles":
         return UnixMakefilesGenerator()
     raise KeyError("unknown generator")
 
@@ -217,6 +324,10 @@ def write_query(window: sublime.Window, build_folder: str) -> None:
 
 def get_index_file(build_folder: str) -> str:
     path = join(file_api_reply(build_folder), "index-")
+    # Whenever a new index file is generated it is given a new name and any old
+    # one is deleted. During the short time between these steps there may be 
+    # multiple index files present; the one with the largest name in 
+    # lexicographic order is the current index file.
     return sorted(iglob(path + "*.json"), reverse=True)[0]
 
 
@@ -225,13 +336,8 @@ def load_reply(build_folder: str) -> dict:
         return json.load(fp)
 
 
-def get_cmake_generator(cmake: dict) -> str:
-    generator = get_cmake_value(cmake, 'generator')
-    if generator:
-        return generator
-    if sublime.platform() == 'windows':
-        return 'Visual Studio'
-    return 'Unix Makefiles'
+def get_cmake_generator(cmake: dict) -> 'Optional[str]':
+    return get_cmake_value(cmake, 'generator')
 
 
 def get_setting(view: sublime.View, key, default=None) -> 'Union[bool, str]':
@@ -275,41 +381,49 @@ def get_cmake_value(
         return default
 
 
+def get_cmake_env(window: sublime.Window) -> 'Dict[str, str]':
+    try:
+        data = window.project_data()
+        cmake = data["settings"]["cmake"]
+        return get_cmake_value(cmake, "env", {})
+    except Exception:
+        return {}
+
+
 class CmakeBuildCommand(ExecCommand):
 
     def run(
         self,
-        generator: str,
         working_dir: str,
         config: str,
-        build_target: 'Optional[str]' = None
+        env: 'Dict[str, str]',
+        build_target: 'Optional[str]' = None,
+        generator: 'Optional[str]' = None,
     ) -> None:
-        gen = make_generator(generator)
-        cmd = [
-            get_cmake_binary(),
-            "--build",
-            ".",
-            "--config",
-            config]
+        gen = make_generator(working_dir, generator)
+        cmd = [get_cmake_binary(), "--build", ".", "--config", config]
         if build_target:
             cmd.extend(["--target", build_target])
         super().run(
             cmd=cmd,
             working_dir=working_dir,
-            env=gen.env(),
+            env=env,
             syntax=gen.syntax(),
             line_regex=gen.regex())
 
 
 class CmakeRunCommand(sublime_plugin.WindowCommand):
 
-    def run(self,
-        generator: str,
+    def run(
+        self,
         working_dir: str,
         config: str,
+        env: 'Dict[str, str]',
         build_target: str,
         artifact: str,
-        debug=False
+        generator: 'Optional[str]' = None,
+        debug=False,
+        # target_architecture: 'Optional[str]' = None
     ) -> None:
         if not Terminus:
             sublime.error_message(
@@ -317,57 +431,56 @@ class CmakeRunCommand(sublime_plugin.WindowCommand):
                 '"Terminus" package and then restart '
                 'Sublime Text'.format(artifact))
             return
-        shell = os.environ.get("SHELL")
-        if not shell:
-            if sublime.platform() == "windows":
-                shell = ["cmd.exe"]
-            else:
-                shell = ["/bin/bash"]
         if sublime.platform() == "windows":
-            executable = artifact
+            shell = ["cmd.exe", "/C"]
+            executable = ".\\{}".format(artifact.replace("/", "\\"))
+            conjunction = "&"
+            debugger = []
+            if debug:
+                sublime.error_message(
+                    "There is no support for WinDbg.exe, because I have not "
+                    "found a need for it. If you want to use WinDbg.exe, "
+                    "consider contributing on github.com/rwols/CMakeBuilder")
+                return
         else:
+            shell = ["/bin/bash", "-c"]
             executable = "./{}".format(artifact)
-        cmd = [
-            get_cmake_binary(),
-            "--build",
-            ".",
-            "--config",
-            config,
-            "--target",
-            build_target,
-            "&&"]
-        if debug:
+            conjunction = "&&"
             if sublime.platform() == "linux":
-                debugger = ["gdb", "-q", "--args"]
-            else:
-                debugger = ["lldb", "--"]
-            cmd.extend(debugger)
-        cmd.append(executable)
+                debugger = ["gdb", "-q", "--args"] if debug else []
+            else: # osx
+                debugger = ["lldb", "--"] if debug else []
         view = self.window.active_view()
-        auto_close = get_setting(view, "terminus_auto_close", False)
-        use_panel = get_setting(view, "terminus_use_panel", False)
+        cmd = [get_cmake_binary(), "--build", ".", "--config", config,
+               "--target", build_target, conjunction]
+        cmd.extend(debugger)
+        cmd.append(executable)
+        cmd = shell + [" ".join(cmd)]
         args = {
             "title": build_target,
-            "env": make_generator(generator).env(),
-            "cmd": [shell, "-c", ' '.join(cmd)],
+            "env": env,
+            "cmd": cmd,
             "cwd": working_dir,
-            "auto_close": auto_close}
-        if use_panel:
+            "auto_close": get_setting(view, "terminus_auto_close", False)}
+        if get_setting(view, "terminus_use_panel", False):
             args["panel_name"] = build_target
         self.window.run_command("terminus_open", args)
 
 
 class CtestRunCommand(ExecCommand):
-    def run(self, generator: str, working_dir: str, config: str) -> None:
-        gen = make_generator(generator)
+    def run(
+        self,
+        env: 'Dict[str, str]',
+        working_dir: str,
+        config: str,
+        generator: 'Optional[str]' = None,
+    ) -> None:
         extra_args = get_setting(self.window.active_view(),
                                  "ctest_command_line_args", [])
-        cmd = [get_ctest_binary(), "-C", config]
-        cmd.extend(extra_args)
         super().run(
-            cmd=cmd,
+            cmd=[get_ctest_binary(), "-C", config] + [extra_args],
             working_dir=working_dir,
-            env=gen.env(),
+            env=env,
             syntax=syntax("CTest"))
 
 
@@ -444,23 +557,58 @@ class CmakeConfigureCommand(ExecCommand):
         working_dir = self.__get_working_dir()
         # -H and -B are undocumented arguments.
         # See: http://stackoverflow.com/questions/31090821
-        cmd = [
-            get_cmake_binary(),
-            working_dir,
-            '-B',
-            self.__build_folder]
+        cmd = [get_cmake_binary(), ".", "-B", self.__build_folder]
+        if self.__generator:
+            cmd.extend(["-G", self.__generator])
         if get_setting(self.window.active_view(),
-                       'silence_developer_warnings', False):
-            cmd.append('-Wno-dev')
-        cmd.extend(['-G', self.__generator])
+                       "silence_developer_warnings", False):
+            cmd.append("-Wno-dev")
+        self.__arch = self.__get_cmake_value("platform")
+        if self.__arch:
+            cmd.extend(["-A", self.__arch])
+        self.__toolset = self.__get_cmake_value("toolset")
+        if self.__toolset:
+            cmd.append(self.__convert_toolset_to_str(self.__toolset))
         cmd.extend(self.__convert_overrides_to_list())
         write_query(self.window, self.__build_folder)
+        self.__env = get_cmake_env(self.window)
+        if sublime.platform() == "windows":
+            if not self.__generator:
+                self.__generator = get_default_vs_generator_name()
+            if self.__toolset:
+                host_arch = self.__toolset.get("host", sublime.arch())
+            else:
+                host_arch = "x64"
+            target_arch = self.__arch if self.__arch else "x64"
+            host_arch = cmake_arch_to_vs_arch(host_arch)
+            target_arch = cmake_arch_to_vs_arch(target_arch)
+            try:
+                vs_major_version = self.__get_cmake_value(
+                    "vs_major_version", None)
+                if vs_major_version:
+                    env = get_vs_env(vs_major_version, host_arch,
+                                     target_arch)
+                else:
+                    env = get_vs_env_from_generator_str(
+                        self.__generator, host_arch, target_arch)
+            except Exception as ex:
+                sublime.error_message("Error while fetching Visual Studio "
+                                      "environment: {}".format(ex))
+                return
+            self.__env.update(env)
         super().run(
             cmd=cmd,
             working_dir=working_dir,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
             syntax=syntax("Configure"),
-            env=make_generator(self.__generator).env())
+            env=self.__env)
+
+    def __convert_toolset_to_str(self, toolset: 'Dict[str, str]') -> str:
+        if not toolset:
+            return []
+        items = ["{}={}".format(*kv) for kv in toolset.items()]
+        return "-T{}".format(",".join(items))
+
 
     def __get_cmake_value(
         self,
@@ -476,12 +624,17 @@ class CmakeConfigureCommand(ExecCommand):
         return dirname(self.window.project_file_name())
 
     def on_finished(self, proc):
+        log("finished running cmake")
         super().on_finished(proc)
-        if proc.exit_code() == 0:
+        exit_code = proc.exit_code()
+        if exit_code == 0 or exit_code is None:
             self.__parse_file_api()
             sublime.set_timeout(self.__write_project_data, 0)
+        else:
+            log("exited with an error")
 
     def __parse_file_api(self):
+        log("parsing file api response")
         reply = load_reply(self.__build_folder)
         responses = reply["reply"][CLIENT_STR]["query.json"]["responses"]
         for response in responses:
@@ -505,6 +658,7 @@ class CmakeConfigureCommand(ExecCommand):
         handler(data)
 
     def __handle_response_codemodel(self, data: dict) -> None:
+        log("parsing codemodel")
         self.__error = None
         self.__build_systems = []
         try:
@@ -520,7 +674,9 @@ class CmakeConfigureCommand(ExecCommand):
                     "config": name,
                     "target": "cmake_build",
                     "working_dir": self.__unexpanded_build_folder,
-                    "generator": self.__generator}
+                    "env": self.__env}
+                if self.__generator:
+                    build_system["generator"] = self.__generator
                 targets = configuration["targets"]
                 variants = []
                 for target in targets:
@@ -535,16 +691,24 @@ class CmakeConfigureCommand(ExecCommand):
     def __handle_target(self, variants: 'List[Dict[str, Any]', config: str,
                         data: dict) -> None:
         name = data["name"]
+        log("parsing target", name, "for config", config)
         variants.append({"name": name, "build_target": name})
         if data["type"] == "EXECUTABLE":
             artifacts = data["artifacts"]
-            artifacts = [artifact["path"] for artifact in artifacts]
+            name_on_disk = data["nameOnDisk"]
+            artifacts = [a["path"] for a in artifacts
+                         if a["path"].endswith(name_on_disk)]
+            if len(artifacts) == 0:
+                log("no suitable artifact for target", name)
+                return
+            if len(artifacts) > 1:
+                log("too many candidate artifacts for target", name)
+                return
             variants.append({
                 "name": "Run: " + name,
                 "build_target": name,
                 "target": "cmake_run",
-                "artifact": artifacts[0],
-                "debug": False})
+                "artifact": artifacts[0]})
             if sublime.platform() == "linux":
                 variants.append({
                     "name": "Run under GDB: " + name,
@@ -568,8 +732,14 @@ class CmakeConfigureCommand(ExecCommand):
             self.__error = None
             self.__build_systems = []
             return
+        log("writing project data")
         data = self.window.project_data()
-        data.update({"build_systems": self.__build_systems})
+
+        def is_not_generated_by_us(d):
+            return "cmake_build" != d.get("target", "foo")
+
+        bs = filter(is_not_generated_by_us, data.get("build_systems", []))
+        data.update({"build_systems": list(bs) + self.__build_systems})
         self.window.set_project_data(data)
         self.__build_systems = []
 

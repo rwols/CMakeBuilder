@@ -10,138 +10,6 @@ Run the command
 
 and look for CMakeBuilder.
 
-# WANTED: Testers for Version 2.0
-
-Version 2.0 has major differences, because we'll utilize the cmake server for
-version 2. It is currently in an alpha state. You can make Package Control
-download the alpha version by opening the User settings of Package Control and
-adding the following JSON list at the top-level JSON dictionary:
-
-```javascript
-  "install_prereleases":
-  [
-    "CMakeBuilder"
-  ],
-```
-
-The alpha version should work out-of-the-box for OSX and Linux, but is not
-recommended for Windows users at this point. I would appreciate it if you report
-any issues that you may find.
-
-# Major Changes Between V1 and V2
-
-Version 2 of CMakeBuilder has cmake-server functionality. There are some major
-changes in how you specify your cmake dict in your project settings. **Please
-read the documentation for version 2.0**.
-
-## Version 2.0
-
-Version 2.0 has server functionality. You need at least CMake 3.7 for this.
-What follows is the documentation for version 2.0.0 and higher.
-
-## TL;DR
-
-1. Open a `.sublime-project`.
-
-2. Add this to the project file in your `"settings"`:
-
-    ```javascript
-    "cmake":
-    {
-      "schemes":
-      [
-        {
-          "name": "Debug",
-          // this assumes your project file is at the root of your project
-          // folder. If it's not, try using ${folder} instead of ${project_path}
-          "build_folder": "${project_path}/build"
-        }
-      ]
-    }
-    ```
-
-3. Save your project, and *open it if you haven't already*. So, from the
-   command-line you would do `subl path/to/projectfile.sublime-project` to open
-   your project.
-
-4. You will be presented with a quick-panel that asks you to select the CMake
-   generator. Choose one.
-
-5. CMakeBuilder will start configuring your CMake project. Look at Sublime's
-   status bar to see its progress going from 0% to 100%.
-
-6. Once the project is configured, select the CMakeBuilder build system in
-   Tools -> Build Systems -> CMakeBuilder.
-
-7. Press CTRL+B to build.
-
-### The CMake Dictionary Version 2.0.0 and Higher
-
-By "CMake dictionary" we mean the JSON dictionary that you define in your
-`"settings"` of your sublime project file with key `"cmake"`. The CMake
-dictionary accepts the following keys:
-
-* `schemes` [required]
-
-  A JSON-list of JSON-dictionaries that define your possible *schemes*.
-  A *scheme* is our way to organize Debug/Release/MinSizeRel builds etc.
-
-Each *scheme* is required to be a JSON-dictionary. It's possible keys are:
-
-* `name` [required]
-
-  A string that represents this scheme. For instance, "Debug" or "Release".
-
-* `build_folder` [required]
-
-  A string pointing to the directory where you want to build the project. A
-  good first choice is `${project_path}/build`.
-
-* `command_line_overrides` [optional]
-
-  A dictionary where each value is either a string or a boolean. The key-value
-  pairs are passed to the CMake invocation when you run `cmake_configure` as
-  `-D` options. For example, if you have the key-value pair `"MY_VAR": "BLOB"`
-  in the dictionary, the CMake invocation will contain `-DMY_VAR=BLOB`. Boolean
-  values are converted to `ON` or `OFF`. For instance, if you have the key-value
-  pair `"BUILD_SHARED_LIBS": true`in the dictionary, the CMake invocation will
-  contain `-DBUILD_SHARED_LIBS=ON`.
-
-## Example Project File for Version 2.0.0 and Higher
-
-Here is an example Sublime project to get you started.
-
-```javascript
-{
-    "folders":
-    [
-        {
-            "path": "."
-        }
-    ],
-    "settings":
-    {
-        "cmake":
-        {
-            "schemes":
-            [
-                {
-                    "name": "Debug",
-                    "build_folder": "${project_path}/build/debug",
-                    "command_line_overrides":
-                    {
-                        "BUILD_SHARED_LIBS": true,
-                        "CMAKE_BUILD_TYPE": "Debug",
-                        "CMAKE_EXPORT_COMPILE_COMMANDS": true
-                    }
-                }
-            ]
-        }
-    }
-}
-
-```
-
 ## Version 1.0.1 and Lower
 
 Version 1.0.1 and lower do not have server functionality. What follows is the
@@ -156,54 +24,42 @@ documentation for version 1.0.1 and lower.
     ```javascript
     "cmake":
     {
-       "build_folder": "${project_path}/build"
+       "build_folder": "$folder/build"
     }
     ```
 
-3. Save your project. This will trigger CMakeBuilder to configure your project.
-   If nothing happens, you can also run the command "CMakeBuilder: Configure"
-   from the command palette.
+3. Run the command "CMakeBuilder: Configure" from the command palette.
 
-4. Check out your new build system in your `.sublime-project`. If no new build
-   system was created, you can also run the command "CMakeBuilder: Write Build
-   Targets to Sublime Project File" from the command palette.
+4. Check out your new build system in your `.sublime-project`.
 
 5. Press <kbd>CTRL</kbd> + <kbd>B</kbd> or <kbd>⌘</kbd> + <kbd>B</kbd>.
 
-6. Hit <kbd>F4</kbd> to jump to errors and/or warnings. Now you're programming
-   with CMakeBuilder 🕺.
+6. Hit <kbd>F4</kbd> to jump to errors and/or warnings.
 
 ## Reference
 
-### The CMake Dictionary Version 1.0.1 and Lower
+### The CMake Dictionary
 
 By "CMake dictionary" we mean the JSON dictionary that you define in your
 `"settings"` of your sublime project file with key `"cmake"`. The CMake
 dictionary accepts the following keys:
 
-* `build_folder` [required]
+* `build_folder` [required string]
 
   A string pointing to the directory where you want to build the project. A
-  good first choice is `${project_path}/build`.
+  good first choice is `$folder/build`.
 
-* `command_line_overrides` [optional]
+* `command_line_overrides` [optional dictionary]
 
   A dictionary where each value is either a string or a boolean. The key-value
   pairs are passed to the CMake invocation when you run `cmake_configure` as
   `-D` options. For example, if you have the key-value pair `"MY_VAR": "BLOB"`
-  in the dictionary, the CMake invocation will contain `-DMY_VAR=BLOB`. Boolean
+  in the dictionary, the CMake invocation will contain `-D MY_VAR=BLOB`. Boolean
   values are converted to `ON` or `OFF`. For instance, if you have the key-value
   pair `"BUILD_SHARED_LIBS": true`in the dictionary, the CMake invocation will
-  contain `-DBUILD_SHARED_LIBS=ON`.
+  contain `-D BUILD_SHARED_LIBS=ON`.
 
-* `filter_targets` [optional]
-
-  A JSON list consisting of strings. Each build target is tested against all of
-  the items in this list. If any of the strings in this list is in the string
-  representation of the target, the target will be added to the sublime build
-  system.
-
-* `generator` [optional]
+* `generator` [optional string]
 
   A JSON string specifying the CMake generator.
 
@@ -217,25 +73,20 @@ dictionary accepts the following keys:
     If no generator is specified on osx, "Unix Makefiles" is the default
     generator. For "Ninja", you must have ninja installed. Install it with apt.
 
-  * Available generators for windows: "Ninja", "NMake Makefiles" and
-    "Visual Studio".
+  * Available generators for windows: "Ninja" and "Visual Studio".
 
     If no generator is specified on windows, "Visual Studio" is the default
-    generator. For both "Visual Studio" and "NMake Makefiles", you need
-    Microsoft Visual Studio C++. The latest version of Visual Studio is searched
-    for.
+    generator. You need Microsoft Visual Studio C++ in order to configure your
+    project wether you're using Ninja or Visual Studio.
 
-    **Note**: If you find that the output of the NMake generator is garbled with
-    color escape codes, you can try to use `"CMAKE_COLOR_MAKEFILE": false` in
-    your `command_line_overrides` dictionary.
 
-* `root_folder` [optional]
+* `root_folder` [optional string]
 
   The directory where the root CMakeLists.txt file resides. If this key is not
   present, the directory where the sublime project file is located is assumed to
   have the root CMakeLists.txt file.
 
-* `env` [optional]
+* `env` [optional dictionary]
 
   This is a dict of key-value pairs of strings. Place your environment
   variables at configure time in here. For example, to select clang as
@@ -243,39 +94,26 @@ dictionary accepts the following keys:
 
       "env": { "CC": "clang", "CXX": "clang++" }
 
-* `configurations` [optional] [ONLY FOR WINDOWS]
+* `platform` [optional string]
 
-  This key is only relevant for the Visual Studio generator (see `generator`).
-  This shall be a JSON list of strings defining the desired  configurations. For
-  instance, `"Debug"` and `"Release"`. If omitted, the  default target is built,
-  which would be Debug.
+  For generators that support a platform argument. In the case of this plugin
+  that would be Visual Studio. In practise, set this to "x64" to build 64-bit
+  binaries instead of the default 32-bit. This is the `-A` argument passed to
+  CMake.
 
-* `target_architecture` [optional] [ONLY FOR WINDOWS]
+* `toolset` [optional dictionary]
 
-  This must be a string with any one of these three values: `"x86"`, `"amd64"`
-  or `"arm"`. What this does is it will call the `vcvarsall.bat` file in the
-  correct places. What this means in practise is that if you want to build 64
-  bit binaries, you have to set this value to `"amd64"`. For 32 bit binaries,
-  you can omit this key altogether. Note for advanced users: CMakeBuilder will
-  automatically translate the given argument to the correct argument for
-  `vcvarsall.bat`.
-  **Note**: If you're using the "NMake Makefiles" generator, you're out of luck.
-  This generator refuses to build for anything other than x86 it seems. Consider
-  switching to Ninja if you want a fast bare-bones build system.
-
-* `visual_studio_versions` [optional] [ONLY FOR WINDOWS]
-
-  This must be a list of numbers specifying the preferred versions of Visual
-  Studio to look for. For instance, setting this to `[ 15, 14 ]`, CMakeBuilder
-  will first look for Visual Studio 15 2017, and if that can't be found, it will
-  look for Visual Studio 14 2015. Obviously, this is only applicable when your
-  generator is equal to `"Visual Studio"`.
+  For generators that support a toolset argument. In the case of this plugin
+  that would be Visual Studio. In practise, set this to `{ "host": "x64" }` to
+  use the 64-bit compiler instead of the 32-bit compiler. This is the `-T`
+  argument passed to CMake. As in the case of `command_line_overrides`, the
+  dictionary is converted into a string as in `key1=value1;key2=value2`.
 
 Any key may be overridden by a platform-specific override. The platform keys
 are one of `"linux"`, `"osx"` or `"windows"`. For an example on how this works,
 see below.
 
-## Example Project File for Version 1.0.1 and Lower
+## Example Project File
 
 Here is an example Sublime project to get you started.
 
@@ -291,7 +129,7 @@ Here is an example Sublime project to get you started.
     {
         "cmake":
         {
-            "build_folder": "${project_path}/build",
+            "build_folder": "$folder/build",
             "command_line_overrides":
             {
                 "BUILD_SHARED_LIBS": true,
@@ -301,11 +139,9 @@ Here is an example Sublime project to get you started.
             "generator": "Unix Makefiles",
             "windows":
             {
-                "generator": "Visual Studio",
-                "configurations":
-                [
-                    "Debug"
-                ]
+                "generator": "Visual Studio 15 2017",
+                "platform": "x64",
+                "toolset": { "host": "x64" }
             }
         }
     }
@@ -320,35 +156,18 @@ Here is an example Sublime project to get you started.
 * `cmake_configure`, arguments: `None`.
 * `cmake_diagnose`, arguments: `None`.
 * `cmake_open_build_folder`, arguments: `None`.
-* `cmake_run_ctest`, arguments: `{ test_framework : str }`
-* `cmake_write_build_targets`, arguments: `None`.
-* `cmake_new_project`, arguments: `None`.
 
 ### Available Commands in the Command Palette
 
-* `CMakeBuilder: Browse Build Folder...`
 * `CMakeBuilder: Clear Cache`
 * `CMakeBuilder: Configure`
-* `CMakeBuilder: Diagnose (What Should I Do?)`
-* `CMakeBuilder: Run CTest`
-* `CMakeBuilder: Write Build Targets To Sublime Project File`
-* `CMakeBuilder: New Project`
+* `CMakeBuilder: Diagnose`
+* `CMakeBuilder: Browse Build Folder...`
 
 All commands are accessible via both the command palette as well as the tools
 menu at the top of the window.
 
 ### Available Settings
-
-* `configure_on_save` : JSON bool
-
-  If true, will run the `cmake_configure` command whenever you save a
-  CMakeLists.txt file or CMakeCache.txt file.
-
-* `write_build_targets_after_successful_configure` : JSON bool
-
-  If true, will run
-  the command `cmake_write_build_targets` after the command `cmake_configure`
-  finishes with exit status 0.
 
 * `silence_developer_warnings` : JSON bool
 
@@ -365,36 +184,6 @@ menu at the top of the window.
   Command line arguments passed to the CTest invocation when you run
   `cmake_run_ctest`.
 
-* `generated_name_for_build_system` : JSON string
-
-  The name for the generated build system when you run
-  `cmake_write_build_targets`. Can have arbitrary snippet-like variables.
-
-## How Do I Manage Cross-Platform Project Files?
-
-By default, the name of the generated build system is the name of your project,
-followed by the platform in parentheses. Thus, multiple build systems may
-coexist in a single project file.
-
-## Keybindings
-
-There are no default keybindings. You can create them yourself. The relevant
-commands are
-
-* `cmake_configure`,
-* `cmake_write_build_targets` and
-* `cmake_run_ctest`.
-
-## Extra Goodies
-
-### Project Template
-You can run the command
-
-    CMakeBuilder: New Project
-
-from the tools menu or from the command palette to create a new template
-project.
-
 ### Clearing the cache
 To force CMake files re-generation run
 
@@ -404,17 +193,10 @@ and then run
 
     CMakeBuilder: Configure
 
-or you can do both in one go with
-
-    CMakeBuilder: Clear Cache and Configure
-
-but be aware that this does not ask for confirmation for the deletion of the
-cache files.
-
 ### Diagnostics/Help
 If you get stuck and don't know what to do, try running
 
-    CMakeBuilder: Diagnose (What Should I Do?)
+    CMakeBuilder: Diagnose
 
 ### Tools Menu
 All commands are also visible in the Tools menu under "CMakeBuilder".
@@ -423,20 +205,11 @@ All commands are also visible in the Tools menu under "CMakeBuilder".
 
 ### Running unit tests with CTest
 If you have unit tests configured with the [add_test][2] function of CMake, then
-you can run those with the command
+you can run those with the "ctest" build variant.
 
-    CMakeBuilder: Run CTest
-
-By default, this command will not output what your unit test outputs, unless the
-test fails. This gives you a clean overview of what runs correctly and what is
-failing and why.
-
-### Syntax highlighting for CMakeCache.txt and the output panel
-There is syntax highlighting for the CMakeCache.txt file, for the configure
-step, and for the CTest output. You can press F4 to go to the error message in
-the configuration step and the CTest output. Goto error in the CTest output
-only works if you're using something that outputs error messages in the form
-of the boost unit test framework.
+### Syntax highlighting for various generators
+There is syntax highlighting when building a target, and a suitable line regex
+is set up for each generator so that you can press F4 to go to an error.
 
 ![9][9]   <!-- Screenshot #9  -->
 ![10][10] <!-- Screenshot #10 -->

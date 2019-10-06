@@ -1,0 +1,2 @@
+- Remove deprecated server functionality.
+- Use the new "file API", requires cmake 3.15 or newer.
