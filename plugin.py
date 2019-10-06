@@ -409,7 +409,7 @@ class CmakeBuildCommand(ExecCommand):
             working_dir=working_dir,
             env=env,
             syntax=gen.syntax(),
-            line_regex=gen.regex())
+            file_regex=gen.regex())
 
 
 class CmakeRunCommand(sublime_plugin.WindowCommand):
