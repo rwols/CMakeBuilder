@@ -1,0 +1,28 @@
+{
+    "build_systems":
+    [
+        {
+            "name": "Run mypy",
+            "cmd": ["mypy", "--pretty", "plugin.py"],
+            "file_regex": "(.*):(\\d+)(): error: (.*)",
+            "working_dir": "$folder"
+        }
+    ],
+    "folders":
+    [
+        {
+            "path": "."
+        }
+    ],
+    "settings":
+    {
+        "tab_size": 4,
+        "translate_tabs_to_spaces": true,
+        "ensure_newline_at_eof_on_save": true,
+        "trim_trailing_white_space_on_save": true,
+        "rulers":
+        [
+            80
+        ]
+    }
+}

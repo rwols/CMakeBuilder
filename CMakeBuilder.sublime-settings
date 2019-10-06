@@ -23,36 +23,6 @@
     // executable.
     "cmake_binary": "cmake",
 
-    // If there's a compile_commands.json file generated with
-    // CMAKE_EXPORT_COMPILE_COMMANDS, do we want to copy it over to the source
-    // directory? This is useful for, for instance, clangd.
-    // See: https://clang.llvm.org/extra/clangd.html
-    // See: https://clang.llvm.org/docs/JSONCompilationDatabase.html
-    // See: https://cmake.org/cmake/help/v3.5/variable/CMAKE_EXPORT_COMPILE_COMMANDS.html
-    "copy_compile_commands_to_project_path": false,
-
-    // If CMAKE_EXPORT_COMPILE_COMMANDS is ON, enhance the compilation database
-    // JSON file for header files, too. This is a heuristic and may not work in
-    // all cases.
-    "enhance_compile_commands_with_header_info": false,
-
-    // Wether to auto-update "ecc_flags_sources" upon a succesful configure
-    // to point to the compilation database.
-    "auto_update_EasyClangComplete_compile_commands_location": false,
-
-    // Wether to auto-update the "compile_commands" key upon a succesful
-    // configure to point to the compilation database.
-    "auto_update_compile_commands_project_setting": false,
-
-    // Set this to true to always open an output panel when the server starts
-    // to configure the project. If false, the output panel will only display
-    // when an error occurs.
-    "server_configure_verbose": false,
-
-    // If the command "CMakeBuilder: Configure" exited with status 0, should we
-    // write/update build targets in the sublime project file immediately?
-    "write_build_targets_after_successful_configure": true,
-
     // If true, adds the option -Wno-dev to the cmake invocation during
     // configure time.
     "silence_developer_warnings": false,
@@ -61,16 +31,21 @@
     // "CMakeBuilder: Configure"
     "always_clear_cache_before_configure": false,
 
-    // If true, every time you save a CMakeLists.txt file, or a CMakeCache.txt
-    // file, or make changes to the "cmake" dictionary in the project settings,
-    // the "Configure" command will run.
-    "configure_on_save": true,
+    // The path the CTest binary. This is used when running the "ctest" build
+    // variant in your build system.
+    "ctest_binary": "ctest",
 
     // The command line arguments that are passed to CTest when you run the
-    // command "CMakeBuilder: Run CTest".
+    // "ctest" variant.
     "ctest_command_line_args": "--output-on-failure",
 
-    // When the command "CMakeBuilder: Write Build Targets" is run, what should
-    // the name be of the generated build system?
-    "generated_name_for_build_system": "${project_base_name} (${platform})"
+    // When running an executable, use a panel instead of a view.
+    "terminus_use_panel": false,
+
+    // When running an executable, close the view/panel when the process has
+    // finished.
+    "terminus_auto_close": false,
+
+    // Print debugging info to the Sublime Text console.
+    "cmake_debug": false
 }

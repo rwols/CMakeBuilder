@@ -1,66 +1,26 @@
 [
   {
-    "command": "cmake_open_build_folder",
-    "caption": "CMakeBuilder: Browse Build Folder…"
-  },
-  {
     "command": "cmake_configure",
     "caption": "CMakeBuilder: Configure"
-  },
-  {
-    "command": "cmake_write_build_targets",
-    "caption": "CMakeBuilder: Write Build Targets to Sublime Project File"
-  },
-  {
-    "command": "cmake_edit_cache",
-    "caption": "CMakeBuilder: Edit Cache"
   },
   {
     "command": "cmake_clear_cache",
     "caption": "CMakeBuilder: Clear Cache"
   },
   {
-    "command": "cmake_run_ctest",
-    "caption": "CMakeBuilder: Run CTest",
-  },
-  {
-    "command": "cmake_new_project",
-    "caption": "CMakeBuilder: New Project"
+    "command": "cmake_open_build_folder",
+    "caption": "CMakeBuilder: Browse Build Folder..."
   },
   {
     "command": "cmake_diagnose",
-    "caption": "CMakeBuilder: Diagnose (What Should I Do?)"
+    "caption": "CMakeBuilder: Diagnose"
   },
   {
-    "command": "cmake_set_target",
-    "caption": "CMakeBuilder: Set Target"
-  },
-  {
-    "command": "cmake_reveal_include_directories",
-    "caption": "CMakeBuilder: Reveal Include Directories"
-  },
-  {
-    "command": "cmake_dump_file_system_watchers",
-    "caption": "CMakeBuilder: Dump File System Watchers"
-  },
-  {
-    "command": "cmake_dump_inputs",
-    "caption": "CMakeBuilder: Dump CMake Inputs"
-  },
-  {
-    "command": "cmake_set_global_setting",
-    "caption": "CMakeBuilder: Set Global Setting"
-  },
-  {
-    "command": "cmake_show_configure_output",
-    "caption": "CMakeBuilder: Show Configure Output"
-  },
-  {
-    "command": "cmake_switch_scheme",
-    "caption": "CMakeBuilder: Switch Scheme"
-  },
-  {
-    "command": "cmake_restart_server",
-    "caption": "CMakeBuilder: Restart Server For This Project"
+    "command": "edit_settings",
+    "caption": "Preferences: CMakeBuilder",
+    "args":
+    {
+      "base_file": "${packages}/CMakeBuilder/CMakeBuilder.sublime-settings"
+    }
   }
 ]
