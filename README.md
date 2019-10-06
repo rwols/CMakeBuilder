@@ -10,8 +10,6 @@ Run the command
 
 and look for CMakeBuilder.
 
-## Version 1.0.1 and Lower
-
 Version 1.0.1 and lower do not have server functionality. What follows is the
 documentation for version 1.0.1 and lower.
 
@@ -35,6 +33,8 @@ documentation for version 1.0.1 and lower.
 5. Press <kbd>CTRL</kbd> + <kbd>B</kbd> or <kbd>⌘</kbd> + <kbd>B</kbd>.
 
 6. Hit <kbd>F4</kbd> to jump to errors and/or warnings.
+
+See the example project below for more options.
 
 ## Reference
 
@@ -235,9 +235,6 @@ This is a reference list for the valid variable substitutions for your
 
 ## Contributing
 
-See [CONTRIBUTING.md][1]
-
-[1]: CONTRIBUTING.md
 [2]: https://cmake.org/cmake/help/latest/command/add_test.html
 [9]: https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/9.png
 [10]: https://raw.githubusercontent.com/rwols/CMakeBuilder/screenshots/screenshots/10.png
