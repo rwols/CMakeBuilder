@@ -317,7 +317,7 @@ def ensure_query_path_exists(build_folder: str) -> None:
     makedirs(file_api_query(build_folder), exist_ok=True)
 
 
-def expand(window: sublime.Window, d: dict) -> dict:
+def expand(window: sublime.Window, d) -> 'Any':
     return sublime.expand_variables(d, window.extract_variables())
 
 
@@ -341,8 +341,13 @@ def load_reply(build_folder: str) -> dict:
         return json.load(fp)
 
 
-def get_cmake_generator(cmake: dict) -> 'Optional[str]':
-    return get_cmake_value(cmake, 'generator')
+def get_cmake_generator(view: sublime.View, cmake: dict) -> 'Optional[str]':
+    key = "default_{}_generator".format(sublime.platform())
+    default_gen = get_setting(view, key)
+    if default_gen is None:
+        if sublime.platform() == "windows":
+            default_gen = get_default_vs_generator_name()
+    return get_cmake_value(cmake, 'generator', default_gen)
 
 
 def get_setting(view: sublime.View, key, default=None) -> 'Union[bool, str]':
@@ -489,50 +494,73 @@ class CtestRunCommand(ExecCommand):
             syntax=syntax("CTest"))
 
 
-class CmakeConfigureCommand(ExecCommand):
+class CmakeInfo:
+
+    __slots__ = ("unexpanded_build_folder", "build_folder", "overrides",
+                 "generator", "platform", "toolset", "env", "vs_major_version",
+                 "working_dir", "__data", "window")
 
     def __init__(self, window: sublime.Window) -> None:
-        super().__init__(window)
-        self.__cmake = None  # type: Optional[Dict[str, Any]]
-        self.__unexpanded_build_folder = None  # type: Optional[str]
-        self.__build_folder = None  # type: Optional[str]
-        self.__overrides = {}  # type: Dict[str, Any]
-        self.__generator = None  # type: Optional[str]
-        self.__response_handlers = {
-            "codemodel": self.__handle_response_codemodel,
-        }  # type: Dict[str, Callable]
-        self.__build_systems = []  # type: List[Dict[str, Any]]
-
-    def is_enabled(self) -> bool:
+        self.window = window
         try:
-            self.__cmake = self.window.project_data()["settings"]["cmake"]
-            self.__unexpanded_build_folder = self.__get_cmake_value(
-                "build_folder", None)
-            if not self.__unexpanded_build_folder:
-                raise KeyError("build_folder key not present")
-            self.__cmake = expand(self.window, self.__cmake or {})
-            self.__build_folder = self.__get_cmake_value("build_folder", None)
-            self.__overrides = self.__get_cmake_value("command_line_overrides",
-                                                      {})
-            self.__generator = get_cmake_generator(self.__cmake)
-            return True
-        except Exception as ex:
-            self.__cmake = None
-            self.__unexpanded_build_folder = None
-            self.__build_folder = None
-            self.__overrides = {}
-            self.__generator = None
-            log("Configure command not enabled:", ex)
-            return False
+            self.__data = window.project_data()["settings"]["cmake"]
+        except Exception:
+            default = get_setting(window.active_view(), "default_build_folder",
+                                  "$folder/build")
+            self.__data = {"build_folder": default}
+        self.unexpanded_build_folder = self.__get_val("build_folder")  # type: str
+        self.__data = expand(window, self.__data)
+        self.build_folder = self.__get_val("build_folder")  # type: str
+        self.working_dir = self.__get_val("root_folder")  # type: str
+        if self.working_dir:
+            self.working_dir = realpath(self.working_dir)
+        else:
+            try:
+                self.working_dir = window.extract_variables()["folder"]
+            except KeyError:
+                self.working_dir = ""
+        if not isfile(join(self.working_dir, "CMakeLists.txt")):
+            raise FileNotFoundError()
 
-    def description(self) -> str:
-        return 'Configure'
+    def __get_val(self, key: str, default: 'Any' = None) -> 'Any':
+        return get_cmake_value(self.__data, key, default)
+
+    def load(self) -> None:
+        self.overrides = self.__get_val("command_line_overrides", {})  # type: Dict[str, str]
+        self.generator = get_cmake_generator(self.window.active_view(), self.__data)
+        self.platform = self.__get_val("platform")  # type: Optional[str]
+        self.toolset = self.__get_val("toolset")  # type: Dict[str, str]
+        self.vs_major_version = self.__get_val("vs_major_version")  # type: int
+        if not self.vs_major_version:
+            versions = self.__get_val("visual_studio_versions", [])  # type: List[int]
+            if versions:
+                self.vs_major_version = versions[0]
+        self.env = self.__get_val("env", {})  # type: Dict[str, str]
+        if sublime.platform() == "windows":
+            self.__update_windows_environment(self.__data)
+
+    def to_command(self) -> 'List[str]':
+        cmd = [get_cmake_binary(), ".", "-B", self.build_folder]
+        if self.generator:
+            cmd.extend(["-G", self.generator])
+        if self.platform:
+            cmd.extend(["-A", self.platform])
+        if self.toolset:
+            cmd.append(self.__convert_toolset_to_str())
+        if self.overrides:
+            cmd.extend(self.__convert_overrides_to_list())
+        return cmd
+
+    def __str__(self) -> str:
+        return " ".join(self.to_command())
+
+    def __convert_toolset_to_str(self) -> str:
+        items = ["{}={}".format(*kv) for kv in self.toolset.items()]
+        return "-T{}".format(",".join(items))
 
     def __convert_overrides_to_list(self) -> 'List[str]':
         result = []  # type: List[str]
-        if not self.__overrides:
-            return result
-        for k, val in self.__overrides.items():
+        for k, val in self.overrides.items():
             try:
                 if isinstance(val, bool):
                     v = "ON" if val else "OFF"
@@ -546,8 +574,56 @@ class CmakeConfigureCommand(ExecCommand):
                 pass
         return result
 
+    def __update_windows_environment(self, data: 'Dict[str, Any]') -> None:
+        if not self.generator:
+            self.generator = get_default_vs_generator_name()
+        if self.toolset:
+            host_arch = self.toolset.get("host", sublime.arch())
+        else:
+            host_arch = "x64"
+        target_arch = self.platform if self.platform else "x64"
+        old_target_arch = get_cmake_value(data, "target_architecture")
+        if old_target_arch:
+            if old_target_arch == "amd64":
+                target_arch = "x64"
+            else:
+                target_arch = old_target_arch
+        host_arch = cmake_arch_to_vs_arch(host_arch)
+        target_arch = cmake_arch_to_vs_arch(target_arch)
+        if self.vs_major_version:
+            env = get_vs_env(self.vs_major_version, host_arch, target_arch)
+        else:
+            assert self.generator
+            env = get_vs_env_from_generator_str(self.generator, host_arch,
+                                                target_arch)
+        self.env.update(env)
+
+
+class CmakeConfigureCommand(ExecCommand):
+
+    def __init__(self, window: sublime.Window) -> None:
+        super().__init__(window)
+        self.info = None  # type: Optional[CmakeInfo]
+        self.__build_systems = []  # type: List[Dict[str, Any]]
+        self.__error = None  # type: Optional[Exception]
+        self.__response_handlers = {
+            "codemodel": self.__handle_response_codemodel
+        }  # type: Dict[str, Callable]
+
+    def is_enabled(self) -> bool:
+        try:
+            self.info = CmakeInfo(self.window)
+        except FileNotFoundError:
+            return False
+        return True
+
+    def description(self) -> str:
+        return 'Configure'
+
     def run(self) -> None:
-        assert self.__build_folder
+        if self.info is None:
+            assert self.is_enabled()
+        assert self.info is not None
         if capabilities("fileApi") is None:
             sublime.error_message("No support for the file API. "
                 "This was introduced in cmake version 3.15. You have "
@@ -558,111 +634,45 @@ class CmakeConfigureCommand(ExecCommand):
                        "always_clear_cache_before_configure", False):
             self.window.run_command("cmake_clear_cache",
                                     {"with_confirmation": False})
-        working_dir = self.__get_working_dir()
-        # -H and -B are undocumented arguments.
-        # See: http://stackoverflow.com/questions/31090821
-        cmd = [get_cmake_binary(), ".", "-B", self.__build_folder]
-        if self.__generator:
-            cmd.extend(["-G", self.__generator])
+        self.info.load()
+        cmd = self.info.to_command()
         if get_setting(self.window.active_view(),
                        "silence_developer_warnings", False):
             cmd.append("-Wno-dev")
-        self.__arch = self.__get_cmake_value("platform")
-        if self.__arch:
-            cmd.extend(["-A", self.__arch])
-        self.__toolset = self.__get_cmake_value("toolset")
-        if self.__toolset:
-            cmd.append(self.__convert_toolset_to_str(self.__toolset))
-        cmd.extend(self.__convert_overrides_to_list())
-        write_query(self.window, self.__build_folder)
-        self.__env = get_cmake_env(self.window)
-        if sublime.platform() == "windows":
-            if not self.__generator:
-                self.__generator = get_default_vs_generator_name()
-            if self.__toolset:
-                host_arch = self.__toolset.get("host", sublime.arch())
-            else:
-                host_arch = "x64"
-            target_arch = self.__arch if self.__arch else "x64"
-            old_target_arch = self.__get_cmake_value("target_architecture")
-            if old_target_arch:
-                if old_target_arch == "amd64":
-                    target_arch = "x64"
-                else:
-                    target_arch = old_target_arch
-            host_arch = cmake_arch_to_vs_arch(host_arch)
-            target_arch = cmake_arch_to_vs_arch(target_arch)
-            try:
-                vs_major_version = self.__get_cmake_value(
-                    "vs_major_version", None)
-                if vs_major_version:
-                    env = get_vs_env(vs_major_version, host_arch,
-                                     target_arch)
-                else:
-                    vs_versions = self.__get_cmake_value(
-                        "visual_studio_versions", [])
-                    if vs_versions:
-                        env = get_vs_env(vs_versions[0], host_arch,
-                                         target_arch)
-                    else:
-                        assert self.__generator
-                        env = get_vs_env_from_generator_str(
-                            self.__generator, host_arch, target_arch)
-            except Exception as ex:
-                sublime.error_message("Error while fetching Visual Studio "
-                                      "environment: {}".format(ex))
-                return
-            self.__env.update(env)
+        write_query(self.window, self.info.build_folder)
+        self.window.status_message("Generating build system...")
         super().run(
             cmd=cmd,
-            working_dir=working_dir,
+            working_dir=self.info.working_dir,
             file_regex=r'CMake\s(?:Error|Warning)(?:\s\(dev\))?\sat\s(.+):(\d+)()\s?\(?(\w*)\)?:',
             syntax=syntax("Configure"),
-            env=self.__env)
-
-    def __convert_toolset_to_str(self, toolset: 'Dict[str, str]') -> str:
-        if not toolset:
-            return ""
-        items = ["{}={}".format(*kv) for kv in toolset.items()]
-        return "-T{}".format(",".join(items))
-
-    def __get_cmake_value(
-        self,
-        key: str,
-        default=None
-    ) -> 'Any':
-        assert self.__cmake is not None
-        return get_cmake_value(self.__cmake, key, default)
-
-    def __get_working_dir(self):
-        working_dir = self.__get_cmake_value('root_folder')
-        if working_dir:
-            return realpath(working_dir)
-        return dirname(self.window.project_file_name())
+            env=self.info.env)
 
     def on_finished(self, proc):
         log("finished running cmake")
         super().on_finished(proc)
         exit_code = proc.exit_code()
         if exit_code == 0 or exit_code is None:
+            self.window.status_message("Translating...")
             self.__parse_file_api()
             sublime.set_timeout(self.__write_project_data, 0)
         else:
+            self.__erase_status()
             log("exited with an error")
 
     def __parse_file_api(self):
         log("parsing file api response")
-        reply = load_reply(self.__build_folder)
+        reply = load_reply(self.info.build_folder)
         responses = reply["reply"][CLIENT_STR]["query.json"]["responses"]
         for response in responses:
             try:
                 self.__handle_response(response)
             except Exception as e:
-                log(e)
+                sublime.error_message("Error parsing response: {}".format(e))
 
     def __load_reply_json_file(self, json_file: str) -> dict:
-        assert self.__build_folder
-        path = join(file_api_reply(self.__build_folder), json_file)
+        assert self.info
+        path = join(file_api_reply(self.info.build_folder), json_file)
         with open(path, "r") as fp:
             return json.load(fp)
 
@@ -679,6 +689,7 @@ class CmakeConfigureCommand(ExecCommand):
         log("parsing codemodel")
         self.__error = None
         self.__build_systems = []
+        assert self.info
         try:
             configurations = data["configurations"]
             for configuration in configurations:
@@ -691,10 +702,10 @@ class CmakeConfigureCommand(ExecCommand):
                     "name": name,
                     "config": name,
                     "target": "cmake_build",
-                    "working_dir": self.__unexpanded_build_folder,
-                    "env": self.__env}
-                if self.__generator:
-                    build_system["generator"] = self.__generator
+                    "working_dir": self.info.unexpanded_build_folder,
+                    "env": self.info.env}
+                if self.info.generator:
+                    build_system["generator"] = self.info.generator
                 targets = configuration["targets"]
                 variants = []  # type: List[Dict[str, Any]]
                 for target in targets:
@@ -747,8 +758,6 @@ class CmakeConfigureCommand(ExecCommand):
             sublime.error_message(
                 "Error while configuring project: {}".format(
                     str(self.__error)))
-            self.__error = None
-            self.__build_systems = []
             return
         log("writing project data")
         data = self.window.project_data()
@@ -759,7 +768,8 @@ class CmakeConfigureCommand(ExecCommand):
         bs = filter(is_not_generated_by_us, data.get("build_systems", []))
         data.update({"build_systems": list(bs) + self.__build_systems})
         self.window.set_project_data(data)
-        self.__build_systems = []
+        self.window.status_message(
+            "Generated build system! Select it in [Tools] -> [Build system]")
 
 
 # Note: Things in "CMakeFiles" folders get removed anyway. This is where you put
@@ -774,25 +784,21 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
 
     def is_enabled(self):
         try:
-            settings = self.window.project_data()["settings"]
-            self.__build_folder = settings["cmake"]["build_folder"]
-            self.__build_folder = expand(self.window, self.__build_folder)
-            return isfile(join(self.__build_folder, "CMakeCache.txt"))
-        except Exception as e:
-            pass
-        return False
+            self.info = CmakeInfo(self.window)
+        except FileNotFoundError:
+            return False
+        return True
 
     @classmethod
     def description(cls):
         return 'Clear Cache'
 
     def run(self, with_confirmation=True):
-        self.__build_folder = sublime.expand_variables(
-            self.window.project_data()["settings"]["cmake"]["build_folder"],
-            self.window.extract_variables())
+        assert self.info
+        build_folder = self.info.build_folder
         files_to_remove = []
         dirs_to_remove = []
-        cmakefiles_dir = os.path.join(self.__build_folder, 'CMakeFiles')
+        cmakefiles_dir = os.path.join(build_folder, 'CMakeFiles')
         if os.path.exists(cmakefiles_dir):
             for root, dirs, files in os.walk(cmakefiles_dir, topdown=False):
                 files_to_remove.extend(
@@ -802,7 +808,7 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
             dirs_to_remove.append(cmakefiles_dir)
 
         def append_file_to_remove(relative_name):
-            abs_path = os.path.join(self.__build_folder, relative_name)
+            abs_path = os.path.join(build_folder, relative_name)
             if os.path.exists(abs_path):
                 files_to_remove.append(abs_path)
 
@@ -850,92 +856,83 @@ class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
 
     def is_enabled(self) -> bool:
         try:
-            settings = self.window.project_data()["settings"]
-            self.__build_folder = settings["cmake"]["build_folder"]
-            self.__build_folder = expand(self.window, self.__build_folder)
-            assert self.__build_folder is not None
-            return isfile(join(str(self.__build_folder), "CMakeCache.txt"))
-        except Exception as e:
-            pass
-        return False
+            self.info = CmakeInfo(self.window)
+        except FileNotFoundError:
+            return False
+        return True
 
     @classmethod
     def description(cls):
         return "Browse Build Folder..."
 
     def run(self):
-        args = {"dir": realpath(self.__build_folder)}
+        if not self.info:
+            if not self.is_enabled():
+                return
+        args = {"dir": realpath(self.info.build_folder)}
         self.window.run_command("open_dir", args=args)
 
 
 class CmakeInsertDiagnosisCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
-        self.__diagnose(edit)
+        self.__table = []
+        if   not self.__check_cmake_binary():   pass
+        elif not self.__check_cmake_version():  pass
+        elif not self.__check_cmake_settings(): pass
         self.view.insert(edit, self.view.size(), tabulate(
             self.__table,
             headers=["CHECK", "VALUE", "SUGGESTION/FIX"],
             tablefmt="fancy_grid"))
 
-    def __diagnose(self, edit):
-        self.__table = []
+    def __check_cmake_binary(self) -> bool:
         self.__table.append(["cmake binary", get_cmake_binary(), ""])
+        return True
+
+    def __append(self, info: str, success: bool, suggestion: str) -> None:
+        self.__table.append([info, success, suggestion])
+
+    def __ok(self, key: str, val: 'Any') -> None:
+        self.__append(key, val, "")
+
+    def __fail(self, key: str, suggestion: str) -> None:
+        self.__append(key, False, suggestion)
+
+    def __check_cmake_version(self) -> bool:
         try:
             output = check_output(
                 "{} --version".format(get_cmake_binary())).splitlines()[0][14:]
         except Exception as e:
-            self.__table.append(["cmake present", False, "Install cmake"])
-            return
+            self.__fail("cmake present", "Install cmake")
+            return False
         else:
-            self.__table.append(["cmake version", output, ""])
-
+            self.__ok("cmake version", output)
         file_api = capabilities("fileApi")
         if file_api is not None:
-            self.__table.append(["File API", True, ""])
+            self.__ok("File API", True)
         else:
-            self.__table.append(["File API", False,
-                                "Download cmake version >= 3.15"])
-            return
+            self.__fail("File API", "Download cmake version >= 3.15")
+            return False
+        return True
 
-        project = self.view.window().project_data()
-        project_filename = self.view.window().project_file_name()
-
-        if project_filename:
-            self.__table.append(["project file", project_filename, ""])
-        else:
-            self.__table.append(["project file", "NOT FOUND",
-                                "Open a .sublime-project"])
-            return
-
-        cmake = project.get("settings", {}).get("cmake", None)
-
-        if cmake:
-            cmake = sublime.expand_variables(
-                cmake,
-                self.view.window().extract_variables())
-            build_folder = cmake['build_folder']
-            if build_folder:
-                self.__table.append(["cmake dictionary present in settings",
-                                    True, ""])
-                self.__table.append(["build folder", build_folder, ""])
-                overrides = cmake.get("command_line_overrides", None)
-                if overrides:
-                    self.__table.append(["overrides", overrides, ""])
-                cache_file = os.path.join(build_folder, 'CMakeCache.txt')
-                if os.path.isfile(cache_file):
-                    self.__table.append([
-                        "CMakeCache.txt file present", True, ""])
-                else:
-                    self.__table.append(["CMakeCache.txt file present", False,
-                                       "Run the Configure command"])
-                    return
-            else:
-                self.__table.append(["build_folder present in cmake dictionary",
-                                    False, "Write a build_folder key"])
-        else:
-            self.__table.append(["cmake dictionary present in settings", False,
-                               "Create a cmake dictionary in your settings"])
-            return
+    def __check_cmake_settings(self) -> bool:
+        try:
+            info = CmakeInfo(self.view.window())
+            info.load()
+        except FileNotFoundError:
+            self.__fail("CMakeLists.txt present",
+                        "Make sure you have a CMakeLists.txt")
+            return False
+        self.__ok("build_folder", info.build_folder)
+        self.__ok("generator", info.generator)
+        if info.platform:
+            self.__ok("platform", info.platform)
+        if info.toolset:
+            self.__ok("toolset", info.toolset)
+        if info.vs_major_version:
+            self.__ok("selected vs major ver", info.vs_major_version)
+        self.__ok("command to be run", info)
+        return True
 
 
 class CmakeDiagnoseCommand(sublime_plugin.ApplicationCommand):

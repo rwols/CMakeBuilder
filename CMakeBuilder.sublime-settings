@@ -18,6 +18,17 @@
 
     //==========================================================================
 
+    // When no build folder setting is present, use this build folder as a
+    // default. You can use variable substitutions.
+    "default_build_folder": "$folder/build",
+
+    // When no generator setting is present, use this generator as default.
+    // For windows, `null` means the most recent Visual Studio version installed
+    // on the system.
+    "default_windows_generator": null,
+    "default_osx_generator": "Unix Makefiles",
+    "default_linux_generator": "Unix Makefiles",
+
     // The path to the CMake binary. If CMake is in your PATH, then you don't
     // have to change this. Otherwise, specify the full path to the CMake
     // executable.
