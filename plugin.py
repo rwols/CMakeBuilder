@@ -6,13 +6,12 @@ from os.path import isfile
 from os.path import join
 from os.path import realpath
 from tabulate import tabulate  # dependencies.json
-import itertools
 import json
 import os
+import shlex
 import sublime  # type: ignore
 import sublime_plugin  # type: ignore
 import subprocess
-import collections
 
 try:
     from typing import Dict, List, Union, Optional, Any, Callable
@@ -422,7 +421,62 @@ class CmakeBuildCommand(ExecCommand):
             file_regex=gen.regex())
 
 
+cached_command_line_args = ""
+
+
+class CommandLineArgumentsInputHandler(sublime_plugin.TextInputHandler):
+
+    @classmethod
+    def initial_text(cls) -> str:
+        return cached_command_line_args
+
+    def confirm(self, text: str) -> None:
+        global cached_command_line_args
+        cached_command_line_args = text
+
+
 class CmakeRunCommand(sublime_plugin.WindowCommand):
+
+    def on_done(self, command_line_args: str) -> None:
+        global cached_command_line_args
+        cached_command_line_args = command_line_args
+        if sublime.platform() == "windows":
+            posix = False
+            shell = ["cmd.exe", "/C"]
+            executable = ".\\{}".format(self.artifact.replace("/", "\\"))
+            conjunction = "&"
+            debugger = []  # type: List[str]
+            if self.debug:
+                sublime.error_message(
+                    "There is no support for WinDbg.exe, because I have not "
+                    "found a need for it. If you want to use WinDbg.exe, "
+                    "consider contributing on github.com/rwols/CMakeBuilder")
+                return
+        else:
+            posix = True
+            shell = ["/bin/bash", "-c"]
+            executable = "./{}".format(self.artifact)
+            conjunction = "&&"
+            if sublime.platform() == "linux":
+                debugger = ["gdb", "-q", "--args"] if self.debug else []
+            else: # osx
+                debugger = ["lldb", "--"] if self.debug else []
+        view = self.window.active_view()
+        cmd = [get_cmake_binary(), "--build", ".", "--config", self.config,
+               "--target", self.build_target, conjunction]
+        cmd.extend(debugger)
+        cmd.append(executable)
+        cmd.extend(shlex.split(command_line_args, posix=posix))
+        cmd = shell + [" ".join(cmd)]
+        args = {
+            "title": self.build_target,
+            "env": self.env,
+            "cmd": cmd,
+            "cwd": self.working_dir,
+            "auto_close": get_setting(view, "terminus_auto_close", False)}
+        if get_setting(view, "terminus_use_panel", False):
+            args["panel_name"] = self.build_target
+        self.window.run_command("terminus_open", args)
 
     def run(
         self,
@@ -433,7 +487,6 @@ class CmakeRunCommand(sublime_plugin.WindowCommand):
         artifact: str,
         generator: 'Optional[str]' = None,
         debug=False,
-        # target_architecture: 'Optional[str]' = None
     ) -> None:
         if not Terminus:
             sublime.error_message(
@@ -441,40 +494,16 @@ class CmakeRunCommand(sublime_plugin.WindowCommand):
                 '"Terminus" package and then restart '
                 'Sublime Text'.format(artifact))
             return
-        if sublime.platform() == "windows":
-            shell = ["cmd.exe", "/C"]
-            executable = ".\\{}".format(artifact.replace("/", "\\"))
-            conjunction = "&"
-            debugger = []  # type: List[str]
-            if debug:
-                sublime.error_message(
-                    "There is no support for WinDbg.exe, because I have not "
-                    "found a need for it. If you want to use WinDbg.exe, "
-                    "consider contributing on github.com/rwols/CMakeBuilder")
-                return
-        else:
-            shell = ["/bin/bash", "-c"]
-            executable = "./{}".format(artifact)
-            conjunction = "&&"
-            if sublime.platform() == "linux":
-                debugger = ["gdb", "-q", "--args"] if debug else []
-            else: # osx
-                debugger = ["lldb", "--"] if debug else []
-        view = self.window.active_view()
-        cmd = [get_cmake_binary(), "--build", ".", "--config", config,
-               "--target", build_target, conjunction]
-        cmd.extend(debugger)
-        cmd.append(executable)
-        cmd = shell + [" ".join(cmd)]
-        args = {
-            "title": build_target,
-            "env": env,
-            "cmd": cmd,
-            "cwd": working_dir,
-            "auto_close": get_setting(view, "terminus_auto_close", False)}
-        if get_setting(view, "terminus_use_panel", False):
-            args["panel_name"] = build_target
-        self.window.run_command("terminus_open", args)
+        self.working_dir = working_dir
+        self.config = config
+        self.env = env
+        self.build_target = build_target
+        self.artifact = artifact
+        self.generator = generator
+        self.debug = debug
+        self.window.show_input_panel("Command Line Arguments: ",
+                                     cached_command_line_args, self.on_done,
+                                     None, None)
 
 
 class CtestRunCommand(ExecCommand):

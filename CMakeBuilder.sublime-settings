@@ -42,7 +42,7 @@
     // "CMakeBuilder: Configure"
     "always_clear_cache_before_configure": false,
 
-    // The path the CTest binary. This is used when running the "ctest" build
+    // The path to the CTest binary. This is used when running the "ctest" build
     // variant in your build system.
     "ctest_binary": "ctest",
 
