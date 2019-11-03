@@ -162,7 +162,6 @@ def get_vs_major_version_from_generator_str(generator_str: str) -> int:
 def cmake_arch_to_vs_arch(arch: str) -> str:
     if arch == "x64":
         return "amd64"
-
     elif arch == "x86":
         return "x86"
     elif arch == "arm":
@@ -217,11 +216,12 @@ def __reload_capabilities():
         log("running", command)
         __capabilities = json.loads(check_output(command))
     except Exception as e:
-        sublime.error_message("There was an error loading cmake's "
-                              "capabilities. Your \"cmake_binary\" setting is "
-                              "set to \"{}\". Please make sure that this "
-                              "points to a valid cmake executable."
-                              .format(cmake))
+        msg = ["There was an error loading cmake's capabilities.",
+            "Your \"cmake_binary\" setting is set to \"{}\".".format(cmake),
+            "Please make sure that this points to a valid cmake executable."]
+        if sublime.platform() == "osx":
+            msg.append("Alternatively, it is possible that your ~/.bash_profile is broken.")
+        sublime.error_message(" ".join(msg))
         log(str(e))
         __capabilities = {"error": None}
 
