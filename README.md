@@ -70,8 +70,9 @@ dictionary accepts the following keys:
 
   * Available generators for linux: "Ninja" and "Unix Makefiles".
 
-    If no generator is specified on osx, "Unix Makefiles" is the default
-    generator. For "Ninja", you must have ninja installed. Install it with apt.
+    If no generator is specified on linux, "Unix Makefiles" is the default
+    generator. For "Ninja", you must have ninja installed. Install it with your
+    package manager.
 
   * Available generators for windows: "Ninja" and "Visual Studio".
 
