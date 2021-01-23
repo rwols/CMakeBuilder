@@ -214,6 +214,16 @@ All commands are also visible in the Tools menu under "CMakeBuilder".
 If you have unit tests configured with the [add_test][2] function of CMake, then
 you can run those with the "ctest" build variant.
 
+### Using multiple cores with `make`
+This package invokes `cmake --build` to build your targets. If you are using the
+"Unix Makefiles" generator (`make`), and you want to use multiple cores, then
+you have a few options:
+
+- Don't use `make`, instead use `ninja`.
+- Put `"env": {"CMAKE_BUILD_PARALLEL_LEVEL": 8}` as an environment variable in
+  the `"cmake"` configuration.
+- Export a `MAKEFLAGS` variable in your .bashrc.
+
 ### Syntax highlighting for various generators
 There is syntax highlighting when building a target, and a suitable line regex
 is set up for each generator so that you can press F4 to go to an error.
