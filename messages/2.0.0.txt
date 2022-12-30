@@ -1,0 +1,3 @@
+* Use CMake's File API
+* Integration with Terminus
+* Integration with GDB and LLDB debuggers

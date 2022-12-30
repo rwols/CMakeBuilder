@@ -23,5 +23,7 @@
 
   "2.0.0-alpha": "messages/2.0.0-alpha.txt",
   "2.0.0-beta":  "messages/2.0.0-beta.txt",
-  "2.0.0-gamma": "messages/2.0.0-gamma.txt"
+  "2.0.0-gamma": "messages/2.0.0-gamma.txt",
+
+  "2.0.0": "messages/2.0.0.txt"
 }
