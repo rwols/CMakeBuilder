@@ -1,23 +1,18 @@
+from typing import cast
 from Default.exec import ExecCommand  # type: ignore
 from glob import iglob
 from os import makedirs
-from os.path import dirname
 from os.path import isfile
 from os.path import join
 from os.path import realpath
-from tabulate import tabulate  # dependencies.json
 import json
 import os
 import shlex
-import sublime  # type: ignore
-import sublime_plugin  # type: ignore
+import sublime
+import sublime_plugin
 import subprocess
-
-try:
-    from typing import Dict, List, Union, Optional, Any, Callable
-    assert Dict and List and Union and Optional and Any and Callable
-except ImportError:
-    pass
+import threading
+from typing import Dict, List, Union, Optional, Any, Callable, Tuple
 
 try:
     import Terminus  # type: ignore
@@ -46,13 +41,12 @@ class CheckOutputException(Exception):
 
 
 def check_output(shell_cmd, env=None, cwd=None):
+    startupinfo = None
     if sublime.platform() == "linux":
         cmd = ["/bin/bash", "-c", shell_cmd]
-        startupinfo = None
         shell = False
     elif sublime.platform() == "osx":
         cmd = ["/bin/bash", "-l", "-c", shell_cmd]
-        startupinfo = None
         shell = False
     else:  # sublime.platform() == "windows"
         cmd = shell_cmd
@@ -75,24 +69,6 @@ def check_output(shell_cmd, env=None, cwd=None):
     return outs.decode("utf-8")
 
 
-def get_environment_from_batch_command(env_cmd) -> 'Dict[str, str]':
-    shell = os.environ["COMSPEC"]
-    result = {}
-    cmd = '{shell} /s /c "{env_cmd}" & set'.format(**vars())
-    out = check_output(cmd)
-    for line in out.split("\n"):
-        if '=' not in line:
-            continue
-        line = line.strip()
-        key, value = line.split('=', 1)
-        key = key.lower()
-        if key in ("include", "lib", "libpath", "path"):
-            if value.endswith(os.pathsep):
-                value = value[:-1]
-            result[key] = value
-    return result
-
-
 def get_vcvarsall_path(desired_vs_major_version: int) -> str:
     if desired_vs_major_version < 15:
         raise ValueError("major versions less than 15 (2017) are not supported")
@@ -102,8 +78,12 @@ def get_vcvarsall_path(desired_vs_major_version: int) -> str:
         major_version = int(version.split(".")[0])
         if major_version == desired_vs_major_version:
             return join(path, "VC", "Auxiliary", "Build", "vcvarsall.bat")
-    raise RuntimeError("cannot find a visual studio SDK for major version"
-                       " {}".format(desired_vs_major_version))
+    raise RuntimeError(
+        " ".join((
+            "cannot find a visual studio SDK for major version",
+            " {}"
+        )).format(desired_vs_major_version)
+    )
 
 
 def parse_vcvarsall(vcvarsall_path: str,
@@ -171,7 +151,7 @@ def cmake_arch_to_vs_arch(arch: str) -> str:
 
 def get_all_vs_generator_names():
     result = []
-    for gen in capabilities("generators"):
+    for gen in cast(dict, capabilities("generators")):
         name = gen["name"]
         if name.startswith("Visual Studio"):
             if not name.endswith("Win64") and not name.endswith("ARM"):
@@ -187,7 +167,7 @@ def get_all_vs_installed_versions():
              "version": vs["installationVersion"]} for vs in data]
 
 
-def get_default_vs_generator_name():
+def get_default_vs_generator_name() -> str:
     names = get_all_vs_generator_names()
     f = get_vs_major_version_from_generator_str
     versions = [f(n) for n in names]
@@ -196,25 +176,37 @@ def get_default_vs_generator_name():
         for installation in installed:
             if installation["version"].startswith(str(ver)):
                 return name
+    raise RuntimeError("unable to find default MSVC generator name")
 
 
-__capabilities = None
+__capabilities: Optional[Dict[str, Any]] = None
+__capabilities_cv = threading.Condition()
 
 
-def plugin_loaded():
+def plugin_loaded() -> None:
     settings = sublime.load_settings("CMakeBuilder.sublime-settings")
     settings.add_on_change("CMakeBuilder", __reload_capabilities)
     __reload_capabilities()
 
 
-def __reload_capabilities():
+def plugin_unloaded() -> None:
+    with __capabilities_cv:
+        __capabilities = None
+
+
+def __reload_capabilities() -> None:
+    sublime.set_timeout_async(__reload_capabilities_async)
+
+def __reload_capabilities_async() -> None:
     global __capabilities
+    settings = sublime.load_settings("CMakeBuilder.sublime-settings")
+    cmake = settings.get("cmake_binary", "cmake")
     try:
-        settings = sublime.load_settings("CMakeBuilder.sublime-settings")
-        cmake = settings.get("cmake_binary", "cmake")
         command = "{} -E capabilities".format(cmake)
         log("running", command)
-        __capabilities = json.loads(check_output(command))
+        capabilities = json.loads(check_output(command))
+        with __capabilities_cv:
+            __capabilities = capabilities
     except Exception as e:
         msg = ["There was an error loading cmake's capabilities.",
             "Your \"cmake_binary\" setting is set to \"{}\".".format(cmake),
@@ -226,14 +218,15 @@ def __reload_capabilities():
         __capabilities = {"error": None}
 
 
-def capabilities(key):
+def capabilities(key) -> Union[None, List[str], str, Dict[str, str]]:
     global __capabilities
-    if __capabilities is None:
-        raise KeyError("Capabilities called too early!")
-    elif "error" in __capabilities:
-        raise ValueError("Error loading capabilities")
-    else:
-        return __capabilities.get(key, None)
+    with __capabilities_cv:
+        __capabilities_cv.wait_for(lambda: __capabilities is not None)
+        assert __capabilities is not None
+        if "error" in __capabilities:
+            raise ValueError("Error loading capabilities")
+        else:
+            return __capabilities.get(key, None)
 
 
 class Generator:
@@ -286,10 +279,10 @@ class VisualStudioGenerator(Generator):
         return r'^  (.+)\((\d+)\)(): ((?:fatal )?(?:error|warning) \w+\d\d\d\d: .*) \[.*$'
 
 
-def make_generator(build_folder: str, generator: 'Optional[str]') -> Generator:
+def make_generator(build_folder: str, generator: Optional[str]) -> Generator:
     if generator is None:
         generator = load_reply(build_folder)["cmake"]["generator"]["name"]
-    if generator == "Ninja":
+    elif generator == "Ninja":
         return NinjaGenerator()
     elif generator == "NMake Makefiles":
         return NMakeMakefilesGenerator()
@@ -340,7 +333,7 @@ def load_reply(build_folder: str) -> dict:
         return json.load(fp)
 
 
-def get_cmake_generator(view: sublime.View, cmake: dict) -> 'Optional[str]':
+def get_cmake_generator(view: sublime.View, cmake: dict) -> Optional[str]:
     key = "default_{}_generator".format(sublime.platform())
     default_gen = get_setting(view, key)
     if default_gen is None:
@@ -349,7 +342,7 @@ def get_cmake_generator(view: sublime.View, cmake: dict) -> 'Optional[str]':
     return get_cmake_value(cmake, 'generator', default_gen)
 
 
-def get_setting(view: sublime.View, key, default=None) -> 'Union[bool, str]':
+def get_setting(view: Optional[sublime.View], key, default=None) -> Union[bool, str]:
     if view:
         settings = view.settings()
         if settings.has(key):
@@ -390,13 +383,15 @@ def get_cmake_value(
         return default
 
 
-def get_cmake_env(window: sublime.Window) -> 'Dict[str, str]':
+def get_cmake_env(window: sublime.Window) -> Dict[str, str]:
     try:
         data = window.project_data()
-        cmake = data["settings"]["cmake"]
-        return get_cmake_value(cmake, "env", {})
+        if isinstance(data, dict):
+            cmake = data["settings"]["cmake"]
+            return get_cmake_value(cmake, "env", {})
     except Exception:
-        return {}
+        pass
+    return {}
 
 
 class CmakeBuildCommand(ExecCommand):
@@ -448,9 +443,12 @@ class CmakeRunCommand(sublime_plugin.WindowCommand):
             debugger = []  # type: List[str]
             if self.debug:
                 sublime.error_message(
-                    "There is no support for WinDbg.exe, because I have not "
-                    "found a need for it. If you want to use WinDbg.exe, "
-                    "consider contributing on github.com/rwols/CMakeBuilder")
+                    " ".join((
+                        "There is no support for WinDbg.exe, because I have not ",
+                        "found a need for it. If you want to use WinDbg.exe, ",
+                        "consider contributing on github.com/rwols/CMakeBuilder",
+                    ))
+                )
                 return
         else:
             posix = True
@@ -490,9 +488,11 @@ class CmakeRunCommand(sublime_plugin.WindowCommand):
     ) -> None:
         if not Terminus:
             sublime.error_message(
-                'Cannot run executable "{}": You need to install the '
-                '"Terminus" package and then restart '
-                'Sublime Text'.format(artifact))
+                " ".join((
+                    'Cannot run executable "{}": You need to install the ',
+                    '"Terminus" package and then restart ',
+                    'Sublime Text',
+                )).format(artifact))
             return
         self.working_dir = working_dir
         self.config = config
@@ -532,7 +532,9 @@ class CmakeInfo:
     def __init__(self, window: sublime.Window) -> None:
         self.window = window
         try:
-            self.__data = window.project_data()["settings"]["cmake"]
+            data = window.project_data()
+            if data is not None:
+                self.__data = data["settings"]["cmake"]
         except Exception:
             default = get_setting(window.active_view(), "default_build_folder",
                                   "$folder/build")
@@ -556,7 +558,10 @@ class CmakeInfo:
 
     def load(self) -> None:
         self.overrides = self.__get_val("command_line_overrides", {})  # type: Dict[str, str]
-        self.generator = get_cmake_generator(self.window.active_view(), self.__data)
+        view = self.window.active_view()
+        if not view:
+            raise RuntimeError("missing view")
+        self.generator = get_cmake_generator(view, self.__data)
         self.platform = self.__get_val("platform")  # type: Optional[str]
         self.toolset = self.__get_val("toolset")  # type: Dict[str, str]
         self.vs_major_version = self.__get_val("vs_major_version")  # type: int
@@ -654,10 +659,18 @@ class CmakeConfigureCommand(ExecCommand):
             assert self.is_enabled()
         assert self.info is not None
         if capabilities("fileApi") is None:
-            sublime.error_message("No support for the file API. "
-                "This was introduced in cmake version 3.15. You have "
-                "version {}. You can download a recent CMake version from "
-                "www.cmake.org".format(capabilities("version")["string"]))
+            sublime.error_message(
+                " ".join((
+                    "No support for the file API. ",
+                    "This was introduced in cmake version 3.15. You have ",
+                    "version {}. You can download a recent CMake version from ",
+                    "www.cmake.org"
+                )).format(
+                    cast(
+                        dict,
+                        capabilities("version"))["string"]
+                    )
+            )
             return
         if get_setting(self.window.active_view(),
                        "always_clear_cache_before_configure", False):
@@ -690,6 +703,8 @@ class CmakeConfigureCommand(ExecCommand):
             log("exited with an error")
 
     def __parse_file_api(self):
+        if self.info is None:
+            raise RuntimeError("missing CMakeInfo data")
         log("parsing file api response")
         reply = load_reply(self.info.build_folder)
         responses = reply["reply"][CLIENT_STR]["query.json"]["responses"]
@@ -871,12 +886,12 @@ class CmakeClearCacheCommand(sublime_plugin.WindowCommand):
         for file in files_to_remove:
             try:
                 os.remove(file)
-            except Exception as e:
+            except Exception:
                 sublime.error_message('Cannot remove '+file)
         for directory in dirs_to_remove:
             try:
                 os.rmdir(directory)
-            except Exception as e:
+            except Exception:
                 sublime.error_message('Cannot remove '+directory)
 
 
@@ -902,26 +917,61 @@ class CmakeOpenBuildFolderCommand(sublime_plugin.WindowCommand):
         self.window.run_command("open_dir", args=args)
 
 
-class CmakeInsertDiagnosisCommand(sublime_plugin.TextCommand):
+class Diag:
+    def __init__(self, check_name: str, ok_value: str, error_suggestion: str) -> None:
+        self.__check_name: str = check_name
+        self.__ok_value: str = ok_value
+        self.__error_suggestion: str = error_suggestion
 
-    def run(self, edit):
-        self.__table = []
+    def is_error(self) -> bool:
+        return not bool(self.__ok_value)
+
+    def ok_value(self) -> str:
+        return self.__ok_value
+
+    def error_suggestion(self) -> str:
+        return self.__error_suggestion
+
+    def minihtml(self) -> List[str]:
+        result = ["<div class='check'><h2>Check: ", self.__check_name, "</h2>"]
+        if self.is_error():
+            result.extend([
+                "<ul>",
+                # "<li>", "<p>Current Value: ", str(item[1]), "</p>", "</li>",
+                "<li>", "<p>Problem! Suggested Action: ", self.__error_suggestion, "</p>", "</li>",
+                "</ul>"
+            ])
+        else:
+            result.extend([
+                "<ul>",
+                "<li>", "<p>Current Value: ", self.__ok_value, "</p>", "</li>",
+                "<li>", "<p>No problem here.</p>", "</li>",
+                "</ul>"
+            ])
+        result.append("</div>")
+        return result
+
+
+class CmakeInsertDiagnosis:
+
+    def __init__(self, view: sublime.View) -> None:
+        self.view = view
+
+    def run(self):
+        self.__table: List[Diag] = []
         if   not self.__check_cmake_binary():   pass
         elif not self.__check_cmake_version():  pass
         elif not self.__check_cmake_settings(): pass
-        self.view.insert(edit, self.view.size(), tabulate(
-            self.__table,
-            headers=["CHECK", "VALUE", "SUGGESTION/FIX"],
-            tablefmt="fancy_grid"))
+        return tabulate(self.__table)
 
     def __check_cmake_binary(self) -> bool:
-        self.__table.append(["cmake binary", get_cmake_binary(), ""])
+        self.__table.append(Diag("cmake binary", get_cmake_binary(), ""))
         return True
 
-    def __append(self, info: str, success: bool, suggestion: str) -> None:
-        self.__table.append([info, success, suggestion])
+    def __append(self, info: str, val: Any, suggestion: str) -> None:
+        self.__table.append(Diag(info, str(val), suggestion))
 
-    def __ok(self, key: str, val: 'Any') -> None:
+    def __ok(self, key: str, val: Any) -> None:
         self.__append(key, val, "")
 
     def __fail(self, key: str, suggestion: str) -> None:
@@ -946,8 +996,12 @@ class CmakeInsertDiagnosisCommand(sublime_plugin.TextCommand):
 
     def __check_cmake_settings(self) -> bool:
         try:
-            info = CmakeInfo(self.view.window())
-            info.load()
+            window = self.view.window()
+            if window:
+                info = CmakeInfo(window)
+                info.load()
+            else:
+                raise RuntimeError("failed to load window")
         except FileNotFoundError:
             self.__fail("CMakeLists.txt present",
                         "Make sure you have a CMakeLists.txt")
@@ -964,22 +1018,25 @@ class CmakeInsertDiagnosisCommand(sublime_plugin.TextCommand):
         return True
 
 
-class CmakeDiagnoseCommand(sublime_plugin.ApplicationCommand):
+class CmakeDiagnoseCommand(sublime_plugin.WindowCommand):
 
     def run(self):
-        view = sublime.active_window().new_file()
-        view.set_scratch(True)
-        view.settings().set("word_wrap", False)
-        view.settings().set("line_numbers", False)
-        view.settings().set("rulers", [])
-        view.settings().set("gutter", False)
-        view.settings().set("draw_centered", True)
-        view.settings().set("syntax", syntax("Diagnosis"))
-        view.set_name("CMakeBuilder Diagnosis")
-        view.run_command("cmake_insert_diagnosis")
-        view.set_read_only(True)
-        sublime.active_window().focus_view(view)
+        view = self.window.active_view()
+        if not view:
+            return
+        self.window.new_html_sheet(
+            "CMakeBuilder Diagnosis",
+            CmakeInsertDiagnosis(view).run()
+        )
 
     @classmethod
     def description(cls):
         return "Diagnose (Help! What should I do?)"
+
+
+def tabulate(data: List[Diag]) -> str:
+    result: List[str] = []
+    result.append("<h1>Diagnosis</h1>")
+    for item in data:
+        result.extend(item.minihtml())
+    return "".join(result)
