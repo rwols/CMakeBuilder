@@ -14,11 +14,6 @@ import subprocess
 import threading
 from typing import Dict, List, Union, Optional, Any, Callable, Tuple
 
-try:
-    import Terminus  # type: ignore
-except ImportError:
-    Terminus = None
-
 
 QUERY = {
     "requests": [
@@ -486,14 +481,6 @@ class CmakeRunCommand(sublime_plugin.WindowCommand):
         generator: 'Optional[str]' = None,
         debug=False,
     ) -> None:
-        if not Terminus:
-            sublime.error_message(
-                " ".join((
-                    'Cannot run executable "{}": You need to install the ',
-                    '"Terminus" package and then restart ',
-                    'Sublime Text',
-                )).format(artifact))
-            return
         self.working_dir = working_dir
         self.config = config
         self.env = env

@@ -16,6 +16,10 @@
     "caption": "CMakeBuilder: Diagnose"
   },
   {
+    "command": "cmake_new_project",
+    "caption": "CMakeBuilder: New Project..."
+  },
+  {
     "command": "edit_settings",
     "caption": "Preferences: CMakeBuilder",
     "args":

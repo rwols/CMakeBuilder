@@ -1,0 +1,1 @@
+- Add back "CMake: New Project" command due to popular demand
