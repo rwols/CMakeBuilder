@@ -58,10 +58,10 @@ def check_output(shell_cmd, env=None, cwd=None):
         shell=shell,
         cwd=cwd)
     outs, errs = proc.communicate()
-    errs = errs.decode("utf-8")
+    errs = errs.decode("ISO-8859-1")
     if errs:
         raise CheckOutputException(errs)
-    return outs.decode("utf-8")
+    return outs.decode("ISO-8859-1")
 
 
 def get_vcvarsall_path(desired_vs_major_version: int) -> str:
